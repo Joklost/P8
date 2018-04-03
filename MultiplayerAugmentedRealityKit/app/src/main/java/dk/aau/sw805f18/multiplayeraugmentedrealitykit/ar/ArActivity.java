@@ -74,8 +74,8 @@ public class ArActivity extends AppCompatActivity implements GLSurfaceView.Rende
 
     @SuppressLint("ClickableViewAccessibility")
     @Override
-    public void onCreate(@Nullable Bundle savedInstanceState, @Nullable PersistableBundle persistentState) {
-        super.onCreate(savedInstanceState, persistentState);
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_ar);
         surfaceView = findViewById(R.id.surfaceview);

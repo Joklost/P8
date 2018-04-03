@@ -30,6 +30,11 @@
             tools:context="dk.aau.sw805f18.multiplayeraugmentedrealitykit.main.MainActivity"
             tools:layout_editor_absoluteY="81dp">
 
+            <Button
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:onClick="startAr" />
+
         </android.support.constraint.ConstraintLayout>
 
     </FrameLayout>
