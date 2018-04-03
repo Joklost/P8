@@ -40,7 +40,7 @@ import dk.aau.sw805f18.multiplayeraugmentedrealitykit.R;
 import dk.aau.sw805f18.multiplayeraugmentedrealitykit.common.helpers.CameraPermissionHelper;
 import dk.aau.sw805f18.multiplayeraugmentedrealitykit.common.helpers.DisplayRotationHelper;
 import dk.aau.sw805f18.multiplayeraugmentedrealitykit.common.helpers.FullScreenHelper;
-import dk.aau.sw805f18.multiplayeraugmentedrealitykit.common.helpers.ScrollMotionEvent;
+import dk.aau.sw805f18.multiplayeraugmentedrealitykit.common.helpers.gestures.Scroll;
 import dk.aau.sw805f18.multiplayeraugmentedrealitykit.common.helpers.SnackbarHelper;
 import dk.aau.sw805f18.multiplayeraugmentedrealitykit.common.helpers.GestureHelper;
 import dk.aau.sw805f18.multiplayeraugmentedrealitykit.common.rendering.BackgroundRenderer;
@@ -281,10 +281,10 @@ public class ArActivity extends AppCompatActivity implements GLSurfaceView.Rende
                 }
             }
 
-            ScrollMotionEvent scrollMotionEvent = gestureHelper.pollScrolls();
+            Scroll scroll = gestureHelper.pollScrolls();
 
-            if (scrollMotionEvent != null && camera.getTrackingState() == TrackingState.TRACKING) {
-                for (HitResult hit : frame.hitTest(scrollMotionEvent.getInitialDown())) {
+            if (scroll != null && camera.getTrackingState() == TrackingState.TRACKING) {
+                for (HitResult hit : frame.hitTest(scroll.getMotion())) {
                     Trackable trackable = hit.getTrackable();
                     if ((trackable instanceof Plane && ((Plane) trackable).isPoseInPolygon(hit.getHitPose()))
                             || (trackable instanceof Point
@@ -298,7 +298,7 @@ public class ArActivity extends AppCompatActivity implements GLSurfaceView.Rende
                             anchors.remove(0);
                         }
 
-                        for (HitResult moveHit : frame.hitTest(scrollMotionEvent.getCurrentMove())) {
+                        for (HitResult moveHit : frame.hitTest(scroll.getCurrentMove())) {
                             Trackable moveTrackable = moveHit.getTrackable();
 
                             if ((moveTrackable instanceof Plane && ((Plane) moveTrackable).isPoseInPolygon(hit.getHitPose()))
