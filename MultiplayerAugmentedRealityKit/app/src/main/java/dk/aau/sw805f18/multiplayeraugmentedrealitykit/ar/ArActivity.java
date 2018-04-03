@@ -4,11 +4,13 @@ import android.annotation.SuppressLint;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
+import android.renderscript.ScriptC;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.MotionEvent;
+import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
@@ -20,6 +22,7 @@ import com.google.ar.core.HitResult;
 import com.google.ar.core.Plane;
 import com.google.ar.core.Point;
 import com.google.ar.core.PointCloud;
+import com.google.ar.core.Pose;
 import com.google.ar.core.Session;
 import com.google.ar.core.Trackable;
 import com.google.ar.core.TrackingState;
@@ -32,6 +35,9 @@ import com.google.ar.core.exceptions.UnavailableUserDeclinedInstallationExceptio
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
@@ -40,13 +46,18 @@ import dk.aau.sw805f18.multiplayeraugmentedrealitykit.R;
 import dk.aau.sw805f18.multiplayeraugmentedrealitykit.common.helpers.CameraPermissionHelper;
 import dk.aau.sw805f18.multiplayeraugmentedrealitykit.common.helpers.DisplayRotationHelper;
 import dk.aau.sw805f18.multiplayeraugmentedrealitykit.common.helpers.FullScreenHelper;
+import dk.aau.sw805f18.multiplayeraugmentedrealitykit.common.helpers.gestures.GestureEvent;
+import dk.aau.sw805f18.multiplayeraugmentedrealitykit.common.helpers.gestures.LongPress;
 import dk.aau.sw805f18.multiplayeraugmentedrealitykit.common.helpers.gestures.Scroll;
 import dk.aau.sw805f18.multiplayeraugmentedrealitykit.common.helpers.SnackbarHelper;
 import dk.aau.sw805f18.multiplayeraugmentedrealitykit.common.helpers.GestureHelper;
+import dk.aau.sw805f18.multiplayeraugmentedrealitykit.common.helpers.gestures.Tap;
 import dk.aau.sw805f18.multiplayeraugmentedrealitykit.common.rendering.BackgroundRenderer;
 import dk.aau.sw805f18.multiplayeraugmentedrealitykit.common.rendering.ObjectRenderer;
 import dk.aau.sw805f18.multiplayeraugmentedrealitykit.common.rendering.PlaneRenderer;
 import dk.aau.sw805f18.multiplayeraugmentedrealitykit.common.rendering.PointCloudRenderer;
+
+import static dk.aau.sw805f18.multiplayeraugmentedrealitykit.R.id.textView;
 
 public class ArActivity extends AppCompatActivity implements GLSurfaceView.Renderer {
     private static final String TAG = ArActivity.class.getSimpleName();
@@ -61,8 +72,8 @@ public class ArActivity extends AppCompatActivity implements GLSurfaceView.Rende
     private DisplayRotationHelper displayRotationHelper;
     private GestureHelper gestureHelper;
 
+    // DEBUG: Used to toggle rendering planes
     private ToggleButton toggle;
-
 
     private final BackgroundRenderer backgroundRenderer = new BackgroundRenderer();
     private final ObjectRenderer virtualObject = new ObjectRenderer();
@@ -75,6 +86,8 @@ public class ArActivity extends AppCompatActivity implements GLSurfaceView.Rende
 
     // Anchors created from taps used for object placing
     private final ArrayList<Anchor> anchors = new ArrayList<>();
+
+    private Anchor selectedAnchor;
 
     @SuppressLint("ClickableViewAccessibility")
     @Override
@@ -230,6 +243,146 @@ public class ArActivity extends AppCompatActivity implements GLSurfaceView.Rende
         GLES20.glViewport(0, 0, width, height);
     }
 
+    private boolean hitsPlaneOrPoint(Trackable trackable, HitResult hit) {
+        return ((trackable instanceof Plane) && ((Plane) trackable).isPoseInPolygon(hit.getHitPose()))
+                || ((trackable instanceof Point)
+                && (((Point) trackable).getOrientationMode()
+                == Point.OrientationMode.ESTIMATED_SURFACE_NORMAL));
+    }
+
+    private float calcPoseDistance(Pose start, Pose end) {
+        float dx = start.tx() - end.tx();
+        float dy = start.ty() - end.ty();
+        float dz = start.tz() - end.tz();
+
+        // Compute the straight-line distance.
+        return (float) Math.sqrt(dx * dx + dy * dy + dz * dz);
+    }
+
+    private void setSelectedAnchor(Anchor anchor) {
+        selectedAnchor = anchor;
+        final String string;
+        if (selectedAnchor == null) {
+            string = "No anchor selected";
+        } else {
+            string = String.valueOf(selectedAnchor.getPose());
+        }
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                ((TextView) findViewById(R.id.textView)).setText(string);
+            }
+        });
+    }
+
+    private void handleTap(Tap tap, Frame frame, Camera camera) {
+        for (HitResult hit : frame.hitTest(tap.getMotion())) {
+            Trackable trackable = hit.getTrackable();
+
+            if (!hitsPlaneOrPoint(trackable, hit)) {
+                continue;
+            }
+
+            Collection<Anchor> trackableAnchors = trackable.getAnchors();
+            if (trackableAnchors.isEmpty()) {
+                continue;
+            }
+
+            Anchor closestAnchor = null;
+            float closestDistance = Float.MAX_VALUE;
+
+            for (Anchor anchor : trackableAnchors) {
+                float distance = calcPoseDistance(hit.getHitPose(), anchor.getPose());
+
+                if (distance < closestDistance) {
+                    closestAnchor = anchor;
+                    closestDistance = distance;
+                }
+
+                Log.e(TAG, "closestDistance: " + closestDistance);
+                Log.e(TAG, "anchorDistance: " + distance);
+            }
+
+            if (closestAnchor != null && closestDistance < 0.2f) {
+                setSelectedAnchor(closestAnchor);
+            } else {
+                setSelectedAnchor(null);
+            }
+        }
+    }
+
+    private void handleLongPress(LongPress longPress, Frame frame, Camera camera) {
+        for (HitResult hit : frame.hitTest(longPress.getMotion())) {
+            // Check if any plane was hit, and if it was hit inside the plane polygon
+            Trackable trackable = hit.getTrackable();
+            // Creates an anchor if a plane or an oriented point was hit.
+            if (!hitsPlaneOrPoint(trackable, hit)) {
+                continue;
+            }
+
+            // Hits are sorted by depth. Consider only closest hit on a plane or oriented point.
+            // Cap the number of objects created. This avoids overloading both the
+            // rendering system and ARCore.
+            if (anchors.size() >= 10) {
+                anchors.get(0).detach();
+                anchors.remove(0);
+            }
+
+            // Adding an Anchor tells ARCore that it should track this position in
+            // space. This anchor is created on the Plane to place the 3D model
+            // in the correct position relative both to the world and to the plane.
+            anchors.add(hit.createAnchor());
+            return;
+        }
+    }
+
+    private void handleScroll(Scroll scroll, Frame frame, Camera camera) {
+
+        for (HitResult hit : frame.hitTest(scroll.getMotion())) {
+            Trackable trackable = hit.getTrackable();
+
+            if (!hitsPlaneOrPoint(trackable, hit)) {
+                continue;
+            }
+
+            Log.e(TAG, "INITIAL DOWN: " + hit.getHitPose());
+
+            if (anchors.size() >= 1) {
+                anchors.get(0).detach();
+                anchors.remove(0);
+            }
+
+            for (HitResult moveHit : frame.hitTest(scroll.getCurrentMove())) {
+                Trackable moveTrackable = moveHit.getTrackable();
+
+                if ((moveTrackable instanceof Plane && ((Plane) moveTrackable).isPoseInPolygon(hit.getHitPose()))
+                        || (moveTrackable instanceof Point
+                        && ((Point) moveTrackable).getOrientationMode()
+                        == Point.OrientationMode.ESTIMATED_SURFACE_NORMAL)) {
+
+                    Log.e(TAG, "PLANE/POINT MOVE: " + moveHit.getHitPose());
+                    anchors.add(moveHit.createAnchor());
+                }
+
+
+            }
+        }
+    }
+
+    private void handleGesture(GestureEvent gestureEvent, Frame frame, Camera camera) {
+        if (camera.getTrackingState() != TrackingState.TRACKING) {
+            return;
+        }
+
+        if (gestureEvent instanceof Tap) {
+            handleTap((Tap) gestureEvent, frame, camera);
+        } else if (gestureEvent instanceof LongPress) {
+            handleLongPress((LongPress) gestureEvent, frame, camera);
+        } else if (gestureEvent instanceof Scroll) {
+            handleScroll((Scroll) gestureEvent, frame, camera);
+        }
+    }
+
     @Override
     public void onDrawFrame(GL10 gl) {
         // Clear screen to notify driver it should not load any pixels from previous frame.
@@ -251,69 +404,11 @@ public class ArActivity extends AppCompatActivity implements GLSurfaceView.Rende
             Frame frame = session.update();
             Camera camera = frame.getCamera();
 
-            // Handle taps. Handling only one tap per frame, as taps are usually low frequency
-            // compared to frame rate.
-
-            MotionEvent tap = gestureHelper.pollTaps();
-            if (tap != null && camera.getTrackingState() == TrackingState.TRACKING) {
-                for (HitResult hit : frame.hitTest(tap)) {
-                    // Check if any plane was hit, and if it was hit inside the plane polygon
-                    Trackable trackable = hit.getTrackable();
-                    // Creates an anchor if a plane or an oriented point was hit.
-                    if ((trackable instanceof Plane && ((Plane) trackable).isPoseInPolygon(hit.getHitPose()))
-                            || (trackable instanceof Point
-                            && ((Point) trackable).getOrientationMode()
-                            == Point.OrientationMode.ESTIMATED_SURFACE_NORMAL)) {
-                        // Hits are sorted by depth. Consider only closest hit on a plane or oriented point.
-                        // Cap the number of objects created. This avoids overloading both the
-                        // rendering system and ARCore.
-                        if (anchors.size() >= 1) {
-                            anchors.get(0).detach();
-                            anchors.remove(0);
-                        }
-
-                        // Adding an Anchor tells ARCore that it should track this position in
-                        // space. This anchor is created on the Plane to place the 3D model
-                        // in the correct position relative both to the world and to the plane.
-                        anchors.add(hit.createAnchor());
-                        break;
-                    }
-                }
-            }
-
-            Scroll scroll = gestureHelper.pollScrolls();
-
-            if (scroll != null && camera.getTrackingState() == TrackingState.TRACKING) {
-                for (HitResult hit : frame.hitTest(scroll.getMotion())) {
-                    Trackable trackable = hit.getTrackable();
-                    if ((trackable instanceof Plane && ((Plane) trackable).isPoseInPolygon(hit.getHitPose()))
-                            || (trackable instanceof Point
-                            && ((Point) trackable).getOrientationMode()
-                            == Point.OrientationMode.ESTIMATED_SURFACE_NORMAL)) {
-
-                        Log.e(TAG, "INITIAL DOWN: " + hit.getHitPose());
-
-                        if (anchors.size() >= 1) {
-                            anchors.get(0).detach();
-                            anchors.remove(0);
-                        }
-
-                        for (HitResult moveHit : frame.hitTest(scroll.getCurrentMove())) {
-                            Trackable moveTrackable = moveHit.getTrackable();
-
-                            if ((moveTrackable instanceof Plane && ((Plane) moveTrackable).isPoseInPolygon(hit.getHitPose()))
-                                    || (moveTrackable instanceof Point
-                                    && ((Point) moveTrackable).getOrientationMode()
-                                    == Point.OrientationMode.ESTIMATED_SURFACE_NORMAL)) {
-
-                                Log.e(TAG, "PLANE/POINT MOVE: " + moveHit.getHitPose());
-                                anchors.add(moveHit.createAnchor());
-                            }
-
-                        }
-
-                    }
-                }
+            // Handle gestures. Handling only one gesture per frame, as gestures are usually low
+            // frequency, compared to frame rate.
+            GestureEvent gestureEvent = gestureHelper.poll();
+            if (gestureEvent != null) {
+                handleGesture(gestureEvent, frame, camera);
             }
 
             // Draw background.
