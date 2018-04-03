@@ -4,13 +4,13 @@ import android.annotation.SuppressLint;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
-import android.os.PersistableBundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.widget.Toast;
+import android.widget.ToggleButton;
 
 import com.google.ar.core.Anchor;
 import com.google.ar.core.ArCoreApk;
@@ -40,8 +40,9 @@ import dk.aau.sw805f18.multiplayeraugmentedrealitykit.R;
 import dk.aau.sw805f18.multiplayeraugmentedrealitykit.common.helpers.CameraPermissionHelper;
 import dk.aau.sw805f18.multiplayeraugmentedrealitykit.common.helpers.DisplayRotationHelper;
 import dk.aau.sw805f18.multiplayeraugmentedrealitykit.common.helpers.FullScreenHelper;
+import dk.aau.sw805f18.multiplayeraugmentedrealitykit.common.helpers.ScrollMotionEvent;
 import dk.aau.sw805f18.multiplayeraugmentedrealitykit.common.helpers.SnackbarHelper;
-import dk.aau.sw805f18.multiplayeraugmentedrealitykit.common.helpers.TapHelper;
+import dk.aau.sw805f18.multiplayeraugmentedrealitykit.common.helpers.GestureHelper;
 import dk.aau.sw805f18.multiplayeraugmentedrealitykit.common.rendering.BackgroundRenderer;
 import dk.aau.sw805f18.multiplayeraugmentedrealitykit.common.rendering.ObjectRenderer;
 import dk.aau.sw805f18.multiplayeraugmentedrealitykit.common.rendering.PlaneRenderer;
@@ -58,7 +59,10 @@ public class ArActivity extends AppCompatActivity implements GLSurfaceView.Rende
     private Session session;
     private final SnackbarHelper messageSnackbarHelper = new SnackbarHelper();
     private DisplayRotationHelper displayRotationHelper;
-    private TapHelper tapHelper;
+    private GestureHelper gestureHelper;
+
+    private ToggleButton toggle;
+
 
     private final BackgroundRenderer backgroundRenderer = new BackgroundRenderer();
     private final ObjectRenderer virtualObject = new ObjectRenderer();
@@ -81,9 +85,11 @@ public class ArActivity extends AppCompatActivity implements GLSurfaceView.Rende
         surfaceView = findViewById(R.id.surfaceview);
         displayRotationHelper = new DisplayRotationHelper(this);
 
+        toggle = findViewById(R.id.toggleButton);
+
         // set up tap listener
-        tapHelper = new TapHelper(this);
-        surfaceView.setOnTouchListener(tapHelper);
+        gestureHelper = new GestureHelper(this);
+        surfaceView.setOnTouchListener(gestureHelper);
 
         // set up renderer
         surfaceView.setPreserveEGLContextOnPause(true);
@@ -248,7 +254,7 @@ public class ArActivity extends AppCompatActivity implements GLSurfaceView.Rende
             // Handle taps. Handling only one tap per frame, as taps are usually low frequency
             // compared to frame rate.
 
-            MotionEvent tap = tapHelper.poll();
+            MotionEvent tap = gestureHelper.pollTaps();
             if (tap != null && camera.getTrackingState() == TrackingState.TRACKING) {
                 for (HitResult hit : frame.hitTest(tap)) {
                     // Check if any plane was hit, and if it was hit inside the plane polygon
@@ -265,11 +271,47 @@ public class ArActivity extends AppCompatActivity implements GLSurfaceView.Rende
                             anchors.get(0).detach();
                             anchors.remove(0);
                         }
+
                         // Adding an Anchor tells ARCore that it should track this position in
                         // space. This anchor is created on the Plane to place the 3D model
                         // in the correct position relative both to the world and to the plane.
                         anchors.add(hit.createAnchor());
                         break;
+                    }
+                }
+            }
+
+            ScrollMotionEvent scrollMotionEvent = gestureHelper.pollScrolls();
+
+            if (scrollMotionEvent != null && camera.getTrackingState() == TrackingState.TRACKING) {
+                for (HitResult hit : frame.hitTest(scrollMotionEvent.getInitialDown())) {
+                    Trackable trackable = hit.getTrackable();
+                    if ((trackable instanceof Plane && ((Plane) trackable).isPoseInPolygon(hit.getHitPose()))
+                            || (trackable instanceof Point
+                            && ((Point) trackable).getOrientationMode()
+                            == Point.OrientationMode.ESTIMATED_SURFACE_NORMAL)) {
+
+                        Log.e(TAG, "INITIAL DOWN: " + hit.getHitPose());
+
+                        if (anchors.size() >= 1) {
+                            anchors.get(0).detach();
+                            anchors.remove(0);
+                        }
+
+                        for (HitResult moveHit : frame.hitTest(scrollMotionEvent.getCurrentMove())) {
+                            Trackable moveTrackable = moveHit.getTrackable();
+
+                            if ((moveTrackable instanceof Plane && ((Plane) moveTrackable).isPoseInPolygon(hit.getHitPose()))
+                                    || (moveTrackable instanceof Point
+                                    && ((Point) moveTrackable).getOrientationMode()
+                                    == Point.OrientationMode.ESTIMATED_SURFACE_NORMAL)) {
+
+                                Log.e(TAG, "PLANE/POINT MOVE: " + moveHit.getHitPose());
+                                anchors.add(moveHit.createAnchor());
+                            }
+
+                        }
+
                     }
                 }
             }
@@ -317,8 +359,11 @@ public class ArActivity extends AppCompatActivity implements GLSurfaceView.Rende
             }
 
             // Visualize planes.
-            planeRenderer.drawPlanes(
-                    session.getAllTrackables(Plane.class), camera.getDisplayOrientedPose(), projmtx);
+            if (toggle.isChecked()) {
+                planeRenderer.drawPlanes(
+                        session.getAllTrackables(Plane.class), camera.getDisplayOrientedPose(), projmtx);
+
+            }
 
             // Visualize anchors created by touch.
             float scaleFactor = 1.0f;
