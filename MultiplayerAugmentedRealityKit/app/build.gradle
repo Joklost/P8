@@ -3,7 +3,7 @@ apply plugin: 'com.android.application'
 android {
     compileSdkVersion 27
     defaultConfig {
-        applicationId "dk.aau.sw805f18.multiplayeraugmentedrealitykit"
+        applicationId "dk.aau.sw805f18.ar"
         minSdkVersion 24
         targetSdkVersion 27
         versionCode 1

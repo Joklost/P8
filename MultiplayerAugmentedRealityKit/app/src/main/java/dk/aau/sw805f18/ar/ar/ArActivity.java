@@ -57,8 +57,6 @@ import dk.aau.sw805f18.ar.common.rendering.ObjectRenderer;
 import dk.aau.sw805f18.ar.common.rendering.PlaneRenderer;
 import dk.aau.sw805f18.ar.common.rendering.PointCloudRenderer;
 
-import static dk.aau.sw805f18.ar.R.id.textView;
-
 public class ArActivity extends AppCompatActivity implements GLSurfaceView.Renderer {
     private static final String TAG = ArActivity.class.getSimpleName();
 
