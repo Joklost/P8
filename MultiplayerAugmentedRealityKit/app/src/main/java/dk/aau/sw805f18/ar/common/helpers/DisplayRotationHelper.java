@@ -1,4 +1,4 @@
-package dk.aau.sw805f18.multiplayeraugmentedrealitykit.common.helpers;
+package dk.aau.sw805f18.ar.common.helpers;
 
 import android.content.Context;
 import android.hardware.display.DisplayManager;

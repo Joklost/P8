@@ -27,7 +27,7 @@
             xmlns:tools="http://schemas.android.com/tools"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            tools:context="dk.aau.sw805f18.multiplayeraugmentedrealitykit.main.MainActivity"
+            tools:context="dk.aau.sw805f18.ar.main.MainActivity"
             tools:layout_editor_absoluteY="81dp">
 
             <Button

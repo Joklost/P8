@@ -1,4 +1,4 @@
-package dk.aau.sw805f18.multiplayeraugmentedrealitykit.common.rendering;
+package dk.aau.sw805f18.ar.common.rendering;
 
 import android.content.Context;
 import android.graphics.Bitmap;

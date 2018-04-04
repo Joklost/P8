@@ -1,4 +1,4 @@
-package dk.aau.sw805f18.multiplayeraugmentedrealitykit.common.helpers.gestures;
+package dk.aau.sw805f18.ar.common.helpers.gestures;
 
 import android.view.MotionEvent;
 

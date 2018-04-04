@@ -1,4 +1,4 @@
-package dk.aau.sw805f18.multiplayeraugmentedrealitykit;
+package dk.aau.sw805f18.ar;
 
 import org.junit.Test;
 

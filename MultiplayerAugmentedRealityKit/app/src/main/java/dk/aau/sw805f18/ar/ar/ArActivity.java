@@ -1,4 +1,4 @@
-package dk.aau.sw805f18.multiplayeraugmentedrealitykit.ar;
+package dk.aau.sw805f18.ar.ar;
 
 import android.annotation.SuppressLint;
 import android.opengl.GLES20;
@@ -42,22 +42,22 @@ import java.util.List;
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
-import dk.aau.sw805f18.multiplayeraugmentedrealitykit.R;
-import dk.aau.sw805f18.multiplayeraugmentedrealitykit.common.helpers.CameraPermissionHelper;
-import dk.aau.sw805f18.multiplayeraugmentedrealitykit.common.helpers.DisplayRotationHelper;
-import dk.aau.sw805f18.multiplayeraugmentedrealitykit.common.helpers.FullScreenHelper;
-import dk.aau.sw805f18.multiplayeraugmentedrealitykit.common.helpers.gestures.GestureEvent;
-import dk.aau.sw805f18.multiplayeraugmentedrealitykit.common.helpers.gestures.LongPress;
-import dk.aau.sw805f18.multiplayeraugmentedrealitykit.common.helpers.gestures.Scroll;
-import dk.aau.sw805f18.multiplayeraugmentedrealitykit.common.helpers.SnackbarHelper;
-import dk.aau.sw805f18.multiplayeraugmentedrealitykit.common.helpers.GestureHelper;
-import dk.aau.sw805f18.multiplayeraugmentedrealitykit.common.helpers.gestures.Tap;
-import dk.aau.sw805f18.multiplayeraugmentedrealitykit.common.rendering.BackgroundRenderer;
-import dk.aau.sw805f18.multiplayeraugmentedrealitykit.common.rendering.ObjectRenderer;
-import dk.aau.sw805f18.multiplayeraugmentedrealitykit.common.rendering.PlaneRenderer;
-import dk.aau.sw805f18.multiplayeraugmentedrealitykit.common.rendering.PointCloudRenderer;
+import dk.aau.sw805f18.ar.R;
+import dk.aau.sw805f18.ar.common.helpers.CameraPermissionHelper;
+import dk.aau.sw805f18.ar.common.helpers.DisplayRotationHelper;
+import dk.aau.sw805f18.ar.common.helpers.FullScreenHelper;
+import dk.aau.sw805f18.ar.common.helpers.gestures.GestureEvent;
+import dk.aau.sw805f18.ar.common.helpers.gestures.LongPress;
+import dk.aau.sw805f18.ar.common.helpers.gestures.Scroll;
+import dk.aau.sw805f18.ar.common.helpers.SnackbarHelper;
+import dk.aau.sw805f18.ar.common.helpers.GestureHelper;
+import dk.aau.sw805f18.ar.common.helpers.gestures.Tap;
+import dk.aau.sw805f18.ar.common.rendering.BackgroundRenderer;
+import dk.aau.sw805f18.ar.common.rendering.ObjectRenderer;
+import dk.aau.sw805f18.ar.common.rendering.PlaneRenderer;
+import dk.aau.sw805f18.ar.common.rendering.PointCloudRenderer;
 
-import static dk.aau.sw805f18.multiplayeraugmentedrealitykit.R.id.textView;
+import static dk.aau.sw805f18.ar.R.id.textView;
 
 public class ArActivity extends AppCompatActivity implements GLSurfaceView.Renderer {
     private static final String TAG = ArActivity.class.getSimpleName();
