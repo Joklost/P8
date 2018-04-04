@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">M.A.R.K</string>
+    <string name="model_dialog_title">Pick a model</string>
 </resources>
