@@ -4,4 +4,5 @@
     <string name="no_object_selected">No object selected</string>
     <string name="ar_nav_drawer">AR</string>
     <string name="map_nav_drawer">Map</string>
+    <string name="double_press_back_exit">Press BACK again to exit</string>
 </resources>
