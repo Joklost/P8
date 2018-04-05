@@ -5,4 +5,11 @@
     <string name="ar_nav_drawer">AR</string>
     <string name="map_nav_drawer">Map</string>
     <string name="double_press_back_exit">Press BACK again to exit</string>
+    <string name="find_course_title">Find Courses</string>
+    <string name="course_id">Enter Course ID</string>
+    <string name="course_nearby">Find nearby courses…</string>
+    <string name="course_id_ok">Join</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>
