@@ -8,10 +8,10 @@
     android:orientation="vertical"
     android:gravity="bottom">
 
-    <TextView
-        android:id="@+id/nav_header_title"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textAppearance="@style/TextAppearance.AppCompat.Body1"/>
+    <!--<TextView-->
+        <!--android:id="@+id/nav_header_title"-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:textAppearance="@style/TextAppearance.AppCompat.Body1"/>-->
 
 </LinearLayout>

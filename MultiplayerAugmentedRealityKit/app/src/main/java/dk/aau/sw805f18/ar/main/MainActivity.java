@@ -29,22 +29,19 @@ import dk.aau.sw805f18.ar.ar.ArActivity;
 public class MainActivity extends AppCompatActivity {
     private boolean mDoubleBackToExitPressedOnce = false;
     private DrawerLayout mDrawerLayout;
-    private TextView mNavHeader;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         FindCourseFragment courseFragment = new FindCourseFragment();
-
         setContentView(R.layout.activity_main);
-        mNavHeader = findViewById(R.id.nav_header_title);
-        setHeader();
 
         FragmentTransaction fragmentTransactorInitial = getSupportFragmentManager().beginTransaction();
         fragmentTransactorInitial.add(R.id.fragment_container, courseFragment, "COURSE_FRAG").commit();
         mDrawerLayout = findViewById(R.id.drawer_layout);
 
         NavigationView navigationView = findViewById(R.id.nav_view);
+
         navigationView.setNavigationItemSelectedListener(
                 new NavigationView.OnNavigationItemSelectedListener() {
                     @Override
@@ -73,7 +70,6 @@ public class MainActivity extends AppCompatActivity {
         ActionBar actionbar = getSupportActionBar();
         actionbar.setDisplayHomeAsUpEnabled(true);
         actionbar.setHomeAsUpIndicator(R.drawable.ic_menu_black_24dp);
-
     }
 
     @Override
@@ -121,16 +117,20 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setHeader() {
+        if (this.mNavHeader == null)
+            this.mNavHeader = findViewById(R.id.nav_header_title);
+
         FragmentManager fragmentManager = getSupportFragmentManager();
         int fragCount = fragmentManager.getBackStackEntryCount();
 
         if ( fragCount == 0) {
-            this.mNavHeader.setText(R.string.find_course_title);
+            mNavHeader.setText(R.string.find_course_title);
             return;
         }
 
         Fragment currentFrag = (Fragment) fragmentManager.getBackStackEntryAt(fragCount - 1);
         String tag = currentFrag.getTag();
 
+        mNavHeader.setText(R.string.map_nav_drawer);
     }
 }
