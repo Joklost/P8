@@ -13,4 +13,16 @@ public class Fling extends GestureEvent {
         this.velocityX = velocityX;
         this.velocityY = velocityY;
     }
+
+    public MotionEvent getMotionUp() {
+        return motionUp;
+    }
+
+    public float getVelocityX() {
+        return velocityX;
+    }
+
+    public float getVelocityY() {
+        return velocityY;
+    }
 }

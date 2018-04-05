@@ -44,8 +44,8 @@ public class ObjectRenderer {
     private static final float[] LIGHT_DIRECTION = new float[]{0.250f, 0.866f, 0.433f, 0.0f};
     private final float[] viewLightDirection = new float[4];
 
-    // Object vertex buffer variables.
-    private int vertexBufferId;
+    // ArObject vertex buffer variables.
+    private int mVertexBufferId;
     private int verticesBaseAddress;
     private int texCoordsBaseAddress;
     private int normalsBaseAddress;
@@ -173,7 +173,7 @@ public class ObjectRenderer {
 
         int[] buffers = new int[2];
         GLES20.glGenBuffers(2, buffers, 0);
-        vertexBufferId = buffers[0];
+        mVertexBufferId = buffers[0];
         indexBufferId = buffers[1];
 
         // Load vertex buffer
@@ -182,7 +182,7 @@ public class ObjectRenderer {
         normalsBaseAddress = texCoordsBaseAddress + 4 * texCoords.limit();
         final int totalBytes = normalsBaseAddress + 4 * normals.limit();
 
-        GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, vertexBufferId);
+        GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, mVertexBufferId);
         GLES20.glBufferData(GLES20.GL_ARRAY_BUFFER, totalBytes, null, GLES20.GL_STATIC_DRAW);
         GLES20.glBufferSubData(
                 GLES20.GL_ARRAY_BUFFER, verticesBaseAddress, 4 * vertices.limit(), vertices);
@@ -214,6 +214,7 @@ public class ObjectRenderer {
         scaleMatrix[0] = scaleFactor;
         scaleMatrix[5] = scaleFactor;
         scaleMatrix[10] = scaleFactor;
+
         Matrix.multiplyMM(this.modelMatrix, 0, modelMatrix, 0, scaleMatrix, 0);
     }
 
@@ -262,7 +263,7 @@ public class ObjectRenderer {
         GLES20.glUniform1i(textureUniform, 0);
 
         // Set the vertex attributes.
-        GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, vertexBufferId);
+        GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, mVertexBufferId);
 
         GLES20.glVertexAttribPointer(
                 positionAttribute, COORDS_PER_VERTEX, GLES20.GL_FLOAT, false, 0, verticesBaseAddress);

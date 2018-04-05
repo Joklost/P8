@@ -53,15 +53,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
-        android:layout_marginBottom="53dp" />
-
-    <SeekBar
-        android:id="@+id/scaleBar"
-        android:layout_width="289dp"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_alignStart="@+id/rotationBar"
-        android:layout_marginBottom="87dp"
-        android:rotation="270" />
+        android:layout_marginBottom="53dp"
+        android:progressTint="@android:color/transparent"/>
 
 </RelativeLayout>
