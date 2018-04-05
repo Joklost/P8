@@ -6,6 +6,7 @@ import android.graphics.BitmapFactory;
 import android.opengl.GLES20;
 import android.opengl.GLUtils;
 import android.opengl.Matrix;
+import android.util.Log;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -52,7 +53,7 @@ public class ObjectRenderer {
     private int indexBufferId;
     private int indexCount;
 
-    private int program;
+    private int mProgram;
     private final int[] textures = new int[1];
 
     // Shader location: model view projection matrix.
@@ -79,9 +80,9 @@ public class ObjectRenderer {
     private BlendMode blendMode = null;
 
     // Temporary matrices allocated here to reduce number of allocations for each frame.
-    private final float[] modelMatrix = new float[16];
-    private final float[] modelViewMatrix = new float[16];
-    private final float[] modelViewProjectionMatrix = new float[16];
+    private final float[] mModelMatrix = new float[16];
+    private final float[] mModelViewMatrix = new float[16];
+    private final float[] mModelViewProjectionMatrix = new float[16];
 
     // Set some default material properties to use for lighting.
     private float ambient = 0.3f;
@@ -97,27 +98,27 @@ public class ObjectRenderer {
         final int vertexShader = ShaderUtil.loadGlShader(TAG, context, GLES20.GL_VERTEX_SHADER, VERTEX_SHADER_NAME);
         final int fragmentShader = ShaderUtil.loadGlShader(TAG, context, GLES20.GL_FRAGMENT_SHADER, FRAGMENT_SHADER_NAME);
 
-        program = GLES20.glCreateProgram();
-        GLES20.glAttachShader(program, vertexShader);
-        GLES20.glAttachShader(program, fragmentShader);
-        GLES20.glLinkProgram(program);
-        GLES20.glUseProgram(program);
+        mProgram = GLES20.glCreateProgram();
+        GLES20.glAttachShader(mProgram, vertexShader);
+        GLES20.glAttachShader(mProgram, fragmentShader);
+        GLES20.glLinkProgram(mProgram);
+        GLES20.glUseProgram(mProgram);
 
         ShaderUtil.checkGlError(TAG, "Program creation");
 
-        modelViewUniform = GLES20.glGetUniformLocation(program, "u_ModelView");
-        modelViewProjectionUniform = GLES20.glGetUniformLocation(program, "u_ModelViewProjection");
+        modelViewUniform = GLES20.glGetUniformLocation(mProgram, "u_ModelView");
+        modelViewProjectionUniform = GLES20.glGetUniformLocation(mProgram, "u_ModelViewProjection");
 
-        positionAttribute = GLES20.glGetAttribLocation(program, "a_Position");
-        normalAttribute = GLES20.glGetAttribLocation(program, "a_Normal");
-        texCoordAttribute = GLES20.glGetAttribLocation(program, "a_TexCoord");
+        positionAttribute = GLES20.glGetAttribLocation(mProgram, "a_Position");
+        normalAttribute = GLES20.glGetAttribLocation(mProgram, "a_Normal");
+        texCoordAttribute = GLES20.glGetAttribLocation(mProgram, "a_TexCoord");
 
-        textureUniform = GLES20.glGetUniformLocation(program, "u_Texture");
+        textureUniform = GLES20.glGetUniformLocation(mProgram, "u_Texture");
 
-        lightingParametersUniform = GLES20.glGetUniformLocation(program, "u_LightingParameters");
-        materialParametersUniform = GLES20.glGetUniformLocation(program, "u_MaterialParameters");
+        lightingParametersUniform = GLES20.glGetUniformLocation(mProgram, "u_LightingParameters");
+        materialParametersUniform = GLES20.glGetUniformLocation(mProgram, "u_MaterialParameters");
         colorCorrectionParameterUniform =
-                GLES20.glGetUniformLocation(program, "u_ColorCorrectionParameters");
+                GLES20.glGetUniformLocation(mProgram, "u_ColorCorrectionParameters");
 
         ShaderUtil.checkGlError(TAG, "Program parameters");
 
@@ -201,21 +202,26 @@ public class ObjectRenderer {
 
         ShaderUtil.checkGlError(TAG, "OBJ buffer load");
 
-        Matrix.setIdentityM(modelMatrix, 0);
+        Matrix.setIdentityM(mModelMatrix, 0);
     }
 
     public void setBlendMode(BlendMode blendMode) {
         this.blendMode = blendMode;
     }
 
-    public void updateModelMatrix(float[] modelMatrix, float scaleFactor) {
+    public void updateModelMatrix(float[] modelMatrix, float scaleFactor, float rotationAngle) {
         float[] scaleMatrix = new float[16];
+
         Matrix.setIdentityM(scaleMatrix, 0);
         scaleMatrix[0] = scaleFactor;
         scaleMatrix[5] = scaleFactor;
         scaleMatrix[10] = scaleFactor;
 
-        Matrix.multiplyMM(this.modelMatrix, 0, modelMatrix, 0, scaleMatrix, 0);
+        if (rotationAngle != -1) {
+            Matrix.rotateM(modelMatrix, 0, rotationAngle, 0f, 1f, 0f);
+        }
+
+        Matrix.multiplyMM(this.mModelMatrix, 0, modelMatrix, 0, scaleMatrix, 0);
     }
 
     public void setMaterialProperties(
@@ -232,13 +238,14 @@ public class ObjectRenderer {
 
         // Build the ModelView and ModelViewProjection matrices
         // for calculating object position and light.
-        Matrix.multiplyMM(modelViewMatrix, 0, cameraView, 0, modelMatrix, 0);
-        Matrix.multiplyMM(modelViewProjectionMatrix, 0, cameraPerspective, 0, modelViewMatrix, 0);
 
-        GLES20.glUseProgram(program);
+        Matrix.multiplyMM(mModelViewMatrix, 0, cameraView, 0, mModelMatrix, 0);
+        Matrix.multiplyMM(mModelViewProjectionMatrix, 0, cameraPerspective, 0, mModelViewMatrix, 0);
+
+        GLES20.glUseProgram(mProgram);
 
         // Set the lighting environment properties.
-        Matrix.multiplyMV(viewLightDirection, 0, modelViewMatrix, 0, LIGHT_DIRECTION, 0);
+        Matrix.multiplyMV(viewLightDirection, 0, mModelViewMatrix, 0, LIGHT_DIRECTION, 0);
         normalizeVec3(viewLightDirection);
         GLES20.glUniform4f(
                 lightingParametersUniform,
@@ -274,8 +281,8 @@ public class ObjectRenderer {
         GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, 0);
 
         // Set the ModelViewProjection matrix in the shader.
-        GLES20.glUniformMatrix4fv(modelViewUniform, 1, false, modelViewMatrix, 0);
-        GLES20.glUniformMatrix4fv(modelViewProjectionUniform, 1, false, modelViewProjectionMatrix, 0);
+        GLES20.glUniformMatrix4fv(modelViewUniform, 1, false, mModelViewMatrix, 0);
+        GLES20.glUniformMatrix4fv(modelViewProjectionUniform, 1, false, mModelViewProjectionMatrix, 0);
 
         // Enable vertex arrays
         GLES20.glEnableVertexAttribArray(positionAttribute);

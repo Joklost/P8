@@ -29,23 +29,13 @@ public class ModelDialogFragment extends DialogFragment {
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         builder.setTitle(R.string.model_dialog_title)
-                .setItems(mModels, new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int which) {
-                        ArActivity arActivity = (ArActivity) getActivity();
-                        if (arActivity != null && mHitResult != null) {
-                            arActivity.spawnObject(mHitResult, mModels[which]);
-                        }
+                .setItems(mModels, (dialog, which) -> {
+                    ArActivity arActivity = (ArActivity) getActivity();
+                    if (arActivity != null && mHitResult != null) {
+                        arActivity.spawnObject(mHitResult, mModels[which]);
                     }
                 });
         return builder.create();
-    }
-
-    public static ModelDialogFragment newInstance(int title) {
-        ModelDialogFragment frag = new ModelDialogFragment();
-        Bundle args = new Bundle();
-        args.putInt("title", title);
-        frag.setArguments(args);
-        return frag;
     }
 
     public void setHitResult(HitResult HitResult) {

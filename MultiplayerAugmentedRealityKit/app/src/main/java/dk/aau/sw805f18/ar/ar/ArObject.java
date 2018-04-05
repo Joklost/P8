@@ -1,12 +1,13 @@
 package dk.aau.sw805f18.ar.ar;
 
 import com.google.ar.core.Anchor;
+import com.google.ar.core.Pose;
 
 public class ArObject {
     private Anchor mAnchor;
     private ArModel mModel;
-    private float mRotation;
-    private float mScale;
+    private int mRotationDegree = -1;
+    private float mScale = 1.0f;
 
     ArObject(Anchor anchor, ArModel model) {
         mAnchor = anchor;
@@ -39,17 +40,6 @@ public class ArObject {
         mModel = model;
     }
 
-    public float getRotation() {
-        return mRotation;
-    }
-
-    public void setRotation(float rotation) {
-        if (rotation < 0.0f && rotation > 360.0f) {
-            throw new RuntimeException("mRotation value not within bounds");
-        }
-        mRotation = rotation;
-    }
-
     public float getScale() {
         return mScale;
     }
@@ -57,4 +47,13 @@ public class ArObject {
     public void setScale(float scale) {
         mScale = scale;
     }
+
+    public int getRotationDegree() {
+        return mRotationDegree;
+    }
+
+    public void setRotationDegree(int rotationDegree) {
+        mRotationDegree = rotationDegree;
+    }
+
 }

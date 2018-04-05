@@ -45,7 +45,7 @@
         android:layout_alignParentEnd="true"
         android:layout_below="@+id/toggleButton"
         android:layout_marginEnd="32dp"
-        android:text="No Anchor Selected" />
+        android:text="@string/no_object_selected" />
 
     <SeekBar
         android:id="@+id/rotationBar"
@@ -54,6 +54,19 @@
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
         android:layout_marginBottom="53dp"
-        android:progressTint="@android:color/transparent"/>
+        android:max="@integer/rotation_max"
+        android:progress="1"
+        android:progressTint="@android:color/transparent" />
+
+    <SeekBar
+        android:id="@+id/scaleBar"
+        android:layout_width="289dp"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="85dp"
+        android:max="@integer/scale_max"
+        android:progress="1"
+        android:progressTint="@android:color/transparent" />
 
 </RelativeLayout>

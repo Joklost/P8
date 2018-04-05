@@ -4,12 +4,12 @@ import android.annotation.SuppressLint;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
-import android.speech.tts.TextToSpeech;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
+import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
@@ -60,6 +60,8 @@ public class ArActivity extends AppCompatActivity implements GLSurfaceView.Rende
 
     private final int MAX_OBJECTS = 10;
 
+    private final Object mLock = new Object();
+
     // Rendering
     private GLSurfaceView mSurfaceView;
 
@@ -72,9 +74,12 @@ public class ArActivity extends AppCompatActivity implements GLSurfaceView.Rende
 
     // DEBUG: Used to toggle rendering planes
     private ToggleButton mToggle;
+    private SeekBar mRotationBar;
+    private SeekBar mScaleBar;
 
     private final String[] ASSETS_TO_LOAD = new String[]{
             "andy",
+            "rabbit"
     };
 
     private final ArrayList<ArObject> mObjects = new ArrayList<>();
@@ -98,7 +103,47 @@ public class ArActivity extends AppCompatActivity implements GLSurfaceView.Rende
         mDisplayRotationHelper = new DisplayRotationHelper(this);
 
         mToggle = findViewById(R.id.toggleButton);
-//        setSelectedAnchor(null);
+        mRotationBar = findViewById(R.id.rotationBar);
+        mRotationBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                if (mSelectedObject == null) {
+                    // should not happen, as the SeekBar should be hidden
+                    return;
+                }
+                mSelectedObject.setRotationDegree(progress);
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+            }
+        });
+        mScaleBar = findViewById(R.id.scaleBar);
+        mScaleBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                if (mSelectedObject == null) {
+                    // should not happen, as the SeekBar should be hidden
+                    return;
+                }
+                mSelectedObject.setScale(progress / 100f);
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
+        setSelectedObject(null);
 
         // set up tap listener
         mGestureHelper = new GestureHelper(this);
@@ -299,12 +344,21 @@ public class ArActivity extends AppCompatActivity implements GLSurfaceView.Rende
 
     private void setSelectedObject(ArObject object) {
         mSelectedObject = object;
+
         runOnUiThread(() -> {
             if (mSelectedObject != null) {
-                findViewById(R.id.rotationBar).setVisibility(View.VISIBLE);
-                ((TextView) findViewById(R.id.textView)).setText(String.valueOf(mSelectedObject.getAnchor()));
+                if (mSelectedObject.getRotationDegree() != -1) {
+                    mRotationBar.setProgress(mSelectedObject.getRotationDegree());
+                } else {
+                    mRotationBar.setProgress(0);
+                }
+                mScaleBar.setProgress((int) Math.ceil(mSelectedObject.getScale() * 100));
+                mRotationBar.setVisibility(View.VISIBLE);
+                mScaleBar.setVisibility(View.VISIBLE);
+                ((TextView) findViewById(R.id.textView)).setText(String.valueOf(mSelectedObject.getAnchor().getPose()));
             } else {
-                findViewById(R.id.rotationBar).setVisibility(View.GONE);
+                mRotationBar.setVisibility(View.GONE);
+                mScaleBar.setVisibility(View.GONE);
                 ((TextView) findViewById(R.id.textView)).setText(R.string.no_object_selected);
             }
         });
@@ -317,16 +371,19 @@ public class ArActivity extends AppCompatActivity implements GLSurfaceView.Rende
             // Cap the number of objects created. This avoids overloading both the
             // rendering system and ARCore.
 
-            if (mObjects.size() >= MAX_OBJECTS) {
-                mObjects.get(0).getAnchor().detach();
-                mObjects.remove(0);
+            synchronized (mLock) {
+                if (mObjects.size() >= MAX_OBJECTS) {
+                    mObjects.get(0).getAnchor().detach();
+                    mObjects.remove(0);
+                }
+
+                // Adding an Anchor tells ARCore that it should track this position in
+                // space. This anchor is created on the Plane to place the 3D model
+                // in the correct position relative both to the world and to the plane.
+                ArObject object = new ArObject(hit.createAnchor(), ModelLoader.load(this, modelName));
+                mObjects.add(object);
             }
 
-            // Adding an Anchor tells ARCore that it should track this position in
-            // space. This anchor is created on the Plane to place the 3D model
-            // in the correct position relative both to the world and to the plane.
-            ArObject object = new ArObject(hit.createAnchor(), ModelLoader.load(this, modelName));
-            mObjects.add(object);
         } catch (IOException e) {
             Log.e(TAG, "Failed to load model: " + modelName);
         }
@@ -340,7 +397,7 @@ public class ArActivity extends AppCompatActivity implements GLSurfaceView.Rende
             if (!hitsPlaneOrPoint(trackable, hit)) {
                 continue;
             }
-            final ModelDialogFragment modelDialogFragment = ModelDialogFragment.newInstance(R.string.model_dialog_title);
+            ModelDialogFragment modelDialogFragment = new ModelDialogFragment();
 
             // give the dialog the hit result, so such that we can pass it on to the
             // spawnObject method
@@ -353,39 +410,36 @@ public class ArActivity extends AppCompatActivity implements GLSurfaceView.Rende
         }
     }
 
-//    private void handleScroll(Scroll scroll, Frame frame) {
-//        if (mSelectedAnchor == null) {
-//            return;
-//        }
-//
-//        for (HitResult hit : frame.hitTest(scroll.getMotion())) {
-//            Trackable trackable = hit.getTrackable();
-//
-//            if (!hitsPlaneOrPoint(trackable, hit)) {
-//                continue;
-//            }
-//
-//            if (calcPoseDistance(mSelectedAnchor.getPose(), hit.getHitPose()) >= 0.2f) {
-//                return;
-//            }
-//
-//            mAnchors.remove(mSelectedAnchor);
-//
-//            for (HitResult moveHit : frame.hitTest(scroll.getCurrentMove())) {
-//                Trackable moveTrackable = moveHit.getTrackable();
-//
-//                if (!hitsPlaneOrPoint(moveTrackable, moveHit)) {
-//                    continue;
-//                }
-//
-//                Log.e(TAG, "PLANE/POINT MOVE: " + moveHit.getHitPose());
-//                Anchor anchor = moveHit.createAnchor();
-//                mAnchors.add(anchor);
-//                setSelectedAnchor(anchor);
-//                break;
-//            }
-//        }
-//    }
+    private void handleScroll(Scroll scroll, Frame frame) {
+        if (mSelectedObject == null) {
+            return;
+        }
+
+        for (HitResult hit : frame.hitTest(scroll.getMotion())) {
+            Trackable trackable = hit.getTrackable();
+
+            if (!hitsPlaneOrPoint(trackable, hit)) {
+                continue;
+            }
+
+            if (calcPoseDistance(mSelectedObject.getAnchor().getPose(), hit.getHitPose()) >= 0.2f) {
+                continue;
+            }
+
+            mSelectedObject.getAnchor().detach();
+
+            for (HitResult moveHit : frame.hitTest(scroll.getCurrentMove())) {
+                Trackable moveTrackable = moveHit.getTrackable();
+
+                if (!hitsPlaneOrPoint(moveTrackable, moveHit)) {
+                    continue;
+                }
+
+                mSelectedObject.setAnchor(moveHit.createAnchor());
+                break;
+            }
+        }
+    }
 
     private void handleGesture(GestureEvent gestureEvent, Frame frame, Camera camera) {
         if (camera.getTrackingState() != TrackingState.TRACKING) {
@@ -397,7 +451,7 @@ public class ArActivity extends AppCompatActivity implements GLSurfaceView.Rende
         } else if (gestureEvent instanceof LongPress) {
             handleLongPress((LongPress) gestureEvent, frame);
         } else if (gestureEvent instanceof Scroll) {
-//            handleScroll((Scroll) gestureEvent, frame);
+            handleScroll((Scroll) gestureEvent, frame);
         }
     }
 
@@ -479,22 +533,25 @@ public class ArActivity extends AppCompatActivity implements GLSurfaceView.Rende
             }
 
             // Visualize anchors created by touch.
-            float scaleFactor = 1.0f;
-            for (ArObject object : mObjects) {
-                if (object.getAnchor().getTrackingState() != TrackingState.TRACKING) {
-                    continue;
+            //float scaleFactor = 1.0f;
+
+            synchronized (mLock) {
+                for (ArObject object : mObjects) {
+                    if (object.getAnchor().getTrackingState() != TrackingState.TRACKING) {
+                        continue;
+                    }
+
+                    // Get the current pose of an Anchor in world space. The Anchor pose is updated
+                    // during calls to session.update() as ARCore refines its estimate of the world.
+                    object.getAnchor().getPose().toMatrix(mAnchorMatrix, 0);
+
+                    // Update and draw the model and its shadow.
+                    ArModel model = object.getModel();
+                    model.getObject().updateModelMatrix(mAnchorMatrix, object.getScale(), object.getRotationDegree());
+                    model.getObjectShadow().updateModelMatrix(mAnchorMatrix, object.getScale(), object.getRotationDegree());
+                    model.getObject().draw(viewmtx, projmtx, colorCorrectionRgba);
+                    model.getObjectShadow().draw(viewmtx, projmtx, colorCorrectionRgba);
                 }
-                // Get the current pose of an Anchor in world space. The Anchor pose is updated
-                // during calls to session.update() as ARCore refines its estimate of the world.
-                object.getAnchor().getPose().toMatrix(mAnchorMatrix, 0);
-
-                // Update and draw the model and its shadow.
-                ArModel model = object.getModel();
-
-                model.getObject().updateModelMatrix(mAnchorMatrix, scaleFactor);
-                model.getObjectShadow().updateModelMatrix(mAnchorMatrix, scaleFactor);
-                model.getObject().draw(viewmtx, projmtx, colorCorrectionRgba);
-                model.getObjectShadow().draw(viewmtx, projmtx, colorCorrectionRgba);
             }
 
         } catch (Throwable t) {
