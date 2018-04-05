@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
+import android.speech.tts.TextToSpeech;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
@@ -57,6 +58,8 @@ import dk.aau.sw805f18.ar.main.ModelDialogFragment;
 public class ArActivity extends AppCompatActivity implements GLSurfaceView.Renderer {
     private static final String TAG = ArActivity.class.getSimpleName();
 
+    private final int MAX_OBJECTS = 10;
+
     // Rendering
     private GLSurfaceView mSurfaceView;
 
@@ -70,17 +73,15 @@ public class ArActivity extends AppCompatActivity implements GLSurfaceView.Rende
     // DEBUG: Used to toggle rendering planes
     private ToggleButton mToggle;
 
-    private final String[] ASSETS_TO_LOAD = new String[] {
+    private final String[] ASSETS_TO_LOAD = new String[]{
             "andy",
     };
-    private final ArrayList<ArModel> mModels = new ArrayList<>();
+
     private final ArrayList<ArObject> mObjects = new ArrayList<>();
 
     private final BackgroundRenderer mBackgroundRenderer = new BackgroundRenderer();
     private final PlaneRenderer mPlaneRenderer = new PlaneRenderer();
     private final PointCloudRenderer mPointCloudRenderer = new PointCloudRenderer();
-//    private final ObjectRenderer mVirtualObject = new ObjectRenderer();
-//    private final ObjectRenderer mVirtualObjectShadow = new ObjectRenderer();
 
     // Temporary matrix allocated here to reduce number of allocations for each frame.
     private final float[] mAnchorMatrix = new float[16];
@@ -224,7 +225,8 @@ public class ArActivity extends AppCompatActivity implements GLSurfaceView.Rende
             mPointCloudRenderer.createOnGlThread(/*context=*/ this);
 
             for (String asset : ASSETS_TO_LOAD) {
-                mModels.add(ModelLoader.load(this, asset));
+                // Models are saved in the ModelLoader
+                ModelLoader.load(this, asset);
             }
 
         } catch (IOException e) {
@@ -254,34 +256,6 @@ public class ArActivity extends AppCompatActivity implements GLSurfaceView.Rende
         return (float) Math.sqrt(dx * dx + dy * dy + dz * dz);
     }
 
-//    private void setSelectedAnchor(Anchor anchor) {
-//        mSelectedAnchor = anchor;
-//        final String string;
-//        if (mSelectedAnchor == null) {
-//            string = "No Anchor selected";
-//            runOnUiThread(new Runnable() {
-//                @Override
-//                public void run() {
-//                    findViewById(R.id.rotationBar).setVisibility(View.GONE);
-//                }
-//            });
-//        } else {
-//            string = String.valueOf(mSelectedAnchor.getPose());
-//            runOnUiThread(new Runnable() {
-//                @Override
-//                public void run() {
-//                    findViewById(R.id.rotationBar).setVisibility(View.VISIBLE);
-//                }
-//            });
-//        }
-//        runOnUiThread(new Runnable() {
-//            @Override
-//            public void run() {
-//                ((TextView) findViewById(R.id.textView)).setText(string);
-//            }
-//        });
-//    }
-
     private void handleTap(Tap tap, Frame frame) {
         for (HitResult hit : frame.hitTest(tap.getMotion())) {
             Trackable trackable = hit.getTrackable();
@@ -305,19 +279,57 @@ public class ArActivity extends AppCompatActivity implements GLSurfaceView.Rende
                     closestAnchor = anchor;
                     closestDistance = distance;
                 }
-
-                Log.e(TAG, "closestDistance: " + closestDistance);
-                Log.e(TAG, "anchorDistance: " + distance);
             }
 
             if (closestAnchor != null && closestDistance < 0.2f) {
-//                setSelectedAnchor(closestAnchor);
-            } else {
-//                setSelectedAnchor(null);
+                for (ArObject object : mObjects) {
+                    if (object.getAnchor().equals(closestAnchor)) {
+                        // select object
+                        setSelectedObject(object);
+                        return;
+                    }
+                }
             }
-            return;
+
+            break;
         }
-//        setSelectedAnchor(null);
+        // deselect object
+        setSelectedObject(null);
+    }
+
+    private void setSelectedObject(ArObject object) {
+        mSelectedObject = object;
+        runOnUiThread(() -> {
+            if (mSelectedObject != null) {
+                findViewById(R.id.rotationBar).setVisibility(View.VISIBLE);
+                ((TextView) findViewById(R.id.textView)).setText(String.valueOf(mSelectedObject.getAnchor()));
+            } else {
+                findViewById(R.id.rotationBar).setVisibility(View.GONE);
+                ((TextView) findViewById(R.id.textView)).setText(R.string.no_object_selected);
+            }
+        });
+
+    }
+
+    public void spawnObject(HitResult hit, String modelName) {
+        try {
+            // Hits are sorted by depth. Consider only closest hit on a plane or oriented point.
+            // Cap the number of objects created. This avoids overloading both the
+            // rendering system and ARCore.
+
+            if (mObjects.size() >= MAX_OBJECTS) {
+                mObjects.get(0).getAnchor().detach();
+                mObjects.remove(0);
+            }
+
+            // Adding an Anchor tells ARCore that it should track this position in
+            // space. This anchor is created on the Plane to place the 3D model
+            // in the correct position relative both to the world and to the plane.
+            ArObject object = new ArObject(hit.createAnchor(), ModelLoader.load(this, modelName));
+            mObjects.add(object);
+        } catch (IOException e) {
+            Log.e(TAG, "Failed to load model: " + modelName);
+        }
     }
 
     private void handleLongPress(LongPress longPress, Frame frame) {
@@ -328,31 +340,15 @@ public class ArActivity extends AppCompatActivity implements GLSurfaceView.Rende
             if (!hitsPlaneOrPoint(trackable, hit)) {
                 continue;
             }
-            final ModelDialogFragment modelDialogFragment = new ModelDialogFragment();
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    modelDialogFragment.show(getSupportFragmentManager(), "modelDialog", ASSETS_TO_LOAD);
-                }
+            final ModelDialogFragment modelDialogFragment = ModelDialogFragment.newInstance(R.string.model_dialog_title);
+
+            // give the dialog the hit result, so such that we can pass it on to the
+            // spawnObject method
+            modelDialogFragment.setHitResult(hit);
+            runOnUiThread(() -> {
+                modelDialogFragment.show(getSupportFragmentManager(), "modelDialog", ASSETS_TO_LOAD);
             });
-            Log.e(TAG, String.valueOf(modelDialogFragment.getSelected()));
 
-            // Hits are sorted by depth. Consider only closest hit on a plane or oriented point.
-            // Cap the number of objects created. This avoids overloading both the
-            // rendering system and ARCore.
-
-
-//            if (mAnchors.size() >= 10) {
-//                mAnchors.get(0).detach();
-//                mAnchors.remove(0);
-//            }
-
-            // Adding an Anchor tells ARCore that it should track this position in
-            // space. This anchor is created on the Plane to place the 3D model
-            // in the correct position relative both to the world and to the plane.
-
-            //mObjects.add(new ArObject(hit.createAnchor()))
-//            mAnchors.add(hit.createAnchor());
             return;
         }
     }
@@ -482,22 +478,24 @@ public class ArActivity extends AppCompatActivity implements GLSurfaceView.Rende
 
             }
 
-//            // Visualize anchors created by touch.
-//            float scaleFactor = 1.0f;
-//            for (Anchor anchor : mAnchors) {
-//                if (anchor.getTrackingState() != TrackingState.TRACKING) {
-//                    continue;
-//                }
-//                // Get the current pose of an Anchor in world space. The Anchor pose is updated
-//                // during calls to session.update() as ARCore refines its estimate of the world.
-//                anchor.getPose().toMatrix(mAnchorMatrix, 0);
-//
-//                // Update and draw the model and its shadow.
-//                mVirtualObject.updateModelMatrix(mAnchorMatrix, scaleFactor);
-//                mVirtualObjectShadow.updateModelMatrix(mAnchorMatrix, scaleFactor);
-//                mVirtualObject.draw(viewmtx, projmtx, colorCorrectionRgba);
-//                mVirtualObjectShadow.draw(viewmtx, projmtx, colorCorrectionRgba);
-//            }
+            // Visualize anchors created by touch.
+            float scaleFactor = 1.0f;
+            for (ArObject object : mObjects) {
+                if (object.getAnchor().getTrackingState() != TrackingState.TRACKING) {
+                    continue;
+                }
+                // Get the current pose of an Anchor in world space. The Anchor pose is updated
+                // during calls to session.update() as ARCore refines its estimate of the world.
+                object.getAnchor().getPose().toMatrix(mAnchorMatrix, 0);
+
+                // Update and draw the model and its shadow.
+                ArModel model = object.getModel();
+
+                model.getObject().updateModelMatrix(mAnchorMatrix, scaleFactor);
+                model.getObjectShadow().updateModelMatrix(mAnchorMatrix, scaleFactor);
+                model.getObject().draw(viewmtx, projmtx, colorCorrectionRgba);
+                model.getObjectShadow().draw(viewmtx, projmtx, colorCorrectionRgba);
+            }
 
         } catch (Throwable t) {
             // Avoid crashing the application due to unhandled exceptions.
