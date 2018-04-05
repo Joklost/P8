@@ -117,20 +117,20 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setHeader() {
-        if (this.mNavHeader == null)
-            this.mNavHeader = findViewById(R.id.nav_header_title);
-
-        FragmentManager fragmentManager = getSupportFragmentManager();
-        int fragCount = fragmentManager.getBackStackEntryCount();
-
-        if ( fragCount == 0) {
-            mNavHeader.setText(R.string.find_course_title);
-            return;
-        }
-
-        Fragment currentFrag = (Fragment) fragmentManager.getBackStackEntryAt(fragCount - 1);
-        String tag = currentFrag.getTag();
-
-        mNavHeader.setText(R.string.map_nav_drawer);
+//        if (this.mNavHeader == null)
+//            this.mNavHeader = findViewById(R.id.nav_header_title);
+//
+//        FragmentManager fragmentManager = getSupportFragmentManager();
+//        int fragCount = fragmentManager.getBackStackEntryCount();
+//
+//        if ( fragCount == 0) {
+//            mNavHeader.setText(R.string.find_course_title);
+//            return;
+//        }
+//
+//        Fragment currentFrag = (Fragment) fragmentManager.getBackStackEntryAt(fragCount - 1);
+//        String tag = currentFrag.getTag();
+//
+//        mNavHeader.setText(R.string.map_nav_drawer);
     }
 }

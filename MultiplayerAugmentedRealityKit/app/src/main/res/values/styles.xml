@@ -8,8 +8,8 @@
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
         <item name="android:textColor">@color/colorFont</item>
-        <item name="colorControlNormal">@color/colorFont</item>
-        <item name="colorControlActivated">@color/colorPrimary</item>
+        <item name="colorControlNormal">@color/colorPrimary</item>
+        <item name="colorControlActivated">@color/colorPrimaryDark</item>
         <item name="colorControlHighlight">@color/colorAccent</item>
     </style>
 
