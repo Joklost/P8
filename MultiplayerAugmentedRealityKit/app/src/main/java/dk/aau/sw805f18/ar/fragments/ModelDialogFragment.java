@@ -1,4 +1,4 @@
-package dk.aau.sw805f18.ar.main;
+package dk.aau.sw805f18.ar.fragments;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
