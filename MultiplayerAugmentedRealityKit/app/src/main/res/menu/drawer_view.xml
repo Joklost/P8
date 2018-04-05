@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:android="http://schemas.android.com/apk/res/android" >
-    <group android:checkableBehavior="single"></group>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <group android:checkableBehavior="single"/>
     <item
         android:id="@+id/nav_map"
         android:icon="@drawable/map_icon"
-        android:title="Map" />
+        android:title="@string/map_nav_drawer"/>
     <item
         android:id="@+id/nav_ar"
         android:icon="@drawable/ic_camera_enhance_black_24dp"
-        android:title="AR"/>
+        android:title="@string/ar_nav_drawer"/>
 </menu>

@@ -20,7 +20,7 @@ import dk.aau.sw805f18.ar.MapFragment;
 import dk.aau.sw805f18.ar.R;
 import dk.aau.sw805f18.ar.ar.ArActivity;
 
-public class MainActivity extends AppCompatActivity implements MainFragment.OnFragmentInteractionListener, MapFragment.OnFragmentInteractionListener {
+public class MainActivity extends AppCompatActivity {
 
     private DrawerLayout mDrawerLayout;
 
@@ -86,10 +86,5 @@ public class MainActivity extends AppCompatActivity implements MainFragment.OnFr
     public void startAr() {
         Intent intent = new Intent(this, ArActivity.class);
         startActivity(intent);
-    }
-
-    @Override
-    public void onFragmentInteraction(Uri uri) {
-
     }
 }
