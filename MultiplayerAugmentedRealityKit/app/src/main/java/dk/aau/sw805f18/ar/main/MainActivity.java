@@ -43,33 +43,32 @@ public class MainActivity extends AppCompatActivity {
         NavigationView navigationView = findViewById(R.id.nav_view);
 
         navigationView.setNavigationItemSelectedListener(
-                new NavigationView.OnNavigationItemSelectedListener() {
-                    @Override
-                    public boolean onNavigationItemSelected(MenuItem menuItem) {
-                        // set item as selected to persist highlight
-                        FragmentTransaction fragmentTransactor = getSupportFragmentManager().beginTransaction();
-                        menuItem.setChecked(!menuItem.isChecked());
+                menuItem -> {
+                    // set item as selected to persist highlight
+                    FragmentTransaction fragmentTransactor = getSupportFragmentManager().beginTransaction();
+                    menuItem.setChecked(!menuItem.isChecked());
 
-                        switch (menuItem.getTitle().toString()) {
-                            case "AR":
-                                startAr();
-                            case "Map":
-                                MapFragment mapFragment = new MapFragment();
-                                fragmentTransactor.replace(R.id.fragment_container, mapFragment, "MAP_FRAG").addToBackStack(null);
-                        }
-
-                        mDrawerLayout.closeDrawers();
-                        fragmentTransactor.commit();
-                        return true;
+                    switch (menuItem.getTitle().toString()) {
+                        case "AR":
+                            startAr();
+                        case "Map":
+                            MapFragment mapFragment = new MapFragment();
+                            fragmentTransactor.replace(R.id.fragment_container, mapFragment, "MAP_FRAG").addToBackStack(null);
                     }
+
+                    mDrawerLayout.closeDrawers();
+                    fragmentTransactor.commit();
+                    return true;
                 });
 
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         ActionBar actionbar = getSupportActionBar();
-        actionbar.setDisplayHomeAsUpEnabled(true);
-        actionbar.setHomeAsUpIndicator(R.drawable.ic_menu_black_24dp);
+        if (actionbar != null) {
+            actionbar.setDisplayHomeAsUpEnabled(true);
+            actionbar.setHomeAsUpIndicator(R.drawable.ic_menu_black_24dp);
+        }
     }
 
     @Override
