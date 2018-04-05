@@ -2,4 +2,6 @@
     <string name="app_name">M.A.R.K</string>
     <string name="model_dialog_title">Pick a model</string>
     <string name="no_object_selected">No object selected</string>
+    <string name="ar_nav_drawer">AR</string>
+    <string name="map_nav_drawer">Map</string>
 </resources>

@@ -343,7 +343,7 @@ public class PlaneRenderer {
             updatePlaneParameters(
                     planeMatrix, plane.getExtentX(), plane.getExtentZ(), plane.getPolygon());
 
-            // Get plane index. Keep a map to assign same indices to same planes.
+            // Get plane index. Keep a MapFragment to assign same indices to same planes.
             Integer planeIndex = planeIndexMap.get(plane);
             if (planeIndex == null) {
                 planeIndex = planeIndexMap.size();
