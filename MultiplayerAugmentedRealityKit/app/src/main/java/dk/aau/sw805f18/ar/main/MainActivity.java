@@ -1,64 +1,50 @@
 package dk.aau.sw805f18.ar.main;
 
 import android.content.Intent;
-import android.os.Handler;
-import android.support.design.widget.NavigationView;
-import android.support.v4.app.FragmentTransaction;
+import android.databinding.DataBindingUtil;
+import android.os.Bundle;
 import android.support.v4.view.GravityCompat;
-import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
-import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 import android.widget.Toast;
 
-import dk.aau.sw805f18.ar.fragments.FindCourseFragment;
-import dk.aau.sw805f18.ar.fragments.MapFragment;
+import java.util.Date;
 
 import dk.aau.sw805f18.ar.R;
 import dk.aau.sw805f18.ar.ar.ArActivity;
+import dk.aau.sw805f18.ar.databinding.ActivityMainBinding;
+import dk.aau.sw805f18.ar.fragments.FindCourseFragment;
+import dk.aau.sw805f18.ar.fragments.MapFragment;
+import dk.aau.sw805f18.ar.viewModels.FindCourseViewModel;
+import dk.aau.sw805f18.ar.viewModels.MapViewModel;
 
 public class MainActivity extends AppCompatActivity {
-    private boolean mDoubleBackToExitPressedOnce = false;
-    private DrawerLayout mDrawerLayout;
+    private Date mBackPressed;
+    private ActivityMainBinding mBinding;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        SemiViewManager svm = SemiViewManager.getInstance();
+        svm.init(this);
+        svm.open(new FindCourseFragment(), new FindCourseViewModel());
 
-        // Initialises the main app view to be the Find Course fragment.
-        FindCourseFragment courseFragment = new FindCourseFragment();
-        setContentView(R.layout.activity_main);
-
-        FragmentTransaction fragmentTransactorInitial = getSupportFragmentManager().beginTransaction();
-        fragmentTransactorInitial.add(R.id.fragment_container, courseFragment, "COURSE_FRAG").commit();
-        mDrawerLayout = findViewById(R.id.drawer_layout);
-
-        NavigationView navigationView = findViewById(R.id.nav_view);
-        navigationView.setNavigationItemSelectedListener(
+        mBinding = DataBindingUtil.setContentView(this, R.layout.activity_main);
+        mBinding.navigation.setNavigationItemSelectedListener(
                 menuItem -> {
-                    // Set item as selected to persist highlight
-                    menuItem.setChecked(!menuItem.isChecked());
-                    FragmentTransaction fragmentTransactor = getSupportFragmentManager().beginTransaction();
-
-                    // Cases for drawer items.
                     switch (menuItem.getTitle().toString()) {
                         case "AR":
                             startAr();
                         case "Map":
-                            MapFragment mapFragment = new MapFragment();
-                            fragmentTransactor.replace(R.id.fragment_container, mapFragment, "MAP_FRAG").addToBackStack(null);
+                            SemiViewManager.getInstance().open(new MapFragment(), new MapViewModel());
                     }
 
-                    mDrawerLayout.closeDrawers();
-                    fragmentTransactor.commit();
+                    mBinding.drawer.closeDrawers();
                     return true;
                 });
 
-        // Setup header and toolbar.
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
+        setSupportActionBar(mBinding.toolbar);
         ActionBar actionbar = getSupportActionBar();
         if (actionbar != null) {
             actionbar.setDisplayHomeAsUpEnabled(true);
@@ -68,41 +54,30 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        DrawerLayout layout = findViewById(R.id.drawer_layout);
-        FindCourseFragment courseFrag = (FindCourseFragment) getSupportFragmentManager().findFragmentByTag("COURSE_FRAG");
-
-        if (layout.isDrawerOpen(GravityCompat.START)) { // If drawer is open, back button closes drawer.
-            layout.closeDrawer(GravityCompat.START);
+        if (mBinding.drawer.isDrawerOpen(GravityCompat.START)) {
+            mBinding.drawer.closeDrawer(GravityCompat.START);
             return;
-        } else if (courseFrag != null && courseFrag.isVisible()) { // Main app view is the Find Course Fragment. In this view, double back press exits.
-            if (mDoubleBackToExitPressedOnce) {
-                super.onBackPressed();
-                return;
-            }
-
-            this.mDoubleBackToExitPressedOnce = true;
-            Toast.makeText(this, R.string.double_press_back_exit, Toast.LENGTH_SHORT).show();
-
-            // Toast is shown for 2 seconds, so we reset back timer after 2 seconds.
-            new Handler().postDelayed(new Runnable() {
-
-                @Override
-                public void run() {
-                    mDoubleBackToExitPressedOnce = false;
-                }
-            }, 2000);
+        }
+        if (SemiViewManager.getInstance().close()) {
+            super.onBackPressed();
             return;
         }
 
-        // Normal back if no special case is applicable.
-        super.onBackPressed();
+        Date now = new Date();
+        if (mBackPressed == null || now.getTime() - mBackPressed.getTime() > 2000) {
+            mBackPressed = now;
+            Toast.makeText(this, R.string.double_press_back_exit, Toast.LENGTH_SHORT).show();
+        }
+        else {
+            super.onBackPressed();
+        }
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case android.R.id.home:
-                mDrawerLayout.openDrawer(GravityCompat.START);
+                mBinding.drawer.openDrawer(GravityCompat.START);
                 return true;
         }
         return super.onOptionsItemSelected(item);
@@ -115,22 +90,5 @@ public class MainActivity extends AppCompatActivity {
         Intent intent = new Intent(this, ArActivity.class);
         startActivity(intent);
     }
-
-    private void setHeader() {
-//        if (this.mNavHeader == null)
-//            this.mNavHeader = findViewById(R.id.nav_header_title);
-//
-//        FragmentManager fragmentManager = getSupportFragmentManager();
-//        int fragCount = fragmentManager.getBackStackEntryCount();
-//
-//        if ( fragCount == 0) {
-//            mNavHeader.setText(R.string.find_course_title);
-//            return;
-//        }
-//
-//        Fragment currentFrag = (Fragment) fragmentManager.getBackStackEntryAt(fragCount - 1);
-//        String tag = currentFrag.getTag();
-//
-//        mNavHeader.setText(R.string.map_nav_drawer);
-    }
 }
+
