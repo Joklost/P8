@@ -1,24 +1,20 @@
 package dk.aau.sw805f18.ar.fragments;
 
 import android.Manifest;
-import android.content.Context;
 import android.content.pm.PackageManager;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentActivity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-<<<<<<< HEAD:MultiplayerAugmentedRealityKit/app/src/main/java/dk/aau/sw805f18/ar/MapFragment.java
 import com.google.android.gms.maps.CameraUpdateFactory;
+import dk.aau.sw805f18.ar.R;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.OnMapReadyCallback;
-import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -28,11 +24,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     private GoogleMap googleMap;
     MapView mMapView;
 
-=======
-import dk.aau.sw805f18.ar.R;
-
-public class MapFragment extends Fragment {
->>>>>>> 88461ec4450f8367440be46ce802bf3ee8c7397c:MultiplayerAugmentedRealityKit/app/src/main/java/dk/aau/sw805f18/ar/fragments/MapFragment.java
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {

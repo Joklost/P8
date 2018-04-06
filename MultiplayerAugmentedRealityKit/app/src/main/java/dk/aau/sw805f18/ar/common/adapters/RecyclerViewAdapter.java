@@ -10,7 +10,6 @@ import android.widget.TextView;
 import java.util.ArrayList;
 
 import dk.aau.sw805f18.ar.R;
-import dk.aau.sw805f18.ar.models.Group;
 
 public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.ViewHolder>  {
     private ArrayList<String> mData;
