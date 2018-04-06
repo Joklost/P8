@@ -6,8 +6,6 @@
     android:layout_height="match_parent"
     tools:context=".fragments.FindCourseFragment">
 
-    <!-- TODO: Update blank fragment layout -->
-
     <android.support.constraint.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
@@ -35,6 +33,7 @@
             android:layout_marginTop="28dp"
             android:layout_weight="1"
             android:text="@string/course_id_ok"
+            android:background="@android:color/transparent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@+id/course_id_input"
             app:layout_constraintTop_toTopOf="parent" />
@@ -60,6 +59,7 @@
             android:layout_marginStart="16dp"
             android:layout_marginTop="16dp"
             android:text="@string/course_nearby"
+            android:background="@android:color/transparent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/view" />

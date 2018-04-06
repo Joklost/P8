@@ -9,6 +9,7 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
@@ -42,22 +43,27 @@ public class FindCourseFragment extends Fragment {
             mSearchBtn.setEnabled(false);
 
             ArrayList<Course> courses = findNearbyCourses();
-            ListView listView = getView().findViewById(R.id.course_search_list);
+            ListView lv = getView().findViewById(R.id.course_search_list);
 
             // ArrayAdapter for populating listview
             ArrayAdapter<Course> adapter = new ArrayAdapter<>(getContext(), R.layout.list_item_course, courses);
-            listView.setAdapter(adapter);
+            lv.setAdapter(adapter);
 
             // Removing progressbar and viewing listview
             pb.setVisibility(View.GONE);
-            listView.setVisibility(View.VISIBLE);
+            lv.setVisibility(View.VISIBLE);
             mSearchBtn.setEnabled(true);
+
+            lv.setOnItemClickListener((parent, view2, position, id) -> {
+                
+            });
         });
     }
 
     /**
      * Finds courses based on GPS location.
      * TODO: implement GPS functionality. Current version is mock data.
+     *
      * @return ArrayList of Courses
      */
     private ArrayList<Course> findNearbyCourses() {
