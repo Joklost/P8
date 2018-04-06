@@ -4,6 +4,8 @@
     package="dk.aau.sw805f18.ar">
 
     <uses-permission android:name="android.permission.CAMERA"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
 
     <!-- Require ARCore -->
     <uses-feature android:name="android.hardware.camera.ar" android:required="true"/>
@@ -27,6 +29,7 @@
             android:name=".ar.ArActivity"
             android:parentActivityName=".main.MainActivity">
         </activity>
+        <meta-data android:name="com.google.android.geo.API_KEY" android:value="AIzaSyBSNhvpyhdLo3wdkzVvQGqeaP9RnxHlcP4"/>
         <meta-data android:name="com.google.ar.core" android:value="required" />
     </application>
 </manifest>
