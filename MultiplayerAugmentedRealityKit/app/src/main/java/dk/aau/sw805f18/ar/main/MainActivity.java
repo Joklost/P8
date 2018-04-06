@@ -26,6 +26,8 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // Initialises the main app view to be the Find Course fragment.
         FindCourseFragment courseFragment = new FindCourseFragment();
         setContentView(R.layout.activity_main);
 
@@ -34,30 +36,27 @@ public class MainActivity extends AppCompatActivity {
         mDrawerLayout = findViewById(R.id.drawer_layout);
 
         NavigationView navigationView = findViewById(R.id.nav_view);
-
         navigationView.setNavigationItemSelectedListener(
-                new NavigationView.OnNavigationItemSelectedListener() {
-                    @Override
-                    public boolean onNavigationItemSelected(MenuItem menuItem) {
-                        // set item as selected to persist highlight
-                        FragmentTransaction fragmentTransactor = getSupportFragmentManager().beginTransaction();
-                        menuItem.setChecked(!menuItem.isChecked());
+                menuItem -> {
+                    // Set item as selected to persist highlight
+                    menuItem.setChecked(!menuItem.isChecked());
+                    FragmentTransaction fragmentTransactor = getSupportFragmentManager().beginTransaction();
 
-                        switch (menuItem.getTitle().toString()) {
-                            case "AR":
-                                startAr();
-                            case "Map":
-                                MapFragment mapFragment = new MapFragment();
-                                fragmentTransactor.replace(R.id.fragment_container, mapFragment, "MAP_FRAG").addToBackStack(null);
-                        }
-
-                        mDrawerLayout.closeDrawers();
-                        fragmentTransactor.commit();
-                        return true;
+                    // Cases for drawer items.
+                    switch (menuItem.getTitle().toString()) {
+                        case "AR":
+                            startAr();
+                        case "Map":
+                            MapFragment mapFragment = new MapFragment();
+                            fragmentTransactor.replace(R.id.fragment_container, mapFragment, "MAP_FRAG").addToBackStack(null);
                     }
+
+                    mDrawerLayout.closeDrawers();
+                    fragmentTransactor.commit();
+                    return true;
                 });
 
-
+        // Setup header and toolbar.
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         ActionBar actionbar = getSupportActionBar();
@@ -69,10 +68,11 @@ public class MainActivity extends AppCompatActivity {
     public void onBackPressed() {
         DrawerLayout layout = findViewById(R.id.drawer_layout);
         FindCourseFragment courseFrag = (FindCourseFragment) getSupportFragmentManager().findFragmentByTag("COURSE_FRAG");
-        if (layout.isDrawerOpen(GravityCompat.START)) {
+
+        if (layout.isDrawerOpen(GravityCompat.START)) { // If drawer is open, back button closes drawer.
             layout.closeDrawer(GravityCompat.START);
             return;
-        } else if (courseFrag != null && courseFrag.isVisible()) {
+        } else if (courseFrag != null && courseFrag.isVisible()) { // Main app view is the Find Course Fragment. In this view, double back press exits.
             if (mDoubleBackToExitPressedOnce) {
                 super.onBackPressed();
                 return;
@@ -81,6 +81,7 @@ public class MainActivity extends AppCompatActivity {
             this.mDoubleBackToExitPressedOnce = true;
             Toast.makeText(this, R.string.double_press_back_exit, Toast.LENGTH_SHORT).show();
 
+            // Toast is shown for 2 seconds, so we reset back timer after 2 seconds.
             new Handler().postDelayed(new Runnable() {
 
                 @Override
@@ -91,6 +92,7 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
+        // Normal back if no special case is applicable.
         super.onBackPressed();
     }
 
@@ -104,6 +106,9 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    /**
+     * Starts the AR activity.
+     */
     public void startAr() {
         Intent intent = new Intent(this, ArActivity.class);
         startActivity(intent);

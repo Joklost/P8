@@ -7,7 +7,7 @@ public class Course {
     private boolean mMapEnabled;
     private ArrayList<Game> mGames;
 
-
+    //region Getters and setters
     public Course(String mName) {
         this.mName = mName;
     }
@@ -34,5 +34,14 @@ public class Course {
 
     public void setmGames(ArrayList<Game> mGames) {
         this.mGames = mGames;
+    }
+    //endregion
+
+    /**
+     * Overriding toString to custom format for listview items
+     * @return Formatted string
+     */
+    public String toString() {
+        return this.mName;
     }
 }

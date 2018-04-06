@@ -35,30 +35,37 @@ public class FindCourseFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         mSearchBtn = getView().findViewById(R.id.course_search_nearby);
-        mSearchBtn.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View view) {
-                ProgressBar pb = getView().findViewById(R.id.course_search_nearby_progressbar);
-                pb.setVisibility(View.VISIBLE);
-                mSearchBtn.setEnabled(false);
+        mSearchBtn.setOnClickListener(view1 -> {
+            // Shows progressbar
+            ProgressBar pb = getView().findViewById(R.id.course_search_nearby_progressbar);
+            pb.setVisibility(View.VISIBLE);
+            mSearchBtn.setEnabled(false);
 
-                ArrayList<Course> courses = findNearbyCourses();
-                ListView listView = getView().findViewById(R.id.course_search_list);
+            ArrayList<Course> courses = findNearbyCourses();
+            ListView listView = getView().findViewById(R.id.course_search_list);
 
-                ArrayAdapter<Course> adapter = new ArrayAdapter<Course>(getContext(), android.R.layout.simple_list_item_1, courses);
-                listView.setAdapter(adapter);
+            // ArrayAdapter for populating listview
+            ArrayAdapter<Course> adapter = new ArrayAdapter<>(getContext(), R.layout.list_item_course, courses);
+            listView.setAdapter(adapter);
 
-                pb.setVisibility(View.INVISIBLE);
-                listView.setVisibility(View.VISIBLE);
-                mSearchBtn.setEnabled(true);
-
-
-            }
+            // Removing progressbar and viewing listview
+            pb.setVisibility(View.GONE);
+            listView.setVisibility(View.VISIBLE);
+            mSearchBtn.setEnabled(true);
         });
     }
 
+    /**
+     * Finds courses based on GPS location.
+     * TODO: implement GPS functionality. Current version is mock data.
+     * @return ArrayList of Courses
+     */
     private ArrayList<Course> findNearbyCourses() {
         ArrayList<Course> toReturn = new ArrayList<>();
         toReturn.add(new Course("the cool game"));
+        toReturn.add(new Course("the boring game"));
+        toReturn.add(new Course("not actually a game"));
+        toReturn.add(new Course("the AR game"));
         return toReturn;
     }
 }
