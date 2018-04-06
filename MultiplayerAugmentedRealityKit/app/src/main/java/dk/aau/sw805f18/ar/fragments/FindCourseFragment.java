@@ -1,7 +1,5 @@
 package dk.aau.sw805f18.ar.fragments;
 
-import android.content.Context;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -17,7 +15,6 @@ import android.widget.ProgressBar;
 import java.util.ArrayList;
 
 import dk.aau.sw805f18.ar.R;
-import dk.aau.sw805f18.ar.main.MainActivity;
 import dk.aau.sw805f18.ar.models.Course;
 
 public class FindCourseFragment extends Fragment {
@@ -35,24 +32,22 @@ public class FindCourseFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         mSearchBtn = getView().findViewById(R.id.course_search_nearby);
-        mSearchBtn.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View view) {
-                ProgressBar pb = getView().findViewById(R.id.course_search_nearby_progressbar);
-                pb.setVisibility(View.VISIBLE);
-                mSearchBtn.setEnabled(false);
+        mSearchBtn.setOnClickListener(view1 -> {
+            ProgressBar pb = getView().findViewById(R.id.course_search_nearby_progressbar);
+            pb.setVisibility(View.VISIBLE);
+            mSearchBtn.setEnabled(false);
 
-                ArrayList<Course> courses = findNearbyCourses();
-                ListView listView = getView().findViewById(R.id.course_search_list);
+            ArrayList<Course> courses = findNearbyCourses();
+            ListView listView = getView().findViewById(R.id.course_search_list);
 
-                ArrayAdapter<Course> adapter = new ArrayAdapter<Course>(getContext(), android.R.layout.simple_list_item_1, courses);
-                listView.setAdapter(adapter);
+            ArrayAdapter<Course> adapter = new ArrayAdapter<Course>(getContext(), android.R.layout.simple_list_item_1, courses);
+            listView.setAdapter(adapter);
 
-                pb.setVisibility(View.INVISIBLE);
-                listView.setVisibility(View.VISIBLE);
-                mSearchBtn.setEnabled(true);
+            pb.setVisibility(View.INVISIBLE);
+            listView.setVisibility(View.VISIBLE);
+            mSearchBtn.setEnabled(true);
 
 
-            }
         });
     }
 
