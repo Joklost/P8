@@ -1,13 +1,8 @@
 package dk.aau.sw805f18.ar.main;
 
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Handler;
 import android.support.design.widget.NavigationView;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentActivity;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentManagerNonConfig;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -16,12 +11,10 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
-import android.widget.TextView;
 import android.widget.Toast;
 
-import dk.aau.sw805f18.ar.FindCourseFragment;
-import dk.aau.sw805f18.ar.MainFragment;
-import dk.aau.sw805f18.ar.MapFragment;
+import dk.aau.sw805f18.ar.fragments.FindCourseFragment;
+import dk.aau.sw805f18.ar.fragments.MapFragment;
 
 import dk.aau.sw805f18.ar.R;
 import dk.aau.sw805f18.ar.ar.ArActivity;
@@ -33,6 +26,8 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // Initialises the main app view to be the Find Course fragment.
         FindCourseFragment courseFragment = new FindCourseFragment();
         setContentView(R.layout.activity_main);
 
@@ -41,45 +36,45 @@ public class MainActivity extends AppCompatActivity {
         mDrawerLayout = findViewById(R.id.drawer_layout);
 
         NavigationView navigationView = findViewById(R.id.nav_view);
-
         navigationView.setNavigationItemSelectedListener(
-                new NavigationView.OnNavigationItemSelectedListener() {
-                    @Override
-                    public boolean onNavigationItemSelected(MenuItem menuItem) {
-                        // set item as selected to persist highlight
-                        FragmentTransaction fragmentTransactor = getSupportFragmentManager().beginTransaction();
-                        menuItem.setChecked(!menuItem.isChecked());
+                menuItem -> {
+                    // Set item as selected to persist highlight
+                    menuItem.setChecked(!menuItem.isChecked());
+                    FragmentTransaction fragmentTransactor = getSupportFragmentManager().beginTransaction();
 
-                        switch (menuItem.getTitle().toString()) {
-                            case "AR":
-                                startAr();
-                            case "Map":
-                                MapFragment mapFragment = new MapFragment();
-                                fragmentTransactor.replace(R.id.fragment_container, mapFragment, "MAP_FRAG").addToBackStack(null);
-                        }
-
-                        mDrawerLayout.closeDrawers();
-                        fragmentTransactor.commit();
-                        return true;
+                    // Cases for drawer items.
+                    switch (menuItem.getTitle().toString()) {
+                        case "AR":
+                            startAr();
+                        case "Map":
+                            MapFragment mapFragment = new MapFragment();
+                            fragmentTransactor.replace(R.id.fragment_container, mapFragment, "MAP_FRAG").addToBackStack(null);
                     }
+
+                    mDrawerLayout.closeDrawers();
+                    fragmentTransactor.commit();
+                    return true;
                 });
 
-
+        // Setup header and toolbar.
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         ActionBar actionbar = getSupportActionBar();
-        actionbar.setDisplayHomeAsUpEnabled(true);
-        actionbar.setHomeAsUpIndicator(R.drawable.ic_menu_black_24dp);
+        if (actionbar != null) {
+            actionbar.setDisplayHomeAsUpEnabled(true);
+            actionbar.setHomeAsUpIndicator(R.drawable.ic_menu_black_24dp);
+        }
     }
 
     @Override
     public void onBackPressed() {
         DrawerLayout layout = findViewById(R.id.drawer_layout);
         FindCourseFragment courseFrag = (FindCourseFragment) getSupportFragmentManager().findFragmentByTag("COURSE_FRAG");
-        if (layout.isDrawerOpen(GravityCompat.START)) {
+
+        if (layout.isDrawerOpen(GravityCompat.START)) { // If drawer is open, back button closes drawer.
             layout.closeDrawer(GravityCompat.START);
             return;
-        } else if (courseFrag != null && courseFrag.isVisible()) {
+        } else if (courseFrag != null && courseFrag.isVisible()) { // Main app view is the Find Course Fragment. In this view, double back press exits.
             if (mDoubleBackToExitPressedOnce) {
                 super.onBackPressed();
                 return;
@@ -88,6 +83,7 @@ public class MainActivity extends AppCompatActivity {
             this.mDoubleBackToExitPressedOnce = true;
             Toast.makeText(this, R.string.double_press_back_exit, Toast.LENGTH_SHORT).show();
 
+            // Toast is shown for 2 seconds, so we reset back timer after 2 seconds.
             new Handler().postDelayed(new Runnable() {
 
                 @Override
@@ -98,6 +94,7 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
+        // Normal back if no special case is applicable.
         super.onBackPressed();
     }
 
@@ -111,6 +108,9 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    /**
+     * Starts the AR activity.
+     */
     public void startAr() {
         Intent intent = new Intent(this, ArActivity.class);
         startActivity(intent);

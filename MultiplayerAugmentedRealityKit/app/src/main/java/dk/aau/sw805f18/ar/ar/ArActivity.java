@@ -53,7 +53,7 @@ import dk.aau.sw805f18.ar.common.helpers.gestures.Tap;
 import dk.aau.sw805f18.ar.common.rendering.BackgroundRenderer;
 import dk.aau.sw805f18.ar.common.rendering.PlaneRenderer;
 import dk.aau.sw805f18.ar.common.rendering.PointCloudRenderer;
-import dk.aau.sw805f18.ar.main.ModelDialogFragment;
+import dk.aau.sw805f18.ar.fragments.ModelDialogFragment;
 
 public class ArActivity extends AppCompatActivity implements GLSurfaceView.Renderer {
     private static final String TAG = ArActivity.class.getSimpleName();

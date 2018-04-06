@@ -1,7 +1,6 @@
 package dk.aau.sw805f18.ar.common.rendering;
 
 import android.content.Context;
-import android.graphics.Shader;
 import android.opengl.GLES11Ext;
 import android.opengl.GLES20;
 
@@ -23,29 +22,29 @@ public class BackgroundRenderer {
     private static final int TEXCOORDS_PER_VERTEX = 2;
     private static final int FLOAT_SIZE = 4;
 
-    private FloatBuffer quadVertices;
-    private FloatBuffer quadTexCoord;
-    private FloatBuffer quadTexCoordTransformed;
+    private FloatBuffer mQuadVertices;
+    private FloatBuffer mQuadTexCoord;
+    private FloatBuffer mQuadTexCoordTransformed;
 
-    private int quadProgram;
+    private int mQuadProgram;
 
-    private int quadPositionParam;
-    private int quadTexCoordParam;
-    private int textureId = -1;
+    private int mQuadPositionParam;
+    private int mQuadTexCoordParam;
+    private int mTextureId = -1;
 
     public BackgroundRenderer() {
     }
 
     public int getTextureId() {
-        return textureId;
+        return mTextureId;
     }
 
     public void createOnGlThread(Context context) throws IOException {
         int[] textures = new int[1];
         GLES20.glGenTextures(1, textures, 0);
-        textureId = textures[0];
+        mTextureId = textures[0];
         int textureTarget = GLES11Ext.GL_TEXTURE_EXTERNAL_OES;
-        GLES20.glBindTexture(textureTarget, textureId);
+        GLES20.glBindTexture(textureTarget, mTextureId);
         GLES20.glTexParameteri(textureTarget, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE);
         GLES20.glTexParameteri(textureTarget, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE);
         GLES20.glTexParameteri(textureTarget, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_NEAREST);
@@ -59,33 +58,33 @@ public class BackgroundRenderer {
         ByteBuffer bbVertices = ByteBuffer.allocateDirect(QUAD_COORDS.length * FLOAT_SIZE);
         bbVertices.order(ByteOrder.nativeOrder());
 
-        quadVertices = bbVertices.asFloatBuffer();
-        quadVertices.put(QUAD_COORDS);
-        quadVertices.position(0);
+        mQuadVertices = bbVertices.asFloatBuffer();
+        mQuadVertices.put(QUAD_COORDS);
+        mQuadVertices.position(0);
 
         ByteBuffer bbTexCoords = ByteBuffer.allocateDirect(numVertices * TEXCOORDS_PER_VERTEX * FLOAT_SIZE);
         bbTexCoords.order(ByteOrder.nativeOrder());
-        quadTexCoord = bbTexCoords.asFloatBuffer();
-        quadTexCoord.put(QUAD_TEXCOORDS);
-        quadTexCoord.position(0);
+        mQuadTexCoord = bbTexCoords.asFloatBuffer();
+        mQuadTexCoord.put(QUAD_TEXCOORDS);
+        mQuadTexCoord.position(0);
 
         ByteBuffer bbTexCoordsTransformed = ByteBuffer.allocateDirect(numVertices * TEXCOORDS_PER_VERTEX * FLOAT_SIZE);
         bbTexCoordsTransformed.order(ByteOrder.nativeOrder());
-        quadTexCoordTransformed = bbTexCoordsTransformed.asFloatBuffer();
+        mQuadTexCoordTransformed = bbTexCoordsTransformed.asFloatBuffer();
 
         int vertexShader = ShaderUtil.loadGlShader(TAG, context, GLES20.GL_VERTEX_SHADER, VERTEX_SHADER_NAME);
         int fragmentShader = ShaderUtil.loadGlShader(TAG, context, GLES20.GL_FRAGMENT_SHADER, FRAGMENT_SHADER_NAME);
 
-        quadProgram = GLES20.glCreateProgram();
-        GLES20.glAttachShader(quadProgram, vertexShader);
-        GLES20.glAttachShader(quadProgram, fragmentShader);
-        GLES20.glLinkProgram(quadProgram);
-        GLES20.glUseProgram(quadProgram);
+        mQuadProgram = GLES20.glCreateProgram();
+        GLES20.glAttachShader(mQuadProgram, vertexShader);
+        GLES20.glAttachShader(mQuadProgram, fragmentShader);
+        GLES20.glLinkProgram(mQuadProgram);
+        GLES20.glUseProgram(mQuadProgram);
 
         ShaderUtil.checkGlError(TAG, "Program creation");
 
-        quadPositionParam = GLES20.glGetAttribLocation(quadProgram, "a_Position");
-        quadTexCoordParam = GLES20.glGetAttribLocation(quadProgram, "a_TexCoord");
+        mQuadPositionParam = GLES20.glGetAttribLocation(mQuadProgram, "a_Position");
+        mQuadTexCoordParam = GLES20.glGetAttribLocation(mQuadProgram, "a_TexCoord");
 
         ShaderUtil.checkGlError(TAG, "Program parameters");
     }
@@ -93,45 +92,45 @@ public class BackgroundRenderer {
     public void draw(Frame frame) {
         // if display rotation changed, we need to re-query the uv coordinates
         if (frame.hasDisplayGeometryChanged()) {
-            frame.transformDisplayUvCoords(quadTexCoord, quadTexCoordTransformed);
+            frame.transformDisplayUvCoords(mQuadTexCoord, mQuadTexCoordTransformed);
         }
 
         GLES20.glDisable(GLES20.GL_DEPTH_TEST);
         GLES20.glDepthMask(false);
 
-        GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, textureId);
+        GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, mTextureId);
 
-        GLES20.glUseProgram(quadProgram);
+        GLES20.glUseProgram(mQuadProgram);
 
         // Set the vertex positions.
         GLES20.glVertexAttribPointer(
-                quadPositionParam,
+                mQuadPositionParam,
                 COORDS_PER_VERTEX,
                 GLES20.GL_FLOAT,
                 false,
                 0,
-                quadVertices
+                mQuadVertices
         );
 
         // Set the texture coordinates.
         GLES20.glVertexAttribPointer(
-                quadTexCoordParam,
+                mQuadTexCoordParam,
                 TEXCOORDS_PER_VERTEX,
                 GLES20.GL_FLOAT,
                 false,
                 0,
-                quadTexCoordTransformed
+                mQuadTexCoordTransformed
         );
 
         // Enable vertex arrays
-        GLES20.glEnableVertexAttribArray(quadPositionParam);
-        GLES20.glEnableVertexAttribArray(quadTexCoordParam);
+        GLES20.glEnableVertexAttribArray(mQuadPositionParam);
+        GLES20.glEnableVertexAttribArray(mQuadTexCoordParam);
 
         GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4);
 
         // Disable vertex arrays
-        GLES20.glDisableVertexAttribArray(quadPositionParam);
-        GLES20.glDisableVertexAttribArray(quadTexCoordParam);
+        GLES20.glDisableVertexAttribArray(mQuadPositionParam);
+        GLES20.glDisableVertexAttribArray(mQuadTexCoordParam);
 
         // Restore the depth state for further drawing.
         GLES20.glDepthMask(true);

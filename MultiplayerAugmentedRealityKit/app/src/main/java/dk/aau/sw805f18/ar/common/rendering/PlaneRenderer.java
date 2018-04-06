@@ -59,37 +59,37 @@ public class PlaneRenderer {
     // occlusionShrink: occluded planes will fade out between alpha = 0 and 1/occlusionShrink
     private static final float[] GRID_CONTROL = {0.2f, 0.4f, 2.0f, 1.5f};
 
-    private int planeProgram;
-    private final int[] textures = new int[1];
+    private int mPlaneProgram;
+    private final int[] mTextures = new int[1];
 
-    private int planeXZPositionAlphaAttribute;
+    private int mPlaneXZPositionAlphaAttribute;
 
-    private int planeModelUniform;
-    private int planeModelViewProjectionUniform;
-    private int textureUniform;
-    private int lineColorUniform;
-    private int dotColorUniform;
-    private int gridControlUniform;
-    private int planeUvMatrixUniform;
+    private int mPlaneModelUniform;
+    private int mPlaneModelViewProjectionUniform;
+    private int mTextureUniform;
+    private int mLineColorUniform;
+    private int mDotColorUniform;
+    private int mGridControlUniform;
+    private int mPlaneUvMatrixUniform;
 
-    private FloatBuffer vertexBuffer =
+    private FloatBuffer mVertexBuffer =
             ByteBuffer.allocateDirect(INITIAL_VERTEX_BUFFER_SIZE_BYTES)
                     .order(ByteOrder.nativeOrder())
                     .asFloatBuffer();
-    private ShortBuffer indexBuffer =
+    private ShortBuffer mIndexBuffer =
             ByteBuffer.allocateDirect(INITIAL_INDEX_BUFFER_SIZE_BYTES)
                     .order(ByteOrder.nativeOrder())
                     .asShortBuffer();
 
     // Temporary lists/matrices allocated here to reduce number of allocations for each frame.
-    private final float[] modelMatrix = new float[16];
-    private final float[] modelViewMatrix = new float[16];
-    private final float[] modelViewProjectionMatrix = new float[16];
-    private final float[] planeColor = new float[4];
-    private final float[] planeAngleUvMatrix =
+    private final float[] mModelMatrix = new float[16];
+    private final float[] mModelViewMatrix = new float[16];
+    private final float[] mModelViewProjectionMatrix = new float[16];
+    private final float[] mPlaneColor = new float[4];
+    private final float[] mPlaneAngleUvMatrix =
             new float[4]; // 2x2 rotation matrix applied to uv coords.
 
-    private final Map<Plane, Integer> planeIndexMap = new HashMap<>();
+    private final Map<Plane, Integer> mPlaneIndexMap = new HashMap<>();
 
     public PlaneRenderer() {
     }
@@ -100,11 +100,11 @@ public class PlaneRenderer {
         int passthroughShader =
                 ShaderUtil.loadGlShader(TAG, context, GLES20.GL_FRAGMENT_SHADER, FRAGMENT_SHADER_NAME);
 
-        planeProgram = GLES20.glCreateProgram();
-        GLES20.glAttachShader(planeProgram, vertexShader);
-        GLES20.glAttachShader(planeProgram, passthroughShader);
-        GLES20.glLinkProgram(planeProgram);
-        GLES20.glUseProgram(planeProgram);
+        mPlaneProgram = GLES20.glCreateProgram();
+        GLES20.glAttachShader(mPlaneProgram, vertexShader);
+        GLES20.glAttachShader(mPlaneProgram, passthroughShader);
+        GLES20.glLinkProgram(mPlaneProgram);
+        GLES20.glUseProgram(mPlaneProgram);
 
         ShaderUtil.checkGlError(TAG, "Program creation");
 
@@ -113,8 +113,8 @@ public class PlaneRenderer {
                 BitmapFactory.decodeStream(context.getAssets().open(gridDistanceTextureName));
 
         GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
-        GLES20.glGenTextures(textures.length, textures, 0);
-        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textures[0]);
+        GLES20.glGenTextures(mTextures.length, mTextures, 0);
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mTextures[0]);
 
         GLES20.glTexParameteri(
                 GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR_MIPMAP_LINEAR);
@@ -125,16 +125,16 @@ public class PlaneRenderer {
 
         ShaderUtil.checkGlError(TAG, "Texture loading");
 
-        planeXZPositionAlphaAttribute = GLES20.glGetAttribLocation(planeProgram, "a_XZPositionAlpha");
+        mPlaneXZPositionAlphaAttribute = GLES20.glGetAttribLocation(mPlaneProgram, "a_XZPositionAlpha");
 
-        planeModelUniform = GLES20.glGetUniformLocation(planeProgram, "u_Model");
-        planeModelViewProjectionUniform =
-                GLES20.glGetUniformLocation(planeProgram, "u_ModelViewProjection");
-        textureUniform = GLES20.glGetUniformLocation(planeProgram, "u_Texture");
-        lineColorUniform = GLES20.glGetUniformLocation(planeProgram, "u_lineColor");
-        dotColorUniform = GLES20.glGetUniformLocation(planeProgram, "u_dotColor");
-        gridControlUniform = GLES20.glGetUniformLocation(planeProgram, "u_gridControl");
-        planeUvMatrixUniform = GLES20.glGetUniformLocation(planeProgram, "u_PlaneUvMatrix");
+        mPlaneModelUniform = GLES20.glGetUniformLocation(mPlaneProgram, "u_Model");
+        mPlaneModelViewProjectionUniform =
+                GLES20.glGetUniformLocation(mPlaneProgram, "u_ModelViewProjection");
+        mTextureUniform = GLES20.glGetUniformLocation(mPlaneProgram, "u_Texture");
+        mLineColorUniform = GLES20.glGetUniformLocation(mPlaneProgram, "u_lineColor");
+        mDotColorUniform = GLES20.glGetUniformLocation(mPlaneProgram, "u_dotColor");
+        mGridControlUniform = GLES20.glGetUniformLocation(mPlaneProgram, "u_gridControl");
+        mPlaneUvMatrixUniform = GLES20.glGetUniformLocation(mPlaneProgram, "u_PlaneUvMatrix");
 
         ShaderUtil.checkGlError(TAG, "Program parameters");
     }
@@ -144,10 +144,10 @@ public class PlaneRenderer {
      */
     private void updatePlaneParameters(
             float[] planeMatrix, float extentX, float extentZ, FloatBuffer boundary) {
-        System.arraycopy(planeMatrix, 0, modelMatrix, 0, 16);
+        System.arraycopy(planeMatrix, 0, mModelMatrix, 0, 16);
         if (boundary == null) {
-            vertexBuffer.limit(0);
-            indexBuffer.limit(0);
+            mVertexBuffer.limit(0);
+            mIndexBuffer.limit(0);
             return;
         }
 
@@ -164,31 +164,31 @@ public class PlaneRenderer {
         // drawn as GL_TRIANGLE_STRIP with 3n-2 triangles (n-2 for fill, 2n for perimeter).
         numIndices = boundaryVertices * INDICES_PER_BOUNDARY_VERT;
 
-        if (vertexBuffer.capacity() < numVertices * COORDS_PER_VERTEX) {
-            int size = vertexBuffer.capacity();
+        if (mVertexBuffer.capacity() < numVertices * COORDS_PER_VERTEX) {
+            int size = mVertexBuffer.capacity();
             while (size < numVertices * COORDS_PER_VERTEX) {
                 size *= 2;
             }
-            vertexBuffer =
+            mVertexBuffer =
                     ByteBuffer.allocateDirect(BYTES_PER_FLOAT * size)
                             .order(ByteOrder.nativeOrder())
                             .asFloatBuffer();
         }
-        vertexBuffer.rewind();
-        vertexBuffer.limit(numVertices * COORDS_PER_VERTEX);
+        mVertexBuffer.rewind();
+        mVertexBuffer.limit(numVertices * COORDS_PER_VERTEX);
 
-        if (indexBuffer.capacity() < numIndices) {
-            int size = indexBuffer.capacity();
+        if (mIndexBuffer.capacity() < numIndices) {
+            int size = mIndexBuffer.capacity();
             while (size < numIndices) {
                 size *= 2;
             }
-            indexBuffer =
+            mIndexBuffer =
                     ByteBuffer.allocateDirect(BYTES_PER_SHORT * size)
                             .order(ByteOrder.nativeOrder())
                             .asShortBuffer();
         }
-        indexBuffer.rewind();
-        indexBuffer.limit(numIndices);
+        mIndexBuffer.rewind();
+        mIndexBuffer.limit(numIndices);
 
         // Note: when either dimension of the bounding box is smaller than 2*FADE_RADIUS_M we
         // generate a bunch of 0-area triangles.  These don't get rendered though so it works
@@ -199,58 +199,58 @@ public class PlaneRenderer {
         while (boundary.hasRemaining()) {
             float x = boundary.get();
             float z = boundary.get();
-            vertexBuffer.put(x);
-            vertexBuffer.put(z);
-            vertexBuffer.put(0.0f);
-            vertexBuffer.put(x * xScale);
-            vertexBuffer.put(z * zScale);
-            vertexBuffer.put(1.0f);
+            mVertexBuffer.put(x);
+            mVertexBuffer.put(z);
+            mVertexBuffer.put(0.0f);
+            mVertexBuffer.put(x * xScale);
+            mVertexBuffer.put(z * zScale);
+            mVertexBuffer.put(1.0f);
         }
 
         // step 1, perimeter
-        indexBuffer.put((short) ((boundaryVertices - 1) * 2));
+        mIndexBuffer.put((short) ((boundaryVertices - 1) * 2));
         for (int i = 0; i < boundaryVertices; ++i) {
-            indexBuffer.put((short) (i * 2));
-            indexBuffer.put((short) (i * 2 + 1));
+            mIndexBuffer.put((short) (i * 2));
+            mIndexBuffer.put((short) (i * 2 + 1));
         }
-        indexBuffer.put((short) 1);
+        mIndexBuffer.put((short) 1);
         // This leaves us on the interior edge of the perimeter between the inset vertices
         // for boundary verts n-1 and 0.
 
         // step 2, interior:
         for (int i = 1; i < boundaryVertices / 2; ++i) {
-            indexBuffer.put((short) ((boundaryVertices - 1 - i) * 2 + 1));
-            indexBuffer.put((short) (i * 2 + 1));
+            mIndexBuffer.put((short) ((boundaryVertices - 1 - i) * 2 + 1));
+            mIndexBuffer.put((short) (i * 2 + 1));
         }
         if (boundaryVertices % 2 != 0) {
-            indexBuffer.put((short) ((boundaryVertices / 2) * 2 + 1));
+            mIndexBuffer.put((short) ((boundaryVertices / 2) * 2 + 1));
         }
     }
 
     private void draw(float[] cameraView, float[] cameraPerspective) {
         // Build the ModelView and ModelViewProjection matrices
         // for calculating cube position and light.
-        Matrix.multiplyMM(modelViewMatrix, 0, cameraView, 0, modelMatrix, 0);
-        Matrix.multiplyMM(modelViewProjectionMatrix, 0, cameraPerspective, 0, modelViewMatrix, 0);
+        Matrix.multiplyMM(mModelViewMatrix, 0, cameraView, 0, mModelMatrix, 0);
+        Matrix.multiplyMM(mModelViewProjectionMatrix, 0, cameraPerspective, 0, mModelViewMatrix, 0);
 
         // Set the position of the plane
-        vertexBuffer.rewind();
+        mVertexBuffer.rewind();
         GLES20.glVertexAttribPointer(
-                planeXZPositionAlphaAttribute,
+                mPlaneXZPositionAlphaAttribute,
                 COORDS_PER_VERTEX,
                 GLES20.GL_FLOAT,
                 false,
                 BYTES_PER_FLOAT * COORDS_PER_VERTEX,
-                vertexBuffer);
+                mVertexBuffer);
 
         // Set the Model and ModelViewProjection matrices in the shader.
-        GLES20.glUniformMatrix4fv(planeModelUniform, 1, false, modelMatrix, 0);
+        GLES20.glUniformMatrix4fv(mPlaneModelUniform, 1, false, mModelMatrix, 0);
         GLES20.glUniformMatrix4fv(
-                planeModelViewProjectionUniform, 1, false, modelViewProjectionMatrix, 0);
+                mPlaneModelViewProjectionUniform, 1, false, mModelViewProjectionMatrix, 0);
 
-        indexBuffer.rewind();
+        mIndexBuffer.rewind();
         GLES20.glDrawElements(
-                GLES20.GL_TRIANGLE_STRIP, indexBuffer.limit(), GLES20.GL_UNSIGNED_SHORT, indexBuffer);
+                GLES20.GL_TRIANGLE_STRIP, mIndexBuffer.limit(), GLES20.GL_UNSIGNED_SHORT, mIndexBuffer);
         ShaderUtil.checkGlError(TAG, "Drawing plane");
     }
 
@@ -320,18 +320,18 @@ public class PlaneRenderer {
                 GLES20.GL_ZERO, GLES20.GL_ONE_MINUS_SRC_ALPHA); // ALPHA (src, dest)
 
         // Set up the shader.
-        GLES20.glUseProgram(planeProgram);
+        GLES20.glUseProgram(mPlaneProgram);
 
         // Attach the texture.
         GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
-        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textures[0]);
-        GLES20.glUniform1i(textureUniform, 0);
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mTextures[0]);
+        GLES20.glUniform1i(mTextureUniform, 0);
 
         // Shared fragment uniforms.
-        GLES20.glUniform4fv(gridControlUniform, 1, GRID_CONTROL, 0);
+        GLES20.glUniform4fv(mGridControlUniform, 1, GRID_CONTROL, 0);
 
         // Enable vertex arrays
-        GLES20.glEnableVertexAttribArray(planeXZPositionAlphaAttribute);
+        GLES20.glEnableVertexAttribArray(mPlaneXZPositionAlphaAttribute);
 
         ShaderUtil.checkGlError(TAG, "Setting up to draw planes");
 
@@ -344,34 +344,34 @@ public class PlaneRenderer {
                     planeMatrix, plane.getExtentX(), plane.getExtentZ(), plane.getPolygon());
 
             // Get plane index. Keep a MapFragment to assign same indices to same planes.
-            Integer planeIndex = planeIndexMap.get(plane);
+            Integer planeIndex = mPlaneIndexMap.get(plane);
             if (planeIndex == null) {
-                planeIndex = planeIndexMap.size();
-                planeIndexMap.put(plane, planeIndex);
+                planeIndex = mPlaneIndexMap.size();
+                mPlaneIndexMap.put(plane, planeIndex);
             }
 
             // Set plane color. Computed deterministically from the Plane index.
             int colorIndex = planeIndex % PLANE_COLORS_RGBA.length;
-            colorRgbaToFloat(planeColor, PLANE_COLORS_RGBA[colorIndex]);
-            GLES20.glUniform4fv(lineColorUniform, 1, planeColor, 0);
-            GLES20.glUniform4fv(dotColorUniform, 1, planeColor, 0);
+            colorRgbaToFloat(mPlaneColor, PLANE_COLORS_RGBA[colorIndex]);
+            GLES20.glUniform4fv(mLineColorUniform, 1, mPlaneColor, 0);
+            GLES20.glUniform4fv(mDotColorUniform, 1, mPlaneColor, 0);
 
             // Each plane will have its own angle offset from others, to make them easier to
             // distinguish. Compute a 2x2 rotation matrix from the angle.
             float angleRadians = planeIndex * 0.144f;
             float uScale = DOTS_PER_METER;
             float vScale = DOTS_PER_METER * EQUILATERAL_TRIANGLE_SCALE;
-            planeAngleUvMatrix[0] = +(float) Math.cos(angleRadians) * uScale;
-            planeAngleUvMatrix[1] = -(float) Math.sin(angleRadians) * vScale;
-            planeAngleUvMatrix[2] = +(float) Math.sin(angleRadians) * uScale;
-            planeAngleUvMatrix[3] = +(float) Math.cos(angleRadians) * vScale;
-            GLES20.glUniformMatrix2fv(planeUvMatrixUniform, 1, false, planeAngleUvMatrix, 0);
+            mPlaneAngleUvMatrix[0] = +(float) Math.cos(angleRadians) * uScale;
+            mPlaneAngleUvMatrix[1] = -(float) Math.sin(angleRadians) * vScale;
+            mPlaneAngleUvMatrix[2] = +(float) Math.sin(angleRadians) * uScale;
+            mPlaneAngleUvMatrix[3] = +(float) Math.cos(angleRadians) * vScale;
+            GLES20.glUniformMatrix2fv(mPlaneUvMatrixUniform, 1, false, mPlaneAngleUvMatrix, 0);
 
             draw(cameraView, cameraPerspective);
         }
 
         // Clean up the state we set
-        GLES20.glDisableVertexAttribArray(planeXZPositionAlphaAttribute);
+        GLES20.glDisableVertexAttribArray(mPlaneXZPositionAlphaAttribute);
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0);
         GLES20.glDisable(GLES20.GL_BLEND);
         GLES20.glDepthMask(true);
