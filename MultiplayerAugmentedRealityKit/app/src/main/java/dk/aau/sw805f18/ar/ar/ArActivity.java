@@ -1,9 +1,14 @@
 package dk.aau.sw805f18.ar.ar;
 
 import android.annotation.SuppressLint;
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.Intent;
+import android.content.ServiceConnection;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
@@ -54,6 +59,7 @@ import dk.aau.sw805f18.ar.common.rendering.BackgroundRenderer;
 import dk.aau.sw805f18.ar.common.rendering.PlaneRenderer;
 import dk.aau.sw805f18.ar.common.rendering.PointCloudRenderer;
 import dk.aau.sw805f18.ar.fragments.ModelDialogFragment;
+import dk.aau.sw805f18.ar.services.P2pSyncService;
 
 public class ArActivity extends AppCompatActivity implements GLSurfaceView.Renderer {
     private static final String TAG = ArActivity.class.getSimpleName();
@@ -65,6 +71,10 @@ public class ArActivity extends AppCompatActivity implements GLSurfaceView.Rende
     // Rendering
     private GLSurfaceView mSurfaceView;
 
+    // P2pService
+    private P2pSyncService mP2pSyncService;
+    private boolean mBound;
+
     private boolean mInstallRequested;
 
     private Session mSession;
@@ -74,6 +84,7 @@ public class ArActivity extends AppCompatActivity implements GLSurfaceView.Rende
 
     // DEBUG: Used to toggle rendering planes
     private ToggleButton mToggle;
+
     private SeekBar mRotationBar;
     private SeekBar mScaleBar;
 
@@ -83,6 +94,7 @@ public class ArActivity extends AppCompatActivity implements GLSurfaceView.Rende
     };
 
     private final ArrayList<ArObject> mObjects = new ArrayList<>();
+    private ArObject mSelectedObject;
 
     private final BackgroundRenderer mBackgroundRenderer = new BackgroundRenderer();
     private final PlaneRenderer mPlaneRenderer = new PlaneRenderer();
@@ -90,8 +102,6 @@ public class ArActivity extends AppCompatActivity implements GLSurfaceView.Rende
 
     // Temporary matrix allocated here to reduce number of allocations for each frame.
     private final float[] mAnchorMatrix = new float[16];
-
-    private ArObject mSelectedObject;
 
     @SuppressLint("ClickableViewAccessibility")
     @Override
@@ -302,6 +312,10 @@ public class ArActivity extends AppCompatActivity implements GLSurfaceView.Rende
     }
 
     private void handleTap(Tap tap, Frame frame) {
+        if (mBound) {
+//            mP2pSyncService.printToLog();
+        }
+
         for (HitResult hit : frame.hitTest(tap.getMotion())) {
             Trackable trackable = hit.getTrackable();
 

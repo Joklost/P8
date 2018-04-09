@@ -2,6 +2,7 @@ package dk.aau.sw805f18.ar.main;
 
 import android.content.Intent;
 import android.databinding.DataBindingUtil;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.view.GravityCompat;
 import android.support.v7.app.ActionBar;
@@ -16,6 +17,7 @@ import dk.aau.sw805f18.ar.ar.ArActivity;
 import dk.aau.sw805f18.ar.databinding.ActivityMainBinding;
 import dk.aau.sw805f18.ar.fragments.FindCourseFragment;
 import dk.aau.sw805f18.ar.fragments.MapFragment;
+import dk.aau.sw805f18.ar.services.P2pSyncService;
 import dk.aau.sw805f18.ar.viewModels.FindCourseViewModel;
 import dk.aau.sw805f18.ar.viewModels.MapViewModel;
 
@@ -36,8 +38,14 @@ public class MainActivity extends AppCompatActivity {
                     switch (menuItem.getTitle().toString()) {
                         case "AR":
                             startAr();
+                            break;
                         case "Map":
                             SemiViewManager.getInstance().open(new MapFragment(), new MapViewModel());
+                            break;
+                        case "WiFi P2P":
+                            Intent intent = new Intent(this, WifiP2pActivity.class);
+                            startActivity(intent);
+                            break;
                     }
 
                     mBinding.drawer.closeDrawers();
@@ -50,6 +58,7 @@ public class MainActivity extends AppCompatActivity {
             actionbar.setDisplayHomeAsUpEnabled(true);
             actionbar.setHomeAsUpIndicator(R.drawable.ic_menu_black_24dp);
         }
+
     }
 
     @Override
@@ -67,8 +76,7 @@ public class MainActivity extends AppCompatActivity {
         if (mBackPressed == null || now.getTime() - mBackPressed.getTime() > 2000) {
             mBackPressed = now;
             Toast.makeText(this, R.string.double_press_back_exit, Toast.LENGTH_SHORT).show();
-        }
-        else {
+        } else {
             super.onBackPressed();
         }
     }
