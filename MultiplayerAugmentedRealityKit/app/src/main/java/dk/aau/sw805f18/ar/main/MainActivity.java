@@ -16,8 +16,6 @@ import dk.aau.sw805f18.ar.ar.ArActivity;
 import dk.aau.sw805f18.ar.databinding.ActivityMainBinding;
 import dk.aau.sw805f18.ar.fragments.FindCourseFragment;
 import dk.aau.sw805f18.ar.fragments.MapFragment;
-import dk.aau.sw805f18.ar.viewModels.FindCourseViewModel;
-import dk.aau.sw805f18.ar.viewModels.MapViewModel;
 
 public class MainActivity extends AppCompatActivity {
     private Date mBackPressed;
@@ -26,18 +24,20 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        SemiViewManager svm = SemiViewManager.getInstance();
-        svm.init(this);
-        svm.open(new FindCourseFragment(), new FindCourseViewModel());
+        FragmentOpener fragmentOpener = FragmentOpener.getInstance();
+        fragmentOpener.init(this);
+        fragmentOpener.open(new FindCourseFragment());
 
         mBinding = DataBindingUtil.setContentView(this, R.layout.activity_main);
         mBinding.navigation.setNavigationItemSelectedListener(
                 menuItem -> {
                     switch (menuItem.getTitle().toString()) {
                         case "AR":
-                            startAr();
+                            startActivity(new Intent(this, ArActivity.class));
+                            break;
                         case "Map":
-                            SemiViewManager.getInstance().open(new MapFragment(), new MapViewModel());
+                            FragmentOpener.getInstance().open(new MapFragment());
+                            break;
                     }
 
                     mBinding.drawer.closeDrawers();
@@ -58,7 +58,7 @@ public class MainActivity extends AppCompatActivity {
             mBinding.drawer.closeDrawer(GravityCompat.START);
             return;
         }
-        if (SemiViewManager.getInstance().close()) {
+        if (FragmentOpener.getInstance().close()) {
             super.onBackPressed();
             return;
         }
@@ -81,14 +81,6 @@ public class MainActivity extends AppCompatActivity {
                 return true;
         }
         return super.onOptionsItemSelected(item);
-    }
-
-    /**
-     * Starts the AR activity.
-     */
-    public void startAr() {
-        Intent intent = new Intent(this, ArActivity.class);
-        startActivity(intent);
     }
 }
 

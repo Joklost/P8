@@ -2,7 +2,6 @@ package dk.aau.sw805f18.ar.fragments;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
-import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -22,7 +21,6 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import dk.aau.sw805f18.ar.R;
-import dk.aau.sw805f18.ar.databinding.FragmentMapBinding;
 
 public class MapFragment extends Fragment implements OnMapReadyCallback {
 
@@ -33,17 +31,14 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     public View onCreateView(@NonNull LayoutInflater inflater,
                              @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-        FragmentMapBinding binding = DataBindingUtil.inflate(
-                inflater, R.layout.fragment_map, container, false);
-        View rootView = binding.getRoot();
-
+        View rootView = inflater.inflate(R.layout.fragment_map, container, false);
         try {
             MapsInitializer.initialize(getActivity().getApplicationContext());
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        mMapView = (MapView) rootView.findViewById(R.id.mapView);
+        mMapView = rootView.findViewById(R.id.mapView);
         mMapView.onCreate(savedInstanceState);
         mMapView.onResume();
 
