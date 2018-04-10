@@ -18,6 +18,7 @@ import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import dk.aau.sw805f18.ar.R;
@@ -41,35 +42,33 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         mMapView = rootView.findViewById(R.id.mapView);
         mMapView.onCreate(savedInstanceState);
         mMapView.onResume();
-
-
-        mMapView.getMapAsync(mMap -> {
-            googleMap = mMap;
-            if (ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                //kan spørge efter permisions, måske en future TODO
-                return;
-            }
-            googleMap.setMyLocationEnabled(true);
-
-            LatLng cass = new LatLng(85.993087, -89.567522);
-            googleMap.addMarker(new MarkerOptions().position(cass).title("Marker Title").snippet("Marker Description"));
-
-            // For zooming automatically to the location of the marker
-            CameraPosition cameraPosition = new CameraPosition.Builder().target(cass).zoom(12).build();
-            googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
-
-        });
+        mMapView.getMapAsync(this);
         return rootView;
     }
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
-        // Add a marker in Sydney, Australia,
-        // and move the map's camera to the same location.
-        LatLng sydney = new LatLng(-33.852, 151.211);
-        googleMap.addMarker(new MarkerOptions().position(sydney)
-                .title("Marker in Sydney"));
-        googleMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
+        if (ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            //kan spørge efter permisions, måske en future TODO
+//                return;
+//            googleMap.setMyLocationEnabled(true);
+        }
+
+        LatLng cass = new LatLng(57.013234, 9.991280);
+        LatLngBounds cass_bounds = new LatLngBounds(cass, new LatLng(57.020992, 9.977574));
+
+        // Set marker on cass and move camera
+        googleMap.addMarker(new MarkerOptions().position(cass).title("Marker Title").snippet("Marker Description"));
+        CameraPosition cameraPosition = new CameraPosition.Builder().target(cass).zoom(15).build();
+        googleMap.moveCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+
+        // Set bounds to cass area
+        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(cass_bounds.getCenter(), 10));
+
+//        googleMap.setLatLngBoundsForCameraTarget(cass_bounds);
+//        googleMap.setMaxZoomPreference(12.0f);
+//        googleMap.setMinZoomPreference(12.0f);
+
 
     }
 }
