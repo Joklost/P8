@@ -15,6 +15,7 @@ import dk.aau.sw805f18.ar.R;
 import dk.aau.sw805f18.ar.ar.ArActivity;
 import dk.aau.sw805f18.ar.databinding.ActivityMainBinding;
 import dk.aau.sw805f18.ar.fragments.FindCourseFragment;
+import dk.aau.sw805f18.ar.fragments.HomeFragment;
 import dk.aau.sw805f18.ar.fragments.MapFragment;
 
 public class MainActivity extends AppCompatActivity {
@@ -26,7 +27,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         FragmentOpener fragmentOpener = FragmentOpener.getInstance();
         fragmentOpener.init(this);
-        fragmentOpener.open(new FindCourseFragment());
+        fragmentOpener.open(new HomeFragment());
 
         mBinding = DataBindingUtil.setContentView(this, R.layout.activity_main);
         mBinding.navigation.setNavigationItemSelectedListener(

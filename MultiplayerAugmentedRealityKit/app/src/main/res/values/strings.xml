@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">M.A.R.K</string>
+    <string name="app_name">wARp</string>
     <string name="model_dialog_title">Pick a model</string>
     <string name="no_object_selected">No object selected</string>
     <string name="ar_nav_drawer">AR</string>
@@ -20,4 +20,8 @@
     <string name="login_button_text">Login</string>
     <string name="login_hint_password">Password</string>
     <string name="login_hint_email">Email</string>
+
+    <!--Home fragment-->
+    <string name="home_find_course_button">Find Course</string>
+    <string name="home_create_course_button">Create Course</string>
 </resources>

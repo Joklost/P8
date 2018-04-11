@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="dk.aau.sw805f18.ar.LoginActivity">
+    tools:context="dk.aau.sw805f18.ar.main.LoginActivity">
 
     <ImageView
         android:id="@+id/imageView2"
@@ -41,7 +41,7 @@
 
     <Button
         android:id="@+id/login_button"
-        style="@style/fullsize_button"
+        style="@style/FullsizeButton"
         android:text="@string/login_button_text"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"

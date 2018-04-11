@@ -1,4 +1,4 @@
-package dk.aau.sw805f18.ar;
+package dk.aau.sw805f18.ar.main;
 
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 
+import dk.aau.sw805f18.ar.R;
 import dk.aau.sw805f18.ar.ar.ArActivity;
 import dk.aau.sw805f18.ar.main.MainActivity;
 
