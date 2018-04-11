@@ -24,4 +24,7 @@
     <!--Home fragment-->
     <string name="home_find_course_button">Find Course</string>
     <string name="home_create_course_button">Create Course</string>
+
+    <!--Drawer-->
+    <string name="drawer_header_lobby_button_text">Lobby</string>
 </resources>
