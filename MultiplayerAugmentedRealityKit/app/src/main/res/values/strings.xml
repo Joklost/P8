@@ -15,4 +15,9 @@
     <!--Group fragment-->
     <string name="group_make_text">Make a new group</string>
     <string name="group_join_text">Join a group</string>
+
+    <!--Login activity-->
+    <string name="login_button_text">Login</string>
+    <string name="login_hint_password">Password</string>
+    <string name="login_hint_email">Email</string>
 </resources>
