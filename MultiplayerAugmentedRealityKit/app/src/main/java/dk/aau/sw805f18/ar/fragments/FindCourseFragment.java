@@ -8,11 +8,14 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.ListView;
 import android.widget.Spinner;
 
 import java.util.ArrayList;
 
 import dk.aau.sw805f18.ar.R;
+import dk.aau.sw805f18.ar.common.adapters.FindCourseListItemAdapter;
+import dk.aau.sw805f18.ar.models.FindCourseItem;
 
 
 public class FindCourseFragment extends Fragment {
@@ -35,7 +38,7 @@ public class FindCourseFragment extends Fragment {
                 R.array.find_course_distance_spinner_array,
                 android.R.layout.simple_spinner_item);
 
-        distanceAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        distanceAdapter.setDropDownViewResource(R.layout.support_simple_spinner_dropdown_item);
         distance.setAdapter(distanceAdapter);
 
         ArrayAdapter<CharSequence> ageAdapter = ArrayAdapter.createFromResource(getContext(),
@@ -51,6 +54,11 @@ public class FindCourseFragment extends Fragment {
 
         typeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         type.setAdapter(typeAdapter);
+
+
+        ListView lv = getView().findViewById(R.id.find_course_listview);
+        FindCourseListItemAdapter lvAdapter = new FindCourseListItemAdapter(getContext(), getCourseItems());
+        lv.setAdapter(lvAdapter);
     }
 
     private ArrayList<String> getTypeItems() {
@@ -61,5 +69,13 @@ public class FindCourseFragment extends Fragment {
         typeArray.add("sunshine event");
 
         return typeArray;
+    }
+
+    private ArrayList<FindCourseItem> getCourseItems() {
+        ArrayList<FindCourseItem> courseArray = new ArrayList<>();
+        courseArray.add(new FindCourseItem("Horror map", 7, 14, 3.14));
+        courseArray.add(new FindCourseItem("Christmas map", 32, 18, 13.14));
+        courseArray.add(new FindCourseItem("ALL YEAR LONG! map", 102, 5, 12.08));
+        return  courseArray;
     }
 }

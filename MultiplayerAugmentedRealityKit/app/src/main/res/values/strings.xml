@@ -9,6 +9,12 @@
     <!--Find course fragment-->
     <string name="find_course_search_hint">Search for course</string>
     <string name="find_course_join_by_code_hint">Enter course code</string>
+    <string name="find_course_label_distance_text">Distance</string>
+    <string name="find_course_label_type_text">Type</string>
+    <string name="find_course_label_age_text">Age</string>
+    <string name="find_course_label_players">Players: </string>
+    <string name="find_course_label_age_group">Age Group: </string>
+    <string name="find_course_label_distance">Distance: </string>
     <string-array name="find_course_distance_spinner_array">
         <item>1km</item>
         <item>2km</item>
