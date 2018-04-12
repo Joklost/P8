@@ -17,8 +17,8 @@ public final class SnackbarHelper {
         show(activity, message, false);
     }
 
-    public void showError(Activity activity, String errorMessage) {
-        show(activity, errorMessage, /*finishOnDismiss=*/ true);
+    public void showError(Activity activity, String errorMessage, boolean finishOnDismiss) {
+        show(activity, errorMessage, finishOnDismiss);
     }
 
     public void hide(Activity activity) {

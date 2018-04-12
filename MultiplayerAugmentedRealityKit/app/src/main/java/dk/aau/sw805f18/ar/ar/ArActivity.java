@@ -1,14 +1,9 @@
 package dk.aau.sw805f18.ar.ar;
 
 import android.annotation.SuppressLint;
-import android.content.ComponentName;
-import android.content.Context;
-import android.content.Intent;
-import android.content.ServiceConnection;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
-import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
@@ -59,7 +54,7 @@ import dk.aau.sw805f18.ar.common.rendering.BackgroundRenderer;
 import dk.aau.sw805f18.ar.common.rendering.PlaneRenderer;
 import dk.aau.sw805f18.ar.common.rendering.PointCloudRenderer;
 import dk.aau.sw805f18.ar.fragments.ModelDialogFragment;
-import dk.aau.sw805f18.ar.services.P2pSyncService;
+import dk.aau.sw805f18.ar.services.SyncService;
 
 public class ArActivity extends AppCompatActivity implements GLSurfaceView.Renderer {
     private static final String TAG = ArActivity.class.getSimpleName();
@@ -72,7 +67,7 @@ public class ArActivity extends AppCompatActivity implements GLSurfaceView.Rende
     private GLSurfaceView mSurfaceView;
 
     // P2pService
-    private P2pSyncService mP2pSyncService;
+    private SyncService mSyncService;
     private boolean mBound;
 
     private boolean mInstallRequested;
@@ -213,7 +208,7 @@ public class ArActivity extends AppCompatActivity implements GLSurfaceView.Rende
             }
 
             if (message != null) {
-                mMessageSnackbarHelper.showError(this, message);
+                mMessageSnackbarHelper.showError(this, message, true);
                 Log.e(TAG, "Exception creating session", exception);
             }
         }
@@ -225,7 +220,7 @@ public class ArActivity extends AppCompatActivity implements GLSurfaceView.Rende
             // In some cases (such as another camera app launching) the camera may be given to
             // a different app instead. Handle this properly by showing a message and recreate the
             // session at the next iteration.
-            mMessageSnackbarHelper.showError(this, "Camera not available. Please restart the app.");
+            mMessageSnackbarHelper.showError(this, "Camera not available. Please restart the app.", true);
             mSession = null;
             return;
         }
@@ -313,7 +308,7 @@ public class ArActivity extends AppCompatActivity implements GLSurfaceView.Rende
 
     private void handleTap(Tap tap, Frame frame) {
         if (mBound) {
-//            mP2pSyncService.printToLog();
+//            mSyncService.printToLog();
         }
 
         for (HitResult hit : frame.hitTest(tap.getMotion())) {

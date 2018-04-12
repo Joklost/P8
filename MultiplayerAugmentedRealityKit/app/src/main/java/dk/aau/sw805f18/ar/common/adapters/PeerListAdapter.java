@@ -8,15 +8,15 @@ import android.view.LayoutInflater;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import java.util.List;
+
 import dk.aau.sw805f18.ar.R;
 
 public class PeerListAdapter extends RecyclerView.Adapter<PeerListAdapter.ViewHolder> {
-
-
-    private WifiP2pDeviceList mDataset;
+    private List<WifiP2pDevice> mDataset;
 
     static class ViewHolder extends RecyclerView.ViewHolder {
-        // each data item is just a string in this case
+        // each Data item is just a string in this case
         TextView mTextView;
 
         ViewHolder(TextView v) {
@@ -26,8 +26,7 @@ public class PeerListAdapter extends RecyclerView.Adapter<PeerListAdapter.ViewHo
     }
 
     // Provide a suitable constructor (depends on the kind of dataset)
-    public PeerListAdapter(WifiP2pDeviceList peers) {
-        mDataset = peers;
+    public PeerListAdapter() {
     }
 
     @NonNull
@@ -44,7 +43,7 @@ public class PeerListAdapter extends RecyclerView.Adapter<PeerListAdapter.ViewHo
     public void onBindViewHolder(@NonNull PeerListAdapter.ViewHolder holder, int position) {
         // - get element from your dataset at this position
         // - replace the contents of the view with that element
-        holder.mTextView.setText(((WifiP2pDevice) mDataset.getDeviceList().toArray()[position]).deviceAddress);
+        holder.mTextView.setText(mDataset.get(position).deviceAddress);
     }
 
     @Override
@@ -53,10 +52,14 @@ public class PeerListAdapter extends RecyclerView.Adapter<PeerListAdapter.ViewHo
             return 0;
         }
 
-        return mDataset.getDeviceList().size();
+        return mDataset.size();
     }
 
-    public void setDataset(WifiP2pDeviceList dataset) {
+    public void setDataset(List<WifiP2pDevice> dataset) {
         this.mDataset = dataset;
+    }
+
+    public List<WifiP2pDevice> getDataset() {
+        return mDataset;
     }
 }

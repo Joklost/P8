@@ -2,7 +2,6 @@ package dk.aau.sw805f18.ar.main;
 
 import android.content.Intent;
 import android.databinding.DataBindingUtil;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.view.GravityCompat;
 import android.support.v7.app.ActionBar;
@@ -17,7 +16,6 @@ import dk.aau.sw805f18.ar.ar.ArActivity;
 import dk.aau.sw805f18.ar.databinding.ActivityMainBinding;
 import dk.aau.sw805f18.ar.fragments.FindCourseFragment;
 import dk.aau.sw805f18.ar.fragments.MapFragment;
-import dk.aau.sw805f18.ar.services.P2pSyncService;
 import dk.aau.sw805f18.ar.viewModels.FindCourseViewModel;
 import dk.aau.sw805f18.ar.viewModels.MapViewModel;
 

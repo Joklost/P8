@@ -20,11 +20,33 @@
         android:id="@+id/peerList"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/requestGroup"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/scanButton">
 
     </android.support.v7.widget.RecyclerView>
+
+    <Button
+        android:id="@+id/requestGroup"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:onClick="requestGroupInfo"
+        android:text="@string/request_group_info"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/createGroup"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/peerList" />
+
+    <Button
+        android:id="@+id/createGroup"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:onClick="createGroup"
+        android:text="@string/create_group"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/requestGroup"
+        app:layout_constraintTop_toBottomOf="@+id/peerList" />
 
 </android.support.constraint.ConstraintLayout>

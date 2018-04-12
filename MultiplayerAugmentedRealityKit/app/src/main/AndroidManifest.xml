@@ -57,7 +57,7 @@
             android:value="required" />
 
         <service
-            android:name=".services.P2pSyncService"
+            android:name=".services.SyncService"
             android:exported="false" />
     </application>
 </manifest>

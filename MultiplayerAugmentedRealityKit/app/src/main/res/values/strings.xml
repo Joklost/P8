@@ -17,4 +17,6 @@
     <string name="group_join_text">Join a group</string>
     <string name="wifi_p2p_drawer">WiFi P2P</string>
     <string name="scan_wifi_p2p">Scan WiFi P2P</string>
+    <string name="create_group">Create</string>
+    <string name="request_group_info">Request</string>
 </resources>
