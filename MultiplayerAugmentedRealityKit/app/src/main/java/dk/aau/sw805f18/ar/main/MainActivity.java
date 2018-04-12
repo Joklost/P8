@@ -94,8 +94,10 @@ public class MainActivity extends AppCompatActivity {
     private void setDrawerInfo() {
         NavigationView navView = findViewById(R.id.nav_view);
         View headerView = navView.getHeaderView(0);
+
         TextView navName = headerView.findViewById(R.id.drawer_header_name_textview);
         TextView navTroop = headerView.findViewById(R.id.drawer_header_troop_textview);
+
         navName.setText("Jens Birkbak");
         navTroop.setText("Blue birds");
     }

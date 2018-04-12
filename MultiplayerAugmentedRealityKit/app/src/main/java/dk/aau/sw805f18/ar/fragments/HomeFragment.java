@@ -11,6 +11,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 
 import dk.aau.sw805f18.ar.R;
+import dk.aau.sw805f18.ar.main.FragmentOpener;
 
 
 public class HomeFragment extends Fragment {
@@ -32,7 +33,7 @@ public class HomeFragment extends Fragment {
         findBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                FragmentOpener.getInstance().open(new FindCourseFragment());
             }
         });
 
