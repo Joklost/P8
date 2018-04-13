@@ -48,7 +48,31 @@
     <!--Drawer-->
     <string name="drawer_header_lobby_button_text">Lobby</string>
 
+    <!--Create course fragment-->
+    <string name="create_course_max_players_text">Max players:</string>
+    <string name="create_course_max_players_hint">Enter max players</string>
+    <string name="create_course_max_groups_text">Max groups:</string>
+    <string name="create_course_max_groups_hint">Enter max groups</string>
+    <string name="create_course_min_group_size_text">Min groups size:</string>
+    <string name="create_course_min_group_size_hint">Enter minimum group size</string>
+    <string name="create_course_group_formation_text">Group formation:</string>
+    <string name="create_course_course_name_hint">Enter course name</string>
+    <string-array name="create_course_group_selection_array">
+        <item>Troop leader</item>
+        <item>Self selection</item>
+        <item>WIFI selection</item>
+    </string-array>
+    
+    <!--Profile fragment-->
+    <string name="profile_name_hint">Full name</string>
+    <string name="profile_displayname_hint">Display name</string>
+    <string name="profile_email_hint">Email</string>
+    <string name="profile_birthday_hint">Birthday</string>
+    <string name="profile_troop_hint">Troop name</string>
+
 
     <!--Others-->
     <string name="infinity">&#8734;</string>
+
+
 </resources>

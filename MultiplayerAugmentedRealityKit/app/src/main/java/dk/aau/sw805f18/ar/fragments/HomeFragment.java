@@ -40,7 +40,7 @@ public class HomeFragment extends Fragment {
         createBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                FragmentOpener.getInstance().open(new CreateCourseFragment());
             }
         });
     }

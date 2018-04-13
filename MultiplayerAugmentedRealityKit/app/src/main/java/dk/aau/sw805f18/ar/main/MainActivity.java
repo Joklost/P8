@@ -19,6 +19,7 @@ import dk.aau.sw805f18.ar.ar.ArActivity;
 import dk.aau.sw805f18.ar.databinding.ActivityMainBinding;
 import dk.aau.sw805f18.ar.fragments.HomeFragment;
 import dk.aau.sw805f18.ar.fragments.MapFragment;
+import dk.aau.sw805f18.ar.fragments.ProfileFragment;
 
 public class MainActivity extends AppCompatActivity {
     private Date mBackPressed;
@@ -40,6 +41,9 @@ public class MainActivity extends AppCompatActivity {
                             break;
                         case "Map":
                             FragmentOpener.getInstance().open(new MapFragment());
+                            break;
+                        case "Profile":
+                            FragmentOpener.getInstance().open(new ProfileFragment());
                             break;
                     }
 
