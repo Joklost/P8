@@ -33,8 +33,8 @@ public class ProfileFragment extends Fragment {
             public void onClick(View v) {
                 editBtn.setImageDrawable(ContextCompat.getDrawable(getContext(),
                         mSaveState ?
-                                R.drawable.ic_edit_black_24dp :
-                                R.drawable.ic_save_black_24dp));
+                                R.drawable.ic_edit_white_24dp :
+                                R.drawable.ic_save_white_24dp));
                 mSaveState = !mSaveState;
 
                 // TODO: make fields editable

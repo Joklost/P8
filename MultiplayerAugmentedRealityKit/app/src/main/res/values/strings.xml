@@ -56,13 +56,13 @@
     <string name="create_course_min_group_size_text">Min groups size:</string>
     <string name="create_course_min_group_size_hint">Enter minimum group size</string>
     <string name="create_course_group_formation_text">Group formation:</string>
-    <string name="create_course_course_name_hint">Enter course name</string>
+    <string name="create_course_course_name_hint">Enter room name</string>
     <string-array name="create_course_group_selection_array">
         <item>Troop leader</item>
         <item>Self selection</item>
         <item>WIFI selection</item>
     </string-array>
-    
+
     <!--Profile fragment-->
     <string name="profile_name_hint">Full name</string>
     <string name="profile_displayname_hint">Display name</string>
@@ -73,6 +73,5 @@
 
     <!--Others-->
     <string name="infinity">&#8734;</string>
-
 
 </resources>
