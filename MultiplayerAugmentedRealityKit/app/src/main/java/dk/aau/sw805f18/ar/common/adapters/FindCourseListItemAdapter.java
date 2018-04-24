@@ -10,9 +10,7 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
-import java.util.List;
 
 import dk.aau.sw805f18.ar.R;
 import dk.aau.sw805f18.ar.models.FindCourseItem;
