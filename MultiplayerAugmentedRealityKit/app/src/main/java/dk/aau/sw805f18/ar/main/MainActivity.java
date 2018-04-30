@@ -39,6 +39,9 @@ public class MainActivity extends AppCompatActivity {
                         case "AR":
                             startActivity(new Intent(this, ArActivity.class));
                             break;
+                        case "WiFi P2P":
+                            startActivity(new Intent(this, WifiP2pActivity.class));
+                            break;
                         case "Map":
                             FragmentOpener.getInstance().open(new MapFragment());
                             break;
