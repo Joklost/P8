@@ -65,11 +65,6 @@ public class ArActivity extends AppCompatActivity implements GLSurfaceView.Rende
 
     // Rendering
     private GLSurfaceView mSurfaceView;
-
-    // P2pService
-    private SyncService mSyncService;
-    private boolean mBound;
-
     private boolean mInstallRequested;
 
     private Session mSession;
@@ -307,10 +302,6 @@ public class ArActivity extends AppCompatActivity implements GLSurfaceView.Rende
     }
 
     private void handleTap(Tap tap, Frame frame) {
-        if (mBound) {
-//            mSyncService.printToLog();
-        }
-
         for (HitResult hit : frame.hitTest(tap.getMotion())) {
             Trackable trackable = hit.getTrackable();
 

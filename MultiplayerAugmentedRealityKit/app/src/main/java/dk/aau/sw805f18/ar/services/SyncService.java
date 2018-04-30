@@ -52,11 +52,9 @@ public class SyncService extends Service {
     }
 
     public void connectGroup() {
-
-        Log.i(TAG, "Attempting to create group connection.");
         mWebSocket.sendPacket(new Packet(Packet.NAME_TYPE, mDeviceName));
 
-        Log.i(TAG, "Waiting for 'owner' packet...");
+        Log.i(TAG, "Waiting for initial packet...");
         Packet packet = mWebSocket.waitPacket();
 
         switch (packet.Type) {
@@ -74,39 +72,12 @@ public class SyncService extends Service {
                     new Handler().postDelayed(() -> {
                         Log.i(TAG, "Connecting to: " + packet.Data);
                         connect(packet.Data);
-                        connect(packet.Data);
                     }, 3000);
                 } else {
                     Log.e(TAG, "Received 'mac' packet without Device Address!");
                 }
                 break;
         }
-
-//
-//        if (ownerPacket == null) {
-//            Log.e(TAG, "owner packet was null, returning!");
-//            return;
-//        }
-//
-//        if (ownerPacket.Data.equals(Packet.TRUE)) {
-//            // this device will be group owner
-//            Log.i(TAG, "Creating group...");
-//            createGroup();
-//            Log.i(TAG, "Group created, transmitting Device Address: " + mDeviceAddress);
-//            mWebSocket.sendPacket(new Packet(Packet.MAC_TYPE, mDeviceAddress));
-//            Log.i(TAG, "Awaiting connections");
-//        } else {
-//            // this device will be group member
-//            Log.i(TAG, "Waiting for Device Address...");
-//            Packet macPacket = mWebSocket.waitPacket();
-//
-//            if (macPacket == null) {
-//                Log.e(TAG, "mac packet was null, returning!");
-//                return;
-//            }
-//            Log.i(TAG, "Connecting to: " + macPacket.Data);
-//            connect(macPacket.Data);
-//        }
     }
 
     @Nullable
@@ -177,6 +148,14 @@ public class SyncService extends Service {
         }
         mChannel = mManager.initialize(this, getMainLooper(), null);
 
+        requestConnectionInfo(info -> {
+           if (info != null) {
+               Log.i(TAG, "Connection already exists?");
+               Log.i(TAG, info.toString());
+           }
+        });
+
+        removeGroup();
     }
 
     public void deinit() {
@@ -256,10 +235,6 @@ public class SyncService extends Service {
     }
 
     public void removeGroup() {
-        if (!mGroupCreated) {
-            return;
-        }
-
         mManager.removeGroup(mChannel, new WifiP2pManager.ActionListener() {
             @Override
             public void onSuccess() {

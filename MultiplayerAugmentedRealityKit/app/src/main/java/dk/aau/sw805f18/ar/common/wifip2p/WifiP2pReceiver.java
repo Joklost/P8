@@ -82,7 +82,9 @@ public class WifiP2pReceiver extends BroadcastReceiver {
                 Log.i(TAG, "networkInfo: " + networkInfo.toString());
                 if (networkInfo.isConnected()) {
                     mSyncService.requestGroupInfo(group -> {
-                        Log.i(TAG, String.valueOf(group.getOwner()));
+                        if (group != null) {
+                            Log.i(TAG, String.valueOf(group.getOwner().deviceAddress));
+                        }
                     });
                 }
                 break;
