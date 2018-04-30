@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">M.A.R.K</string>
+    <string name="app_name">wARp</string>
     <string name="model_dialog_title">Pick a model</string>
     <string name="no_object_selected">No object selected</string>
     <string name="ar_nav_drawer">AR</string>
@@ -7,16 +7,76 @@
     <string name="double_press_back_exit">Press BACK again to exit</string>
 
     <!--Find course fragment-->
-    <string name="find_course_title">Find Courses</string>
-    <string name="course_id">Enter Course ID</string>
-    <string name="course_nearby">Find nearby courses</string>
-    <string name="course_id_ok">Join</string>
+    <string name="find_course_search_hint">Search for course</string>
+    <string name="find_course_join_by_code_hint">Enter course code</string>
+    <string name="find_course_label_distance_text">Distance</string>
+    <string name="find_course_label_type_text">Type</string>
+    <string name="find_course_label_age_text">Age</string>
+    <string name="find_course_label_players">Players: </string>
+    <string name="find_course_label_age_group">Age Group: </string>
+    <string name="find_course_label_distance">Distance: </string>
+    <string-array name="find_course_distance_spinner_array">
+        <item>1km</item>
+        <item>2km</item>
+        <item>5km</item>
+        <item>10km</item>
+        <item>@string/infinity</item>
+    </string-array>
+    <string-array name="find_course_age_spinner_array">
+        <item>3–5</item>
+        <item>6–7</item>
+        <item>8–9</item>
+        <item>10–12</item>
+        <item>13–16</item>
+        <item>17–23</item>
+        <item>24+</item>
+    </string-array>
 
     <!--Group fragment-->
     <string name="group_make_text">Make a new group</string>
     <string name="group_join_text">Join a group</string>
+
     <string name="wifi_p2p_drawer">WiFi P2P</string>
     <string name="scan_wifi_p2p">Scan WiFi P2P</string>
     <string name="create_group">Create</string>
     <string name="request_group_info">Request</string>
+
+
+    <!--Login activity-->
+    <string name="login_button_text">Login</string>
+    <string name="login_hint_password">Password</string>
+    <string name="login_hint_email">Email</string>
+
+    <!--Home fragment-->
+    <string name="home_find_course_button">Find Course</string>
+    <string name="home_create_course_button">Create Course</string>
+
+    <!--Drawer-->
+    <string name="drawer_header_lobby_button_text">Lobby</string>
+
+    <!--Create course fragment-->
+    <string name="create_course_max_players_text">Max players:</string>
+    <string name="create_course_max_players_hint">Enter max players</string>
+    <string name="create_course_max_groups_text">Max groups:</string>
+    <string name="create_course_max_groups_hint">Enter max groups</string>
+    <string name="create_course_min_group_size_text">Min groups size:</string>
+    <string name="create_course_min_group_size_hint">Enter minimum group size</string>
+    <string name="create_course_group_formation_text">Group formation:</string>
+    <string name="create_course_course_name_hint">Enter room name</string>
+    <string-array name="create_course_group_selection_array">
+        <item>Troop leader</item>
+        <item>Self selection</item>
+        <item>WIFI selection</item>
+    </string-array>
+
+    <!--Profile fragment-->
+    <string name="profile_name_hint">Full name</string>
+    <string name="profile_displayname_hint">Display name</string>
+    <string name="profile_email_hint">Email</string>
+    <string name="profile_birthday_hint">Birthday</string>
+    <string name="profile_troop_hint">Troop name</string>
+
+
+    <!--Others-->
+    <string name="infinity">&#8734;</string>
 </resources>

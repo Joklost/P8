@@ -1,18 +1,46 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
-    <group android:checkableBehavior="single"/>
+    <group android:checkableBehavior="single" />
+
     <item
-        android:id="@+id/nav_map"
-        android:icon="@drawable/map_icon"
-        android:title="@string/map_nav_drawer"/>
+        android:id="@+id/nav_home"
+        android:icon="@drawable/ic_home_black_24dp"
+        android:title="Home" />
     <item
-        android:id="@+id/nav_ar"
-        android:icon="@drawable/ic_camera_enhance_black_24dp"
-        android:title="@string/ar_nav_drawer"/>
+        android:id="@+id/nav_profile"
+        android:icon="@drawable/ic_person_black_24dp"
+        android:title="Profile" />
+    <item
+        android:id="@+id/nav_stats"
+        android:icon="@drawable/ic_equalizer_black_24dp"
+        android:title="Stats/Highscore" />
+    <item
+        android:id="@+id/nav_settings"
+        android:icon="@drawable/ic_settings_black_24dp"
+        android:title="Settings" />
+    <item
+        android:id="@+id/nav_about"
+        android:icon="@drawable/ic_info_black_24dp"
+        android:title="About" />
+
+
+
+    <!--<item-->
+        <!--android:id="@+id/nav_map"-->
+        <!--android:icon="@drawable/map_icon"-->
+        <!--android:title="@string/map_nav_drawer" />-->
+    <!--<item-->
+        <!--android:id="@+id/nav_ar"-->
+        <!--android:icon="@drawable/ic_camera_enhance_black_24dp"-->
+        <!--android:title="@string/ar_nav_drawer" />-->
+  
+    <!--
+
     <item
         android:id="@+id/nav_wifi"
         android:icon="@drawable/ic_menu_black_24dp"
         android:title="@string/wifi_p2p_drawer"
         />
+    -->
 </menu>

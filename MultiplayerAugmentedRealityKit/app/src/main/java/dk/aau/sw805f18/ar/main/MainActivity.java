@@ -3,10 +3,13 @@ package dk.aau.sw805f18.ar.main;
 import android.content.Intent;
 import android.databinding.DataBindingUtil;
 import android.os.Bundle;
+import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.Date;
@@ -14,10 +17,9 @@ import java.util.Date;
 import dk.aau.sw805f18.ar.R;
 import dk.aau.sw805f18.ar.ar.ArActivity;
 import dk.aau.sw805f18.ar.databinding.ActivityMainBinding;
-import dk.aau.sw805f18.ar.fragments.FindCourseFragment;
+import dk.aau.sw805f18.ar.fragments.HomeFragment;
 import dk.aau.sw805f18.ar.fragments.MapFragment;
-import dk.aau.sw805f18.ar.viewModels.FindCourseViewModel;
-import dk.aau.sw805f18.ar.viewModels.MapViewModel;
+import dk.aau.sw805f18.ar.fragments.ProfileFragment;
 
 public class MainActivity extends AppCompatActivity {
     private Date mBackPressed;
@@ -26,23 +28,25 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        SemiViewManager svm = SemiViewManager.getInstance();
-        svm.init(this);
-        svm.open(new FindCourseFragment(), new FindCourseViewModel());
+        FragmentOpener fragmentOpener = FragmentOpener.getInstance();
+        fragmentOpener.init(this);
+        fragmentOpener.open(new HomeFragment());
 
         mBinding = DataBindingUtil.setContentView(this, R.layout.activity_main);
-        mBinding.navigation.setNavigationItemSelectedListener(
+        mBinding.navView.setNavigationItemSelectedListener(
                 menuItem -> {
                     switch (menuItem.getTitle().toString()) {
                         case "AR":
-                            startAr();
-                            break;
-                        case "Map":
-                            SemiViewManager.getInstance().open(new MapFragment(), new MapViewModel());
+                            startActivity(new Intent(this, ArActivity.class));
                             break;
                         case "WiFi P2P":
-                            Intent intent = new Intent(this, WifiP2pActivity.class);
-                            startActivity(intent);
+                            startActivity(new Intent(this, WifiP2pActivity.class));
+                            break;
+                        case "Map":
+                            FragmentOpener.getInstance().open(new MapFragment());
+                            break;
+                        case "Profile":
+                            FragmentOpener.getInstance().open(new ProfileFragment());
                             break;
                     }
 
@@ -56,7 +60,12 @@ public class MainActivity extends AppCompatActivity {
             actionbar.setDisplayHomeAsUpEnabled(true);
             actionbar.setHomeAsUpIndicator(R.drawable.ic_menu_black_24dp);
         }
+        setDrawerInfo();
+    }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
     }
 
     @Override
@@ -65,7 +74,7 @@ public class MainActivity extends AppCompatActivity {
             mBinding.drawer.closeDrawer(GravityCompat.START);
             return;
         }
-        if (SemiViewManager.getInstance().close()) {
+        if (FragmentOpener.getInstance().close()) {
             super.onBackPressed();
             return;
         }
@@ -89,12 +98,15 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    /**
-     * Starts the AR activity.
-     */
-    public void startAr() {
-        Intent intent = new Intent(this, ArActivity.class);
-        startActivity(intent);
+    private void setDrawerInfo() {
+        NavigationView navView = findViewById(R.id.nav_view);
+        View headerView = navView.getHeaderView(0);
+
+        TextView navName = headerView.findViewById(R.id.drawer_header_name_textview);
+        TextView navTroop = headerView.findViewById(R.id.drawer_header_troop_textview);
+
+        navName.setText("Jens Birkbak");
+        navTroop.setText("Blue birds");
     }
 }
 

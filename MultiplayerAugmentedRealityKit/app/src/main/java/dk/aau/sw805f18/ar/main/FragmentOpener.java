@@ -4,43 +4,38 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 
 import dk.aau.sw805f18.ar.R;
-import dk.aau.sw805f18.ar.viewModels.SemiView;
-import dk.aau.sw805f18.ar.viewModels.ViewModel;
 
-public class SemiViewManager {
-    private static SemiViewManager mInstance;
+public class FragmentOpener {
+    private static FragmentOpener mInstance;
     private android.support.v4.app.FragmentManager mFragmentManager;
     private Boolean mHasOpenFragment = false;
-    private SemiView mCurrent;
 
-    public static SemiViewManager getInstance() {
+    public static FragmentOpener getInstance() {
         if (mInstance == null)
-            mInstance = new SemiViewManager();
+            mInstance = new FragmentOpener();
         return mInstance;
     }
 
     public boolean close() {
-        if (mCurrent != null){
-            mCurrent.close();
-            mCurrent = null;
+        if (mHasOpenFragment){
+            mHasOpenFragment = false;
             return true;
         }
         return false;
     }
 
-    public void open(Fragment fragment, ViewModel viewModel) {
-        SemiView semiView = new SemiView(fragment, viewModel);
+    public void open(Fragment fragment) {
         if (mHasOpenFragment) {
 
             FragmentTransaction fragmentTransactor = mFragmentManager.beginTransaction();
-            fragmentTransactor.replace(R.id.fragment_container, semiView.getFragment(), semiView.getFragmentTag())
+            fragmentTransactor.replace(R.id.fragment_container, fragment, fragment.getTag())
                     .addToBackStack(null)
                     .commit();
         }
         else {
             mHasOpenFragment = true;
             FragmentTransaction fragmentTransactorInitial = mFragmentManager.beginTransaction();
-            fragmentTransactorInitial.add(R.id.fragment_container, semiView.getFragment(), semiView.getFragmentTag())
+            fragmentTransactorInitial.add(R.id.fragment_container, fragment, fragment.getTag())
                     .commit();
         }
     }

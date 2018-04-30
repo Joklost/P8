@@ -1,7 +1,5 @@
 package dk.aau.sw805f18.ar.fragments;
 
-import android.content.Context;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -9,25 +7,24 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
-import android.widget.ProgressBar;
+import android.widget.Spinner;
 
 import java.util.ArrayList;
 
 import dk.aau.sw805f18.ar.R;
-import dk.aau.sw805f18.ar.main.MainActivity;
-import dk.aau.sw805f18.ar.models.Course;
+import dk.aau.sw805f18.ar.common.adapters.FindCourseListItemAdapter;
+import dk.aau.sw805f18.ar.main.FragmentOpener;
+import dk.aau.sw805f18.ar.models.FindCourseItem;
+
 
 public class FindCourseFragment extends Fragment {
-    private Button mSearchBtn;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_find_course, container, false);
     }
 
@@ -35,43 +32,60 @@ public class FindCourseFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        mSearchBtn = getView().findViewById(R.id.course_search_nearby);
-        mSearchBtn.setOnClickListener(view1 -> {
-            // Shows progressbar
-            ProgressBar pb = getView().findViewById(R.id.course_search_nearby_progressbar);
-            pb.setVisibility(View.VISIBLE);
-            mSearchBtn.setEnabled(false);
+        Spinner distance = getView().findViewById(R.id.find_course_distance_spinner);
+        Spinner type = getView().findViewById(R.id.find_course_type_spinner);
+        Spinner age = getView().findViewById(R.id.find_course_age_spinner);
 
-            ArrayList<Course> courses = findNearbyCourses();
-            ListView lv = getView().findViewById(R.id.course_search_list);
+        ArrayAdapter<CharSequence> distanceAdapter = ArrayAdapter.createFromResource(getContext(),
+                R.array.find_course_distance_spinner_array,
+                android.R.layout.simple_spinner_item);
 
-            // ArrayAdapter for populating listview
-            ArrayAdapter<Course> adapter = new ArrayAdapter<>(getContext(), R.layout.list_item_course, courses);
-            lv.setAdapter(adapter);
+        distanceAdapter.setDropDownViewResource(R.layout.support_simple_spinner_dropdown_item);
+        distance.setAdapter(distanceAdapter);
 
-            // Removing progressbar and viewing listview
-            pb.setVisibility(View.GONE);
-            lv.setVisibility(View.VISIBLE);
-            mSearchBtn.setEnabled(true);
+        ArrayAdapter<CharSequence> ageAdapter = ArrayAdapter.createFromResource(getContext(),
+                R.array.find_course_age_spinner_array,
+                android.R.layout.simple_spinner_item);
 
-            lv.setOnItemClickListener((parent, view2, position, id) -> {
-                
-            });
+        ageAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        age.setAdapter(ageAdapter);
+
+        ArrayAdapter<String> typeAdapter = new ArrayAdapter<>(getContext(),
+                android.R.layout.simple_spinner_item,
+                getTypeItems());
+
+        typeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        type.setAdapter(typeAdapter);
+
+
+        ListView lv = getView().findViewById(R.id.find_course_listview);
+        FindCourseListItemAdapter lvAdapter = new FindCourseListItemAdapter(getContext(), getCourseItems());
+        lv.setAdapter(lvAdapter);
+
+        Button sendBtn = getView().findViewById(R.id.find_course_join_by_code_button);
+        sendBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                FragmentOpener.getInstance().open(new LobbyFragment());
+            }
         });
     }
 
-    /**
-     * Finds courses based on GPS location.
-     * TODO: implement GPS functionality. Current version is mock data.
-     *
-     * @return ArrayList of Courses
-     */
-    private ArrayList<Course> findNearbyCourses() {
-        ArrayList<Course> toReturn = new ArrayList<>();
-        toReturn.add(new Course("the cool game"));
-        toReturn.add(new Course("the boring game"));
-        toReturn.add(new Course("not actually a game"));
-        toReturn.add(new Course("the AR game"));
-        return toReturn;
+    private ArrayList<String> getTypeItems() {
+        ArrayList<String> typeArray = new ArrayList<>();
+        typeArray.add("night event");
+        typeArray.add("halloween event");
+        typeArray.add("christmas event");
+        typeArray.add("sunshine event");
+
+        return typeArray;
+    }
+
+    private ArrayList<FindCourseItem> getCourseItems() {
+        ArrayList<FindCourseItem> courseArray = new ArrayList<>();
+        courseArray.add(new FindCourseItem("Horror map", 7, 14, 3.14));
+        courseArray.add(new FindCourseItem("Christmas map", 32, 18, 13.14));
+        courseArray.add(new FindCourseItem("ALL YEAR LONG! map", 102, 5, 12.08));
+        return  courseArray;
     }
 }
