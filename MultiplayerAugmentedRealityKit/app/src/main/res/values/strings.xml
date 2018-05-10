@@ -36,6 +36,12 @@
     <string name="group_make_text">Make a new group</string>
     <string name="group_join_text">Join a group</string>
 
+    <string name="wifi_p2p_drawer">WiFi P2P</string>
+    <string name="scan_wifi_p2p">Scan WiFi P2P</string>
+    <string name="create_group">Create</string>
+    <string name="request_group_info">Request</string>
+
+
     <!--Login activity-->
     <string name="login_button_text">Login</string>
     <string name="login_hint_password">Password</string>
@@ -56,13 +62,13 @@
     <string name="create_course_min_group_size_text">Min groups size:</string>
     <string name="create_course_min_group_size_hint">Enter minimum group size</string>
     <string name="create_course_group_formation_text">Group formation:</string>
-    <string name="create_course_course_name_hint">Enter course name</string>
+    <string name="create_course_course_name_hint">Enter room name</string>
     <string-array name="create_course_group_selection_array">
         <item>Troop leader</item>
         <item>Self selection</item>
         <item>WIFI selection</item>
     </string-array>
-    
+
     <!--Profile fragment-->
     <string name="profile_name_hint">Full name</string>
     <string name="profile_displayname_hint">Display name</string>
@@ -73,6 +79,4 @@
 
     <!--Others-->
     <string name="infinity">&#8734;</string>
-
-
 </resources>

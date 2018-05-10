@@ -8,6 +8,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ListView;
 import android.widget.Spinner;
 
@@ -15,6 +16,7 @@ import java.util.ArrayList;
 
 import dk.aau.sw805f18.ar.R;
 import dk.aau.sw805f18.ar.common.adapters.FindCourseListItemAdapter;
+import dk.aau.sw805f18.ar.main.FragmentOpener;
 import dk.aau.sw805f18.ar.models.FindCourseItem;
 
 
@@ -59,6 +61,14 @@ public class FindCourseFragment extends Fragment {
         ListView lv = getView().findViewById(R.id.find_course_listview);
         FindCourseListItemAdapter lvAdapter = new FindCourseListItemAdapter(getContext(), getCourseItems());
         lv.setAdapter(lvAdapter);
+
+        Button sendBtn = getView().findViewById(R.id.find_course_join_by_code_button);
+        sendBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                FragmentOpener.getInstance().open(new LobbyFragment());
+            }
+        });
     }
 
     private ArrayList<String> getTypeItems() {

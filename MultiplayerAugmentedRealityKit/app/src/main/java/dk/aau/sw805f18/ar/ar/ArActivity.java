@@ -54,6 +54,7 @@ import dk.aau.sw805f18.ar.common.rendering.BackgroundRenderer;
 import dk.aau.sw805f18.ar.common.rendering.PlaneRenderer;
 import dk.aau.sw805f18.ar.common.rendering.PointCloudRenderer;
 import dk.aau.sw805f18.ar.fragments.ModelDialogFragment;
+import dk.aau.sw805f18.ar.services.SyncService;
 
 public class ArActivity extends AppCompatActivity implements GLSurfaceView.Renderer {
     private static final String TAG = ArActivity.class.getSimpleName();
@@ -64,7 +65,6 @@ public class ArActivity extends AppCompatActivity implements GLSurfaceView.Rende
 
     // Rendering
     private GLSurfaceView mSurfaceView;
-
     private boolean mInstallRequested;
 
     private Session mSession;
@@ -74,6 +74,7 @@ public class ArActivity extends AppCompatActivity implements GLSurfaceView.Rende
 
     // DEBUG: Used to toggle rendering planes
     private ToggleButton mToggle;
+
     private SeekBar mRotationBar;
     private SeekBar mScaleBar;
 
@@ -83,6 +84,7 @@ public class ArActivity extends AppCompatActivity implements GLSurfaceView.Rende
     };
 
     private final ArrayList<ArObject> mObjects = new ArrayList<>();
+    private ArObject mSelectedObject;
 
     private final BackgroundRenderer mBackgroundRenderer = new BackgroundRenderer();
     private final PlaneRenderer mPlaneRenderer = new PlaneRenderer();
@@ -90,8 +92,6 @@ public class ArActivity extends AppCompatActivity implements GLSurfaceView.Rende
 
     // Temporary matrix allocated here to reduce number of allocations for each frame.
     private final float[] mAnchorMatrix = new float[16];
-
-    private ArObject mSelectedObject;
 
     @SuppressLint("ClickableViewAccessibility")
     @Override
@@ -203,7 +203,7 @@ public class ArActivity extends AppCompatActivity implements GLSurfaceView.Rende
             }
 
             if (message != null) {
-                mMessageSnackbarHelper.showError(this, message);
+                mMessageSnackbarHelper.showError(this, message, true);
                 Log.e(TAG, "Exception creating session", exception);
             }
         }
@@ -215,7 +215,7 @@ public class ArActivity extends AppCompatActivity implements GLSurfaceView.Rende
             // In some cases (such as another camera app launching) the camera may be given to
             // a different app instead. Handle this properly by showing a message and recreate the
             // session at the next iteration.
-            mMessageSnackbarHelper.showError(this, "Camera not available. Please restart the app.");
+            mMessageSnackbarHelper.showError(this, "Camera not available. Please restart the app.", true);
             mSession = null;
             return;
         }
