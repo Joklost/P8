@@ -38,7 +38,7 @@ namespace ServerBackend
             {
                 var players = Players.Where(p => p.Location.Latitude == 0).ToList();
                 
-                KMeans kmeans = new KMeans(MaxGroups);
+                KMeans kmeans = new KMeans(MinGroups);
                 var observations = players.Select(p => new[] {p.Location.Latitude, p.Location.Longitude}).ToArray();
                 var clusters = kmeans.Learn(observations);
                 int[] labels = clusters.Decide(observations);

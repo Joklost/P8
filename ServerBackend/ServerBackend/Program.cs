@@ -103,12 +103,11 @@ namespace ServerBackend
                             }
                             break;
                         case "objects":
-                            room.Players.Relay(room.ArObjects);
-                            break;
-                        case "completed":
-                            var id = msg.Data;
-                            room.ArObjects.RemoveAll(ar => ar.Id == id);
-                            room.Players.Relay(room.ArObjects);
+                            room.Players.Relay(new WsMsg
+                            {
+                                Type = "objects",
+                                Data = room.ArObjects.ToJSON()
+                            });
                             break;
                         case "team":
                             var teamChangeEvent = msg.Data.FromJSON<TeamChangeMsg>();
