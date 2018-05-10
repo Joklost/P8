@@ -23,7 +23,10 @@
         android:id="@+id/nav_about"
         android:icon="@drawable/ic_info_black_24dp"
         android:title="About" />
-
+    <item
+        android:id="@+id/nav_ar"
+        android:icon="@drawable/ic_camera_enhance_black_24dp"
+        android:title="AR" />
 
 
     <!--<item-->
