@@ -41,9 +41,6 @@ import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
 import dk.aau.sw805f18.ar.R;
-import dk.aau.sw805f18.ar.ar.location.LocationMarker;
-import dk.aau.sw805f18.ar.ar.location.LocationScene;
-import dk.aau.sw805f18.ar.ar.location.rendering.AnnotationRenderer;
 import dk.aau.sw805f18.ar.common.helpers.CameraPermissionHelper;
 import dk.aau.sw805f18.ar.common.helpers.DisplayRotationHelper;
 import dk.aau.sw805f18.ar.common.helpers.FullScreenHelper;
@@ -74,7 +71,6 @@ public class ArActivity extends AppCompatActivity implements GLSurfaceView.Rende
     private final SnackbarHelper mMessageSnackbarHelper = new SnackbarHelper();
     private DisplayRotationHelper mDisplayRotationHelper;
     private GestureHelper mGestureHelper;
-    private LocationScene mLocationScene;
 
     // DEBUG: Used to toggle rendering planes
     private ToggleButton mToggle;
@@ -188,12 +184,6 @@ public class ArActivity extends AppCompatActivity implements GLSurfaceView.Rende
 
                 // create the session
                 mSession = new Session(this);
-                mLocationScene = new LocationScene(this, this, mSession);
-                mLocationScene.mLocationMarkers.add(new LocationMarker(
-                        9.988686,
-                        57.013973,
-                        new AnnotationRenderer("P-Plads")));
-
             } catch (UnavailableArcoreNotInstalledException
                     | UnavailableUserDeclinedInstallationException e) {
                 message = "Please install ARCore";
@@ -216,7 +206,6 @@ public class ArActivity extends AppCompatActivity implements GLSurfaceView.Rende
                 mMessageSnackbarHelper.showError(this, message, true);
                 Log.e(TAG, "Exception creating session", exception);
             }
-
         }
 
         // Note that order matters - see the note in onPause(), the reverse applies here.
@@ -235,17 +224,11 @@ public class ArActivity extends AppCompatActivity implements GLSurfaceView.Rende
         mDisplayRotationHelper.onResume();
 
         mMessageSnackbarHelper.showMessage(this, "Searching for surfaces...");
-        if (mLocationScene != null) {
-            mLocationScene.resume();
-        }
     }
 
     @Override
     public void onPause() {
         super.onPause();
-        if (mLocationScene != null) {
-            mLocationScene.pause();
-        }
         if (mSession != null) {
             // Note that the order matters - GLSurfaceView is paused first so that it does not try
             // to query the session. If Session is paused before GLSurfaceView, GLSurfaceView may
@@ -253,7 +236,6 @@ public class ArActivity extends AppCompatActivity implements GLSurfaceView.Rende
             mDisplayRotationHelper.onPause();
             mSurfaceView.onPause();
             mSession.pause();
-
         }
     }
 
@@ -508,9 +490,6 @@ public class ArActivity extends AppCompatActivity implements GLSurfaceView.Rende
             if (camera.getTrackingState() == TrackingState.PAUSED) {
                 return;
             }
-
-            // Draw location markers
-            mLocationScene.draw(frame);
 
             // Get projection matrix.
             float[] projmtx = new float[16];
