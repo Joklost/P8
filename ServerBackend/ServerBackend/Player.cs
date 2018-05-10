@@ -1,5 +1,7 @@
-﻿using Newtonsoft.Json;
+﻿using System.Device.Location;
+using Newtonsoft.Json;
 using Red;
+
 
 namespace ServerBackend
 {
@@ -12,9 +14,11 @@ namespace ServerBackend
         }
 
         public string Id { get; set; }
-        public string DisplayName { get; set; }
+        public string DisplayName { get; set; } = "Unnamed jonas";
         public int Team { get; set; } = 0;
-        [JsonIgnore]
+        public GeoCoordinate Location { get; set; } = new GeoCoordinate();
+
+        [JsonIgnore] 
         public WebSocketDialog Wsd;
     }
 }

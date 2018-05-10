@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using Newtonsoft.Json;
 
 namespace ServerBackend
@@ -14,6 +15,10 @@ namespace ServerBackend
             {
                 player.Wsd.SendText(msg);
             }
+        }
+        public static void Relay(this IEnumerable<Player> players, object data)
+        {
+            players.Relay(data.ToJSON());
         }
     }
 }

@@ -4,7 +4,10 @@
     <TargetFramework>netcoreapp2.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="Accord" Version="3.8.0" />
+    <PackageReference Include="Accord.MachineLearning.GPL" Version="3.8.0" />
     <PackageReference Include="Red.CookieSessions" Version="1.0.0" />
     <PackageReference Include="RHttpServer" Version="3.0.0" />
+    <PackageReference Include="System.Device.Location.Portable" Version="1.0.0" />
   </ItemGroup>
 </Project>
