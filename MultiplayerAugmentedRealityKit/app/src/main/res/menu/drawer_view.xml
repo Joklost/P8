@@ -27,23 +27,9 @@
         android:id="@+id/nav_ar"
         android:icon="@drawable/ic_camera_enhance_black_24dp"
         android:title="AR" />
-
-
-    <!--<item-->
-        <!--android:id="@+id/nav_map"-->
-        <!--android:icon="@drawable/map_icon"-->
-        <!--android:title="@string/map_nav_drawer" />-->
-    <!--<item-->
-        <!--android:id="@+id/nav_ar"-->
-        <!--android:icon="@drawable/ic_camera_enhance_black_24dp"-->
-        <!--android:title="@string/ar_nav_drawer" />-->
-  
-    <!--
-
     <item
-        android:id="@+id/nav_wifi"
-        android:icon="@drawable/ic_menu_black_24dp"
-        android:title="@string/wifi_p2p_drawer"
-        />
-    -->
+        android:id="@+id/nav_groups"
+        android:title="Groups DEBUG" />
+
+
 </menu>

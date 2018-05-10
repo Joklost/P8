@@ -22,8 +22,6 @@ import dk.aau.sw805f18.ar.services.SyncService;
 public class WifiP2pActivity extends AppCompatActivity {
     private static final String TAG = WifiP2pActivity.class.getSimpleName();
 
-    private PeerListAdapter mAdapter;
-
     private SyncService mSyncService;
     private boolean mBound;
 
@@ -33,10 +31,6 @@ public class WifiP2pActivity extends AppCompatActivity {
             SyncService.LocalBinder binder = (SyncService.LocalBinder) service;
             mSyncService = binder.getService();
             mSyncService.init();
-
-            if (mAdapter != null) {
-                mSyncService.getReceiver().setAdapter(mAdapter);
-            }
 
             mSyncService.discoverPeers();
         }
@@ -51,26 +45,6 @@ public class WifiP2pActivity extends AppCompatActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_wifi);
-
-        RecyclerView recyclerView = findViewById(R.id.peerList);
-
-        // use this setting to improve performance if you know that changes
-        // in content do not change the layout size of the RecyclerView
-        recyclerView.setHasFixedSize(true);
-
-        // use a linear layout manager
-        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(this);
-        recyclerView.setLayoutManager(layoutManager);
-
-        // specify an adapter (see also next example)
-        mAdapter = new PeerListAdapter();
-        recyclerView.setAdapter(mAdapter);
-
-        recyclerView.addOnItemTouchListener(new RecyclerItemClickListener(this, (view, position) -> {
-            Log.i(TAG, String.valueOf(((TextView) view).getText()));
-            WifiP2pDevice device = mAdapter.getDataset().get(position);
-            mSyncService.connect(device);
-        }));
     }
 
     @Override
@@ -84,8 +58,6 @@ public class WifiP2pActivity extends AppCompatActivity {
         Intent intent = new Intent(this, SyncService.class);
         bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
         mBound = true;
-
-
     }
 
     @Override
@@ -104,17 +76,15 @@ public class WifiP2pActivity extends AppCompatActivity {
         mSyncService.discoverPeers();
     }
 
-    public void requestGroupInfo(View v) {
-        mSyncService.requestGroupInfo(group -> {
-            if (group == null) {
-                Log.i(TAG, "No groups created");
-                return;
-            }
-            Log.i(TAG, group.getOwner().deviceName);
-        });
+    public void joinGroup(View v) {
+        mSyncService.joinGroup("NIGGA");
     }
 
     public void createGroup(View v) {
         mSyncService.createGroup();
+    }
+
+    public void testWifiP2p(View v) {
+
     }
 }

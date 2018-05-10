@@ -65,6 +65,7 @@
         <service
             android:name=".services.SyncService"
             android:exported="false" />
+        <service android:name=".services.SocketService" />
     </application>
 
 </manifest>

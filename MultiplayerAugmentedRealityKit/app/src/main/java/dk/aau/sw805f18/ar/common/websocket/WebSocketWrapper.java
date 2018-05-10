@@ -60,6 +60,7 @@ public class WebSocketWrapper {
 
         Packet p = mJson.fromJson(s, Packet.class);
 
+        // TODO: Handle all cases
         switch (p.Type) {
             case Packet.MAC_TYPE:
             case Packet.OBJECTS_TYPE:
@@ -67,9 +68,7 @@ public class WebSocketWrapper {
             case Packet.OWNER_TYPE:
                 mPacketQueue.offer(p);
                 break;
-            case Packet.JOIN_TYPE:
-                break;
-            case Packet.PLAYERS_TYPE:
+            default:
                 break;
         }
     }

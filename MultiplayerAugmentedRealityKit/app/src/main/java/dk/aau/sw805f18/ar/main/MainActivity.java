@@ -17,6 +17,7 @@ import java.util.Date;
 import dk.aau.sw805f18.ar.R;
 import dk.aau.sw805f18.ar.ar.ArActivity;
 import dk.aau.sw805f18.ar.databinding.ActivityMainBinding;
+import dk.aau.sw805f18.ar.fragments.GroupFragment;
 import dk.aau.sw805f18.ar.fragments.HomeFragment;
 import dk.aau.sw805f18.ar.fragments.MapFragment;
 import dk.aau.sw805f18.ar.fragments.ProfileFragment;
@@ -39,8 +40,8 @@ public class MainActivity extends AppCompatActivity {
                         case "AR":
                             startActivity(new Intent(this, ArActivity.class));
                             break;
-                        case "WiFi P2P":
-                            startActivity(new Intent(this, WifiP2pActivity.class));
+                        case "Groups DEBUG":
+                            FragmentOpener.getInstance().open(new GroupFragment());
                             break;
                         case "Map":
                             FragmentOpener.getInstance().open(new MapFragment());
