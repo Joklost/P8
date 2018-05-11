@@ -79,12 +79,10 @@ public class DeviceLocation {
 
     public void pause() {
         synchronized (DeviceLocation.class) {
-            if (sRefCount <= 0) {
-                return;
-            }
-
-            mLocationClient.removeLocationUpdates(mLocationCallback);
             sRefCount--;
+            if (sRefCount == 0) {
+                mLocationClient.removeLocationUpdates(mLocationCallback);
+            }
         }
     }
 
