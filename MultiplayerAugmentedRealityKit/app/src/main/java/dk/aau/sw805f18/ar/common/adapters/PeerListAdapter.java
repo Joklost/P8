@@ -34,7 +34,7 @@ public class PeerListAdapter extends RecyclerView.Adapter<PeerListAdapter.ViewHo
     public PeerListAdapter.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         // create a new view
         TextView v = (TextView) LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.list_item_course, parent, false);
+                .inflate(R.layout.list_item_find_course, parent, false);
 
         return new ViewHolder(v);
     }
