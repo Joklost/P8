@@ -9,7 +9,6 @@ import android.location.Location;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
-import android.os.Handler;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -53,8 +52,8 @@ import javax.microedition.khronos.opengles.GL10;
 import dk.aau.sw805f18.ar.R;
 import dk.aau.sw805f18.ar.ar.location.LocationMarker;
 import dk.aau.sw805f18.ar.ar.location.LocationScene;
-import dk.aau.sw805f18.ar.ar.location.rendering.AnnotationRenderer;
-import dk.aau.sw805f18.ar.ar.location.utils.ARLocationPermissionHelper;
+import dk.aau.sw805f18.ar.common.rendering.AnnotationRenderer;
+import dk.aau.sw805f18.ar.ar.location.utils.ArLocationPermissionHelper;
 import dk.aau.sw805f18.ar.common.helpers.DisplayRotationHelper;
 import dk.aau.sw805f18.ar.common.helpers.FullScreenHelper;
 import dk.aau.sw805f18.ar.common.helpers.gestures.GestureEvent;
@@ -221,8 +220,8 @@ public class ArActivity extends AppCompatActivity implements GLSurfaceView.Rende
 
                 // ARCore requires camera permissions to operate. If we did not yet obtain runtime
                 // permission on Android M and above, now is a good time to ask the user for it.
-                if (!ARLocationPermissionHelper.hasPermission(this)) {
-                    ARLocationPermissionHelper.requestPermission(this);
+                if (!ArLocationPermissionHelper.hasPermission(this)) {
+                    ArLocationPermissionHelper.requestPermission(this);
                     return;
                 }
 
@@ -315,12 +314,12 @@ public class ArActivity extends AppCompatActivity implements GLSurfaceView.Rende
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] results) {
-        if (!ARLocationPermissionHelper.hasPermission(this)) {
+        if (!ArLocationPermissionHelper.hasPermission(this)) {
             Toast.makeText(this, "Camera permission is needed to run this application", Toast.LENGTH_LONG)
                     .show();
-            if (!ARLocationPermissionHelper.shouldShowRequestPermissionRationale(this)) {
+            if (!ArLocationPermissionHelper.shouldShowRequestPermissionRationale(this)) {
                 // Permission denied with checking "Do not ask again".
-                ARLocationPermissionHelper.launchPermissionSettings(this);
+                ArLocationPermissionHelper.launchPermissionSettings(this);
             }
             finish();
         }

@@ -2,7 +2,7 @@ package dk.aau.sw805f18.ar.ar.location;
 
 import com.google.ar.core.Anchor;
 
-import dk.aau.sw805f18.ar.ar.location.rendering.Renderer;
+import dk.aau.sw805f18.ar.common.rendering.Renderer;
 
 /**
  * Created by John on 02/03/2018.

@@ -1,4 +1,4 @@
-package dk.aau.sw805f18.ar.ar.location.rendering;
+package dk.aau.sw805f18.ar.common.rendering;
 
 import android.content.Context;
 

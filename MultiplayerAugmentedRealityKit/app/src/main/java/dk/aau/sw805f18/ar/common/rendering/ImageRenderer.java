@@ -1,8 +1,4 @@
-package dk.aau.sw805f18.ar.ar.location.rendering;
-
-/**
- * Created by John on 02/03/2018.
- */
+package dk.aau.sw805f18.ar.common.rendering;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -17,8 +13,6 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
-
-import dk.aau.sw805f18.ar.ar.location.utils.ShaderUtil;
 
 public class ImageRenderer implements Renderer {
     private static final String TAG = "ImageRenderer";
@@ -117,7 +111,7 @@ public class ImageRenderer implements Renderer {
 
         textureBitmap.recycle();
 
-        ShaderUtil.checkGLError(TAG, "Texture loading");
+        ShaderUtil.checkGlError(TAG, "Texture loading");
 
         // Build the geometry of a simple imageRenderer.
 
@@ -152,7 +146,7 @@ public class ImageRenderer implements Renderer {
         GLES20.glLinkProgram(mQuadProgram);
         GLES20.glUseProgram(mQuadProgram);
 
-        ShaderUtil.checkGLError(TAG, "Program creation");
+        ShaderUtil.checkGlError(TAG, "Program creation");
 
         mQuadPositionParam = GLES20.glGetAttribLocation(mQuadProgram, "a_Position");
         mQuadTexCoordParam = GLES20.glGetAttribLocation(mQuadProgram, "a_TexCoord");
@@ -160,7 +154,7 @@ public class ImageRenderer implements Renderer {
         mModelViewProjectionUniform =
                 GLES20.glGetUniformLocation(mQuadProgram, "u_ModelViewProjection");
 
-        ShaderUtil.checkGLError(TAG, "Program parameters");
+        ShaderUtil.checkGlError(TAG, "Program parameters");
 
         Matrix.setIdentityM(mModelMatrix, 0);
     }
@@ -200,7 +194,7 @@ public class ImageRenderer implements Renderer {
 
     @Override
     public void draw(float[] cameraView, float[] cameraPerspective, float[] colorCorrectionRgba, float lightIntensity) {
-        ShaderUtil.checkGLError(TAG, "Before draw");
+        ShaderUtil.checkGlError(TAG, "Before draw");
         Matrix.multiplyMM(mModelViewMatrix, 0, cameraView, 0, mModelMatrix, 0);
         Matrix.multiplyMM(mModelViewProjectionMatrix, 0, cameraPerspective, 0, mModelViewMatrix, 0);
 
@@ -231,6 +225,6 @@ public class ImageRenderer implements Renderer {
 
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0);
 
-        ShaderUtil.checkGLError(TAG, "After draw");
+        ShaderUtil.checkGlError(TAG, "After draw");
     }
 }

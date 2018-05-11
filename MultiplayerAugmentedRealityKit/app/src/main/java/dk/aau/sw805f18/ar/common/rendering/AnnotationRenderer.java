@@ -1,8 +1,4 @@
-package dk.aau.sw805f18.ar.ar.location.rendering;
-
-/**
- * Created by John on 02/03/2018.
- */
+package dk.aau.sw805f18.ar.common.rendering;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -17,11 +13,10 @@ import android.opengl.Matrix;
 import android.util.Log;
 
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
-
-import dk.aau.sw805f18.ar.ar.location.utils.ShaderUtil;
 
 public class AnnotationRenderer implements Renderer {
     private static final String TAG = "AnnotationRenderer";
@@ -47,25 +42,8 @@ public class AnnotationRenderer implements Renderer {
     private static final int COORDS_PER_VERTEX = 3;
     private static final int TEXCOORDS_PER_VERTEX = 2;
 
-    // Shader source code, since they are small, just include them inline.
-    private static final String VERTEX_SHADER = "uniform mat4 u_ModelViewProjection;\n"
-            + "attribute vec4 a_Position;\n"
-            + "attribute vec2 a_TexCoord;\n"
-            + "\n"
-            + "varying vec2 v_TexCoord;\n"
-            + "\n"
-            + "void main() {\n"
-            + "gl_Position = u_ModelViewProjection * a_Position;\n"
-            + "   v_TexCoord = a_TexCoord;\n"
-            + "}";
-
-    private static final String FRAGMENT_SHADER = "precision mediump float;\n"
-            + "uniform sampler2D u_Texture;\n"
-            + "varying vec2 v_TexCoord;\n"
-            + "\n"
-            + "void main() {\n"
-            + "   gl_FragColor = texture2D(u_Texture, v_TexCoord);\n"
-            + "}\n";
+    private static final String VERTEX_SHADER = "shaders/annotation.vert";
+    private static final String FRAGMENT_SHADER = "shaders/annotation.frag";
 
     private FloatBuffer mQuadVertices;
     private FloatBuffer mQuadTexCoord;
@@ -112,7 +90,7 @@ public class AnnotationRenderer implements Renderer {
 
         textureBitmap.recycle();
 
-        ShaderUtil.checkGLError(TAG, "Texture loading");
+        ShaderUtil.checkGlError(TAG, "Texture loading");
 
         // Build the geometry of a simple imageRenderer.
 
@@ -138,8 +116,14 @@ public class AnnotationRenderer implements Renderer {
                 ByteBuffer.allocateDirect(numVertices * TEXCOORDS_PER_VERTEX * Float.BYTES);
         bbTexCoordsTransformed.order(ByteOrder.nativeOrder());
 
-        int vertexShader = loadGLShader(TAG, GLES20.GL_VERTEX_SHADER, VERTEX_SHADER);
-        int fragmentShader = loadGLShader(TAG, GLES20.GL_FRAGMENT_SHADER, FRAGMENT_SHADER);
+        int vertexShader = 0;
+        int fragmentShader = 0;
+        try {
+            vertexShader = ShaderUtil.loadGlShader(TAG, context, GLES20.GL_VERTEX_SHADER, VERTEX_SHADER);
+            fragmentShader = ShaderUtil.loadGlShader(TAG, context, GLES20.GL_FRAGMENT_SHADER, FRAGMENT_SHADER);
+        } catch (IOException ignored) {
+            return;
+        }
 
         mQuadProgram = GLES20.glCreateProgram();
         GLES20.glAttachShader(mQuadProgram, vertexShader);
@@ -147,7 +131,7 @@ public class AnnotationRenderer implements Renderer {
         GLES20.glLinkProgram(mQuadProgram);
         GLES20.glUseProgram(mQuadProgram);
 
-        ShaderUtil.checkGLError(TAG, "Program creation");
+        ShaderUtil.checkGlError(TAG, "Program creation");
 
         mQuadPositionParam = GLES20.glGetAttribLocation(mQuadProgram, "a_Position");
         mQuadTexCoordParam = GLES20.glGetAttribLocation(mQuadProgram, "a_TexCoord");
@@ -155,7 +139,7 @@ public class AnnotationRenderer implements Renderer {
         mModelViewProjectionUniform =
                 GLES20.glGetUniformLocation(mQuadProgram, "u_ModelViewProjection");
 
-        ShaderUtil.checkGLError(TAG, "Program parameters");
+        ShaderUtil.checkGlError(TAG, "Program parameters");
 
         Matrix.setIdentityM(mModelMatrix, 0);
     }
@@ -241,29 +225,29 @@ public class AnnotationRenderer implements Renderer {
 
         return bitmap_object;
     }
-
-    private int loadGLShader(String tag, int type, String source) {
-        int shader = GLES20.glCreateShader(type);
-        GLES20.glShaderSource(shader, source);
-        GLES20.glCompileShader(shader);
-
-        // Get the compilation status.
-        final int[] compileStatus = new int[1];
-        GLES20.glGetShaderiv(shader, GLES20.GL_COMPILE_STATUS, compileStatus, 0);
-
-        // If the compilation failed, delete the shader.
-        if (compileStatus[0] == 0) {
-            Log.e(tag, "Error compiling shader: " + GLES20.glGetShaderInfoLog(shader));
-            GLES20.glDeleteShader(shader);
-            shader = 0;
-        }
-
-        if (shader == 0) {
-            throw new RuntimeException("Error creating shader.");
-        }
-
-        return shader;
-    }
+//
+//    private int loadGLShader(String tag, int type, String source) {
+//        int shader = GLES20.glCreateShader(type);
+//        GLES20.glShaderSource(shader, source);
+//        GLES20.glCompileShader(shader);
+//
+//        // Get the compilation status.
+//        final int[] compileStatus = new int[1];
+//        GLES20.glGetShaderiv(shader, GLES20.GL_COMPILE_STATUS, compileStatus, 0);
+//
+//        // If the compilation failed, delete the shader.
+//        if (compileStatus[0] == 0) {
+//            Log.e(tag, "Error compiling shader: " + GLES20.glGetShaderInfoLog(shader));
+//            GLES20.glDeleteShader(shader);
+//            shader = 0;
+//        }
+//
+//        if (shader == 0) {
+//            throw new RuntimeException("Error creating shader.");
+//        }
+//
+//        return shader;
+//    }
 
     @Override
     public void updateModelMatrix(float[] modelMatrix, float scaleFactor, float rotation) {
@@ -277,7 +261,7 @@ public class AnnotationRenderer implements Renderer {
 
     @Override
     public void draw(float[] cameraView, float[] cameraPerspective, float[] colorCorrectionRgba, float lightIntensity) {
-        ShaderUtil.checkGLError(TAG, "Before draw");
+        ShaderUtil.checkGlError(TAG, "Before draw");
         Matrix.multiplyMM(mModelViewMatrix, 0, cameraView, 0, mModelMatrix, 0);
         Matrix.multiplyMM(mModelViewProjectionMatrix, 0, cameraPerspective, 0, mModelViewMatrix, 0);
 
@@ -314,6 +298,6 @@ public class AnnotationRenderer implements Renderer {
 
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0);
 
-        ShaderUtil.checkGLError(TAG, "After draw");
+        ShaderUtil.checkGlError(TAG, "After draw");
     }
 }

@@ -11,7 +11,7 @@ import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
 
-import dk.aau.sw805f18.ar.ar.location.utils.ARLocationPermissionHelper;
+import dk.aau.sw805f18.ar.ar.location.utils.ArLocationPermissionHelper;
 
 
 /**
@@ -59,9 +59,10 @@ public class DeviceLocation {
         mLocationRequest.setFastestInterval(5000);
         mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
 
-        if (!ARLocationPermissionHelper.hasPermission(activity)) {
+        if (!ArLocationPermissionHelper.hasPermission(activity)) {
+            ArLocationPermissionHelper.requestPermission(activity);
             Log.e(TAG, "Missing Location Permissions");
-            activity.finish();
+            return;
         }
         resume();
     }

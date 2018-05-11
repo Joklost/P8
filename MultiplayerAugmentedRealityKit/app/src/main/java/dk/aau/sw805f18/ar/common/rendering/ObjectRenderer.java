@@ -19,7 +19,6 @@ import de.javagl.obj.Obj;
 import de.javagl.obj.ObjData;
 import de.javagl.obj.ObjReader;
 import de.javagl.obj.ObjUtils;
-import dk.aau.sw805f18.ar.ar.location.rendering.Renderer;
 
 public class ObjectRenderer implements Renderer {
     private static final String TAG = ObjectRenderer.class.getSimpleName();
