@@ -62,6 +62,7 @@ public class WebSocketWrapper {
 
         switch (p.Type) {
             case Packet.MAC_TYPE:
+            case Packet.OBJECTS_TYPE:
                 // fallthrough
             case Packet.OWNER_TYPE:
                 mPacketQueue.offer(p);

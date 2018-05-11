@@ -20,7 +20,7 @@ import java.nio.FloatBuffer;
 
 import dk.aau.sw805f18.ar.ar.location.utils.ShaderUtil;
 
-public class ImageRenderer extends Renderer {
+public class ImageRenderer implements Renderer {
     private static final String TAG = "ImageRenderer";
 
     private int[] mTextures = new int[1];
@@ -189,7 +189,7 @@ public class ImageRenderer extends Renderer {
     }
 
     @Override
-    public void updateModelMatrix(float[] modelMatrix, float scaleFactor) {
+    public void updateModelMatrix(float[] modelMatrix, float scaleFactor, float rotation) {
         float[] scaleMatrix = new float[16];
         Matrix.setIdentityM(scaleMatrix, 0);
         scaleMatrix[0] = scaleFactor;
@@ -199,7 +199,7 @@ public class ImageRenderer extends Renderer {
     }
 
     @Override
-    public void draw(float[] cameraView, float[] cameraPerspective, float lightIntensity) {
+    public void draw(float[] cameraView, float[] cameraPerspective, float[] colorCorrectionRgba, float lightIntensity) {
         ShaderUtil.checkGLError(TAG, "Before draw");
         Matrix.multiplyMM(mModelViewMatrix, 0, cameraView, 0, mModelMatrix, 0);
         Matrix.multiplyMM(mModelViewProjectionMatrix, 0, cameraPerspective, 0, mModelViewMatrix, 0);

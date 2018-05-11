@@ -17,6 +17,7 @@ import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
 
+import dk.aau.sw805f18.ar.ar.ArActivity;
 import dk.aau.sw805f18.ar.ar.location.LocationScene;
 import dk.aau.sw805f18.ar.ar.location.utils.ARLocationPermissionHelper;
 
@@ -31,7 +32,7 @@ public class DeviceLocation {
 
     private Location mCurrentBestLocation;
     private FusedLocationProviderClient mLocationClient;
-
+    private Activity mActivity;
     private LocationRequest mLocationRequest;
     private LocationCallback mLocationCallback = new LocationCallback() {
         @Override
@@ -47,7 +48,11 @@ public class DeviceLocation {
             }
 
             Log.i(TAG, "Found location: " + location.toString());
-
+            if (mActivity != null) {
+                mActivity.runOnUiThread(() -> {
+                    ((ArActivity) mActivity).fillDebugText2(location);
+                });
+            }
             if (isBetterLocation(location)){
                 mCurrentBestLocation = location;
             }
@@ -68,7 +73,7 @@ public class DeviceLocation {
             Log.e(TAG, "Missing Location Permissions");
             activity.finish();
         }
-
+        mActivity = activity;
         resume();
     }
 
@@ -93,50 +98,54 @@ public class DeviceLocation {
         return loc;
     }
 
-    protected boolean isBetterLocation(Location location) {
-        if (mCurrentBestLocation == null) {
-            // A new location is always better than no location
-            return true;
-        }
+    private boolean isBetterLocation(Location location) {
+        return mCurrentBestLocation == null || mCurrentBestLocation.getAccuracy() >= location.getAccuracy();
+    }
 
-        // Check whether the new location fix is newer or older
-        long timeDelta = location.getTime() - mCurrentBestLocation.getTime();
-        boolean isSignificantlyNewer = timeDelta > TWO_MINUTES;
-        boolean isSignificantlyOlder = timeDelta < -TWO_MINUTES;
-        boolean isNewer = timeDelta > 0;
-
-        // If it's been more than two minutes since the current location, use the new location
-        // because the user has likely moved
-        if (isSignificantlyNewer) {
-            return true;
-            // If the new location is more than two minutes older, it must be worse
-        } else if (isSignificantlyOlder) {
-            return false;
-        }
-
-        // Check whether the new location fix is more or less accurate
-        int accuracyDelta = (int) (location.getAccuracy() - mCurrentBestLocation.getAccuracy());
-        boolean isLessAccurate = accuracyDelta > 0;
-        boolean isMoreAccurate = accuracyDelta < 0;
-        boolean isSignificantlyLessAccurate = accuracyDelta > 200;
-
-        // Check if the old and new location are from the same provider
-        boolean isFromSameProvider = isSameProvider(location.getProvider(),
-                mCurrentBestLocation.getProvider());
-
-        // Determine location quality using a combination of timeliness and accuracy
-        if (isMoreAccurate) {
-            return true;
-        } else if (isNewer && !isLessAccurate) {
-            return true;
-        } //else if (mCurrentBestLocation.distanceTo(location) > 5) {
+//    protected boolean isBetterLocation(Location location) {
+//        if (mCurrentBestLocation == null) {
+//            // A new location is always better than no location
 //            return true;
 //        }
-        //else if (isNewer && !isSignificantlyLessAccurate && isFromSameProvider) {
-            //return true;
-        //}
-        return false;
-    }
+//
+//        // Check whether the new location fix is newer or older
+//        long timeDelta = location.getTime() - mCurrentBestLocation.getTime();
+//        boolean isSignificantlyNewer = timeDelta > TWO_MINUTES;
+//        boolean isSignificantlyOlder = timeDelta < -TWO_MINUTES;
+//        boolean isNewer = timeDelta > 0;
+//
+//        // If it's been more than two minutes since the current location, use the new location
+//        // because the user has likely moved
+//        if (isSignificantlyNewer) {
+//            return true;
+//            // If the new location is more than two minutes older, it must be worse
+//        } else if (isSignificantlyOlder) {
+//            return false;
+//        }
+//
+//        // Check whether the new location fix is more or less accurate
+//        int accuracyDelta = (int) (location.getAccuracy() - mCurrentBestLocation.getAccuracy());
+//        boolean isLessAccurate = accuracyDelta > 0;
+//        boolean isMoreAccurate = accuracyDelta < 0;
+//        boolean isSignificantlyLessAccurate = accuracyDelta > 200;
+//
+//        // Check if the old and new location are from the same provider
+//        boolean isFromSameProvider = isSameProvider(location.getProvider(),
+//                mCurrentBestLocation.getProvider());
+//
+//        // Determine location quality using a combination of timeliness and accuracy
+//        if (isMoreAccurate) {
+//            return true;
+//        } else if (isNewer && !isLessAccurate) {
+//            return true;
+//        } //else if (mCurrentBestLocation.distanceTo(location) > 5) {
+////            return true;
+////        }
+//        //else if (isNewer && !isSignificantlyLessAccurate && isFromSameProvider) {
+//            //return true;
+//        //}
+//        return false;
+//    }
 
     private boolean isSameProvider(String provider1, String provider2) {
         if (provider1 == null) {

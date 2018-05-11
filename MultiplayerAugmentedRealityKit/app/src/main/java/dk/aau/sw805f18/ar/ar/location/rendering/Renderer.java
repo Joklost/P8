@@ -2,21 +2,10 @@ package dk.aau.sw805f18.ar.ar.location.rendering;
 
 import android.content.Context;
 
-/**
- * Created by John on 16/03/2018.
- */
+import java.io.IOException;
 
-public class Renderer {
-
-    public Renderer(Object... data) {
-    }
-
-    public void createOnGlThread(Context context, int markerDistance) {
-    }
-
-    public void updateModelMatrix(float[] modelMatrix, float scaleFactor) {
-    }
-
-    public void draw(float[] cameraView, float[] cameraPerspective, float lightIntensity) {
-    }
+public interface Renderer {
+    void updateModelMatrix(float[] anchorMatrix, float scale, float rotation);
+    void draw(float[] viewMatrix, float[] projectionMatrix, float[] colorCorrectionRgba, float lightIntensity);
+    void createOnGlThread(Context context, int markerDistance) throws IOException;
 }
