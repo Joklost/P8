@@ -1,9 +1,15 @@
 package dk.aau.sw805f18.ar.ar;
 
 import android.annotation.SuppressLint;
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.Intent;
+import android.content.ServiceConnection;
+import android.location.Location;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
@@ -32,16 +38,22 @@ import com.google.ar.core.exceptions.UnavailableArcoreNotInstalledException;
 import com.google.ar.core.exceptions.UnavailableDeviceNotCompatibleException;
 import com.google.ar.core.exceptions.UnavailableSdkTooOldException;
 import com.google.ar.core.exceptions.UnavailableUserDeclinedInstallationException;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
 import dk.aau.sw805f18.ar.R;
-import dk.aau.sw805f18.ar.common.helpers.CameraPermissionHelper;
+import dk.aau.sw805f18.ar.ar.location.LocationMarker;
+import dk.aau.sw805f18.ar.ar.location.LocationScene;
+import dk.aau.sw805f18.ar.common.rendering.AnnotationRenderer;
+import dk.aau.sw805f18.ar.ar.location.utils.ArLocationPermissionHelper;
 import dk.aau.sw805f18.ar.common.helpers.DisplayRotationHelper;
 import dk.aau.sw805f18.ar.common.helpers.FullScreenHelper;
 import dk.aau.sw805f18.ar.common.helpers.gestures.GestureEvent;
@@ -53,7 +65,9 @@ import dk.aau.sw805f18.ar.common.helpers.gestures.Tap;
 import dk.aau.sw805f18.ar.common.rendering.BackgroundRenderer;
 import dk.aau.sw805f18.ar.common.rendering.PlaneRenderer;
 import dk.aau.sw805f18.ar.common.rendering.PointCloudRenderer;
+import dk.aau.sw805f18.ar.common.websocket.Packet;
 import dk.aau.sw805f18.ar.fragments.ModelDialogFragment;
+import dk.aau.sw805f18.ar.models.Marker;
 import dk.aau.sw805f18.ar.services.SyncService;
 
 public class ArActivity extends AppCompatActivity implements GLSurfaceView.Renderer {
@@ -71,6 +85,7 @@ public class ArActivity extends AppCompatActivity implements GLSurfaceView.Rende
     private final SnackbarHelper mMessageSnackbarHelper = new SnackbarHelper();
     private DisplayRotationHelper mDisplayRotationHelper;
     private GestureHelper mGestureHelper;
+    private LocationScene mLocationScene;
 
     // DEBUG: Used to toggle rendering planes
     private ToggleButton mToggle;
@@ -157,6 +172,34 @@ public class ArActivity extends AppCompatActivity implements GLSurfaceView.Rende
         mSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
 
         mInstallRequested = false;
+
+        mTextData = findViewById(R.id.textData);
+        mTextData2 = findViewById(R.id.textData2);
+    }
+
+
+    private TextView mTextData;
+    private TextView mTextData2;
+    private TextView mLogText;
+
+    public void fillDebugText(Location location, float degree, double bearing, int markerDistance, int renderDistance) {
+        String b = "Longitude: " + location.getLongitude() + "\n" +
+                "Latitude: " + location.getLatitude() + "\n" +
+                "Accuracy: " + location.getAccuracy() + "\n" +
+                "Bearing: " + bearing + "\n" +
+                "Degree: " + degree + "\n" +
+                "Distance: " + markerDistance + "\n" +
+                "RenderDistance: " + renderDistance + "\n";
+
+        mTextData.setText(b);
+    }
+
+    //sammel dem i en
+    public void fillDebugText2(Location location) {
+        String b = "Longitude: " + location.getLongitude() + "\n" +
+                "Latitude: " + location.getLatitude() + "\n" +
+                "Accuracy: " + location.getAccuracy();
+        mTextData2.setText(b);
     }
 
     @Override
@@ -177,13 +220,19 @@ public class ArActivity extends AppCompatActivity implements GLSurfaceView.Rende
 
                 // ARCore requires camera permissions to operate. If we did not yet obtain runtime
                 // permission on Android M and above, now is a good time to ask the user for it.
-                if (CameraPermissionHelper.hasCameraPermission(this)) {
-                    CameraPermissionHelper.requestCameraPermission(this);
+                if (!ArLocationPermissionHelper.hasPermission(this)) {
+                    ArLocationPermissionHelper.requestPermission(this);
                     return;
                 }
 
                 // create the session
                 mSession = new Session(this);
+                mLocationScene = new LocationScene(this, this, mSession);
+                mLocationScene.mLocationMarkers.add(new LocationMarker(
+                        9.988686,
+                        57.013973,
+                        new AnnotationRenderer("P-Plads")));
+
             } catch (UnavailableArcoreNotInstalledException
                     | UnavailableUserDeclinedInstallationException e) {
                 message = "Please install ARCore";
@@ -219,16 +268,29 @@ public class ArActivity extends AppCompatActivity implements GLSurfaceView.Rende
             mSession = null;
             return;
         }
-
         mSurfaceView.onResume();
         mDisplayRotationHelper.onResume();
 
         mMessageSnackbarHelper.showMessage(this, "Searching for surfaces...");
+        if (mLocationScene != null) {
+            mLocationScene.resume();
+        }
+
+        // Bind SyncService
+        if (mBound) {
+            return;
+        }
+        Intent intent = new Intent(this, SyncService.class);
+        bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
+        mBound = true;
     }
 
     @Override
     public void onPause() {
         super.onPause();
+        if (mLocationScene != null) {
+            mLocationScene.pause();
+        }
         if (mSession != null) {
             // Note that the order matters - GLSurfaceView is paused first so that it does not try
             // to query the session. If Session is paused before GLSurfaceView, GLSurfaceView may
@@ -236,17 +298,28 @@ public class ArActivity extends AppCompatActivity implements GLSurfaceView.Rende
             mDisplayRotationHelper.onPause();
             mSurfaceView.onPause();
             mSession.pause();
+
         }
+
+        //Unbinding from service
+        if (!mBound) {
+            return;
+        }
+
+        unbindService(mConnection);
+        mBound = false;
+
+
     }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] results) {
-        if (CameraPermissionHelper.hasCameraPermission(this)) {
+        if (!ArLocationPermissionHelper.hasPermission(this)) {
             Toast.makeText(this, "Camera permission is needed to run this application", Toast.LENGTH_LONG)
                     .show();
-            if (!CameraPermissionHelper.shouldShowRequestPermissionRationale(this)) {
+            if (!ArLocationPermissionHelper.shouldShowRequestPermissionRationale(this)) {
                 // Permission denied with checking "Do not ask again".
-                CameraPermissionHelper.launchPermissionSettings(this);
+                ArLocationPermissionHelper.launchPermissionSettings(this);
             }
             finish();
         }
@@ -365,7 +438,7 @@ public class ArActivity extends AppCompatActivity implements GLSurfaceView.Rende
 
     }
 
-    public void spawnObject(HitResult hit, String modelName) {
+    public void spawnObject(Anchor anchor, String modelName) {
         try {
             // Hits are sorted by depth. Consider only closest hit on a plane or oriented point.
             // Cap the number of objects created. This avoids overloading both the
@@ -380,7 +453,7 @@ public class ArActivity extends AppCompatActivity implements GLSurfaceView.Rende
                 // Adding an Anchor tells ARCore that it should track this position in
                 // space. This anchor is created on the Plane to place the 3D model
                 // in the correct position relative both to the world and to the plane.
-                ArObject object = new ArObject(hit.createAnchor(), ModelLoader.load(this, modelName));
+                ArObject object = new ArObject(anchor, ModelLoader.load(this, modelName));
                 mObjects.add(object);
             }
 
@@ -491,6 +564,9 @@ public class ArActivity extends AppCompatActivity implements GLSurfaceView.Rende
                 return;
             }
 
+            // Draw location markers
+            mLocationScene.draw(frame);
+
             // Get projection matrix.
             float[] projmtx = new float[16];
             camera.getProjectionMatrix(projmtx, 0, 0.1f, 100.0f);
@@ -504,6 +580,8 @@ public class ArActivity extends AppCompatActivity implements GLSurfaceView.Rende
             // The last one is the average pixel intensity in gamma space.
             final float[] colorCorrectionRgba = new float[4];
             frame.getLightEstimate().getColorCorrection(colorCorrectionRgba, 0);
+
+            final float lightIntensity = frame.getLightEstimate().getPixelIntensity();
 
             // Visualize tracked points.
             PointCloud pointCloud = frame.acquirePointCloud();
@@ -549,8 +627,8 @@ public class ArActivity extends AppCompatActivity implements GLSurfaceView.Rende
                     ArModel model = object.getModel();
                     model.getObject().updateModelMatrix(mAnchorMatrix, object.getScale(), object.getRotationDegree());
                     model.getObjectShadow().updateModelMatrix(mAnchorMatrix, object.getScale(), object.getRotationDegree());
-                    model.getObject().draw(viewmtx, projmtx, colorCorrectionRgba);
-                    model.getObjectShadow().draw(viewmtx, projmtx, colorCorrectionRgba);
+                    model.getObject().draw(viewmtx, projmtx, colorCorrectionRgba, lightIntensity);
+                    model.getObjectShadow().draw(viewmtx, projmtx, colorCorrectionRgba, lightIntensity);
                 }
             }
 
@@ -559,4 +637,68 @@ public class ArActivity extends AppCompatActivity implements GLSurfaceView.Rende
             Log.e(TAG, "Exception on the OpenGL thread", t);
         }
     }
+
+    private SyncService mSyncService;
+    private boolean mBound;
+    private ServiceConnection mConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+//            SyncService.LocalBinder binder = (SyncService.LocalBinder) service;
+//            mSyncService = binder.getService();
+//            mSyncService.init();
+//
+//            //mSyncService.discoverPeers();
+//            mSyncService.attachHandler(Packet.OBJECTS_TYPE, packet -> new Thread(() -> {
+//                Gson gson = new Gson();
+//                List<Marker> markers = gson.fromJson(packet.Data, new TypeToken<ArrayList<Marker>>() {
+//                }.getType());
+//                StringBuilder b = new StringBuilder();
+//                for (Marker marker : markers) {
+//                    b.append(marker.Model).append(", Lon: ").append(marker.Location.Lon).append(", Lat: ").append(marker.Location.Lat).append("\n");
+//                    ArModel model = null;
+//                    try {
+//                        model = ModelLoader.load(null, marker.Model);
+//                    } catch (IOException ignore) {
+//                    }
+//
+//                    if (model == null) {
+//                        return;
+//                    }
+//
+//                    mLocationScene.mLocationMarkers.add(
+//                            new LocationMarker(
+//                                    marker.Location.Lon,
+//                                    marker.Location.Lat,
+//                                    model.getObject()
+//                            )
+//                    );
+//                    mLocationScene.mLocationMarkers.add(
+//                            new LocationMarker(
+//                                    marker.Location.Lon,
+//                                    marker.Location.Lat,
+//                                    new AnnotationRenderer(marker.Model)
+//                            )
+//                    );
+//                }
+//
+//                runOnUiThread(() -> {
+//                    mLogText = findViewById(R.id.logText);
+//                    mLogText.setText(b);
+//                });
+//            }).start());
+//            mSyncService.txSocket(new Packet(Packet.OBJECTS_TYPE, ""));
+        }
+
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            mSyncService.deinit();
+        }
+    };
+
+    public void onRefreshAnchorsClick(View v) {
+        mLocationScene.refreshAnchors();
+    }
+
+
 }

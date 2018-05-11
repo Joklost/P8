@@ -39,7 +39,8 @@
     <string name="wifi_p2p_drawer">WiFi P2P</string>
     <string name="scan_wifi_p2p">Scan WiFi P2P</string>
     <string name="create_group">Create</string>
-    <string name="request_group_info">Request</string>
+    <string name="request_group_info">Join</string>
+    <string name="test_wifi_p2p">Test</string>
 
 
     <!--Login activity-->

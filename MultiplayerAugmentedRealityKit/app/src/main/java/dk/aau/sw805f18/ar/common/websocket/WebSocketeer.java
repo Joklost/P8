@@ -18,7 +18,7 @@ public class WebSocketeer {
     private final Gson mJson = new Gson();
     private final HashMap<String, Consumer<Packet>> _handlers = new HashMap<>();
 
-    private WebSocketeer(String url) throws ExecutionException, InterruptedException {
+    public WebSocketeer(String url) throws ExecutionException, InterruptedException {
         Future<WebSocket> webSocketFuture = AsyncHttpClient
                 .getDefaultInstance()
                 .websocket(url, null, (ex, webSocket) -> {

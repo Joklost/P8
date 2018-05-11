@@ -16,27 +16,15 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 
-    <android.support.v7.widget.RecyclerView
-        android:id="@+id/peerList"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        app:layout_constraintBottom_toTopOf="@+id/requestGroup"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/scanButton">
-
-    </android.support.v7.widget.RecyclerView>
-
     <Button
         android:id="@+id/requestGroup"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:onClick="requestGroupInfo"
+        android:onClick="joinGroup"
         android:text="@string/request_group_info"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/createGroup"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/peerList" />
+        app:layout_constraintStart_toStartOf="parent" />
 
     <Button
         android:id="@+id/createGroup"
@@ -46,7 +34,21 @@
         android:text="@string/create_group"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/requestGroup"
-        app:layout_constraintTop_toBottomOf="@+id/peerList" />
+        app:layout_constraintStart_toEndOf="@+id/requestGroup" />
+
+    <Button
+        android:id="@+id/button2"
+        android:layout_width="196dp"
+        android:layout_height="64dp"
+        android:layout_marginBottom="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:text="@string/test_wifi_p2p"
+        android:onClick="testWifiP2p"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/scanButton" />
 
 </android.support.constraint.ConstraintLayout>

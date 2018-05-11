@@ -32,7 +32,7 @@ public class ModelDialogFragment extends DialogFragment {
                 .setItems(mModels, (dialog, which) -> {
                     ArActivity arActivity = (ArActivity) getActivity();
                     if (arActivity != null && mHitResult != null) {
-                        arActivity.spawnObject(mHitResult, mModels[which]);
+                        arActivity.spawnObject(mHitResult.createAnchor(), mModels[which]);
                     }
                 });
         return builder.create();

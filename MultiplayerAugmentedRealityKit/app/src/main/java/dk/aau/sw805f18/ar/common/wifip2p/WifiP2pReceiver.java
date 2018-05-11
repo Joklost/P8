@@ -21,7 +21,6 @@ public class WifiP2pReceiver extends BroadcastReceiver {
     private final Object mLock = new Object();
 
     private final SyncService mSyncService;
-    private PeerListAdapter mAdapter;
     private List<WifiP2pDevice> mPeers = new ArrayList<>();
 
     public WifiP2pReceiver(SyncService syncService) {
@@ -40,7 +39,6 @@ public class WifiP2pReceiver extends BroadcastReceiver {
             // of the change.  For instance, if you have a ListView of available
             // peers, trigger an update.
 
-            mAdapter.notifyDataSetChanged();
             if (mPeers.size() == 0) {
                 Log.d(TAG, "No devices found");
             }
@@ -66,8 +64,7 @@ public class WifiP2pReceiver extends BroadcastReceiver {
                 }
                 break;
             case WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION:
-                // The peer list has changed! We should probably do something about
-                // that.
+                // The peer list has changed!
                 Log.i(TAG, WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION);
 
                 if (mSyncService != null) {
@@ -75,8 +72,7 @@ public class WifiP2pReceiver extends BroadcastReceiver {
                 }
                 break;
             case WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION:
-                // Connection state changed! We should probably do something about
-                // that.
+                // Connection state changed!
                 Log.i(TAG, WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);
                 NetworkInfo networkInfo = intent.getParcelableExtra(WifiP2pManager.EXTRA_NETWORK_INFO);
                 Log.i(TAG, "networkInfo: " + networkInfo.toString());
@@ -98,20 +94,16 @@ public class WifiP2pReceiver extends BroadcastReceiver {
 
                 // now that we know device address and and device name,
                 // we can use the WebSocket to connect all devices in a group
-                synchronized (mLock) {
-                    mSyncService.requestConnectionInfo(info -> {
-                        if (!info.groupFormed) {
-                            mSyncService.connectGroup();
-                        }
-                    });
-                }
+
+//                synchronized (mLock) {
+//                    mSyncService.requestConnectionInfo(info -> {
+//                        if (!info.groupFormed) {
+//                            mSyncService.connectGroup();
+//                        }
+//                    });
+//                }
                 break;
         }
-    }
-
-    public void setAdapter(PeerListAdapter adapter) {
-        mAdapter = adapter;
-        adapter.setDataset(mPeers);
     }
 
     public List<WifiP2pDevice> getPeers() {
