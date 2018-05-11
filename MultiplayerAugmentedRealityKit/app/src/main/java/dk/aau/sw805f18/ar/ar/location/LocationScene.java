@@ -241,20 +241,26 @@ public class LocationScene {
                     // Approximate the surface level
                     Collection<Plane> allTrackables = mSession.getAllTrackables(Plane.class);
                     List<Float> levels = new ArrayList<>();
-                    Plane plane = null;
+
                     for (Plane p : allTrackables) {
-                        float y = p.getCenterPose().ty();
-                        if (p.isPoseInPolygon(frame.getCamera().getPose()
-                                .compose(Pose.makeTranslation(xRotated, y, zRotated)))) {
-                            Log.i(TAG, "Pose is in Polygon");
-                            plane = p;
-                            mActivity.runOnUiThread(() -> {
-                                TextView t = mActivity.findViewById(R.id.logText);
-                                t.setText("Found Pose over Polygon");
-                            });
+                        LocationMarker current = mLocationMarkers.get(i);
+                        Pose pose = current.anchor.getPose().extractTranslation();
+                        boolean b = p.isPoseInPolygon(pose);
+                        if(b) {
+                            current.anchor.detach();
+                            pose.compose(pose.makeTranslation(0, p.getCenterPose().ty(), 0));
                         }
-                        levels.add(p.getCenterPose().ty());
+                        mActivity.runOnUiThread(() -> {
+                            TextView t = mActivity.findViewById(R.id.logText);
+                            if(b) {
+                                ((ArActivity) mActivity).spawnObject(p.createAnchor(pose), "rabbit");
+                            }
+                            else{
+                                t.setText("Found no Pose over Polygon");
+                            }
+                        });
                     }
+
                     OptionalDouble average = levels
                             .stream()
                             .mapToDouble(a -> a)

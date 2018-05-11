@@ -439,7 +439,7 @@ public class ArActivity extends AppCompatActivity implements GLSurfaceView.Rende
 
     }
 
-    public void spawnObject(HitResult hit, String modelName) {
+    public void spawnObject(Anchor anchor, String modelName) {
         try {
             // Hits are sorted by depth. Consider only closest hit on a plane or oriented point.
             // Cap the number of objects created. This avoids overloading both the
@@ -454,7 +454,7 @@ public class ArActivity extends AppCompatActivity implements GLSurfaceView.Rende
                 // Adding an Anchor tells ARCore that it should track this position in
                 // space. This anchor is created on the Plane to place the 3D model
                 // in the correct position relative both to the world and to the plane.
-                ArObject object = new ArObject(hit.createAnchor(), ModelLoader.load(this, modelName));
+                ArObject object = new ArObject(anchor, ModelLoader.load(this, modelName));
                 mObjects.add(object);
             }
 
