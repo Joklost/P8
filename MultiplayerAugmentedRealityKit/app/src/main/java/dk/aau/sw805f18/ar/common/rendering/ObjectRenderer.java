@@ -19,9 +19,12 @@ import de.javagl.obj.Obj;
 import de.javagl.obj.ObjData;
 import de.javagl.obj.ObjReader;
 import de.javagl.obj.ObjUtils;
+import dk.aau.sw805f18.ar.ar.location.rendering.Renderer;
 
-public class ObjectRenderer {
+public class ObjectRenderer implements Renderer {
     private static final String TAG = ObjectRenderer.class.getSimpleName();
+    private final String mObjAssetName;
+    private final String mDiffuseTextureAssetName;
 
     public enum BlendMode {
         /**
@@ -89,11 +92,12 @@ public class ObjectRenderer {
     private float mSpecular = 1.0f;
     private float mSpecularPower = 6.0f;
 
-    public ObjectRenderer() {
+    public ObjectRenderer(String objAssetName, String diffuseTextureAssetName) {
+        this.mObjAssetName = objAssetName;
+        this.mDiffuseTextureAssetName = diffuseTextureAssetName;
     }
 
-    public void createOnGlThread(Context context, String objAssetName, String diffuseTextureAssetName)
-            throws IOException {
+    public void createOnGlThread(Context context, int markerDistance) throws IOException {
         final int vertexShader = ShaderUtil.loadGlShader(TAG, context, GLES20.GL_VERTEX_SHADER, VERTEX_SHADER_NAME);
         final int fragmentShader = ShaderUtil.loadGlShader(TAG, context, GLES20.GL_FRAGMENT_SHADER, FRAGMENT_SHADER_NAME);
 
@@ -123,7 +127,7 @@ public class ObjectRenderer {
 
         // Read the texture.
         Bitmap textureBitmap =
-                BitmapFactory.decodeStream(context.getAssets().open(diffuseTextureAssetName));
+                BitmapFactory.decodeStream(context.getAssets().open(mDiffuseTextureAssetName));
 
         GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
         GLES20.glGenTextures(mTextures.length, mTextures, 0);
@@ -141,7 +145,7 @@ public class ObjectRenderer {
         ShaderUtil.checkGlError(TAG, "Texture loading");
 
         // Read the obj file.
-        InputStream objInputStream = context.getAssets().open(objAssetName);
+        InputStream objInputStream = context.getAssets().open(mObjAssetName);
         Obj obj = ObjReader.read(objInputStream);
 
         // Prepare the Obj so that its structure is suitable for
@@ -231,7 +235,7 @@ public class ObjectRenderer {
         this.mSpecularPower = specularPower;
     }
 
-    public void draw(float[] cameraView, float[] cameraPerspective, float[] colorCorrectionRgba) {
+    public void draw(float[] cameraView, float[] cameraPerspective, float[] colorCorrectionRgba, float lightIntensity) {
 
         ShaderUtil.checkGlError(TAG, "Before draw");
 

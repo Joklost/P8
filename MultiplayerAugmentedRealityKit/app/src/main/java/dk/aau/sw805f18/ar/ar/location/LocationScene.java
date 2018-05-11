@@ -4,15 +4,23 @@ import android.app.Activity;
 import android.content.Context;
 import android.location.Location;
 import android.os.Handler;
+import android.util.Log;
+import android.widget.TextView;
 
 import com.google.ar.core.Anchor;
 import com.google.ar.core.Frame;
+import com.google.ar.core.Plane;
 import com.google.ar.core.Pose;
 import com.google.ar.core.Session;
 import com.google.ar.core.TrackingState;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.OptionalDouble;
 
+import dk.aau.sw805f18.ar.R;
+import dk.aau.sw805f18.ar.ar.ArActivity;
 import dk.aau.sw805f18.ar.ar.location.sensor.DeviceLocation;
 import dk.aau.sw805f18.ar.ar.location.sensor.DeviceOrientation;
 import dk.aau.sw805f18.ar.ar.location.utils.LocationUtils;
@@ -46,25 +54,28 @@ public class LocationScene {
     private Location mCachedLocation;
 
     private String TAG = "LocationScene";
-    private boolean anchorsNeedRefresh = true;
+    private boolean anchorsNeedRefresh = false;
     private Handler mHandler = new Handler();
 
-    Runnable anchorRefreshTask = new Runnable() {
+    public void refreshAnchors() {
+        anchorsNeedRefresh = true;
+    }
+
+    private Runnable anchorRefreshTask = new Runnable() {
         @Override
         public void run() {
 
             if (deviceLocation != null && deviceLocation.getCurrentBestLocation() != null && mCachedLocation == null) {
-                anchorsNeedRefresh = true;
+//                anchorsNeedRefresh = true;
                 mCachedLocation = deviceLocation.getCurrentBestLocation();
             } else if (deviceLocation != null && deviceLocation.getCurrentBestLocation() != null &&
                     LocationUtils.distance(deviceLocation.getCurrentBestLocation().getLatitude(),
                             mCachedLocation.getLatitude(),
                             deviceLocation.getCurrentBestLocation().getLongitude(),
                             mCachedLocation.getLongitude(),
-                            0 ,
+                            0,
                             0) > 5) {
-                double distanceTo = deviceLocation.getCurrentBestLocation().distanceTo(mCachedLocation);
-                anchorsNeedRefresh = true;
+//                anchorsNeedRefresh = true;
                 mCachedLocation = deviceLocation.getCurrentBestLocation();
             }
             mHandler.postDelayed(anchorRefreshTask, ANCHOR_REFRESH_INTERVAL);
@@ -84,7 +95,6 @@ public class LocationScene {
     }
 
 
-
     public void draw(Frame frame) {
 
         // Refresh the anchors in the scene.
@@ -94,14 +104,14 @@ public class LocationScene {
         // Draw each anchor with it's individual renderer.
         drawMarkers(frame);
 
-        for(LocationMarker lm : mLocationMarkers) {
-            if(lm.anchor == null) {
-                anchorsNeedRefresh = true;
-            }
-        }
-
-        if(frame.getCamera().getTrackingState() != TrackingState.TRACKING)
-            anchorsNeedRefresh = true;
+//        for (LocationMarker lm : mLocationMarkers) {
+//            if (lm.anchor == null) {
+//                anchorsNeedRefresh = true;
+//            }
+//        }
+//
+//        if (frame.getCamera().getTrackingState() != TrackingState.TRACKING)
+//            anchorsNeedRefresh = true;
     }
 
     public void drawMarkers(Frame frame) {
@@ -113,6 +123,9 @@ public class LocationScene {
 
                 float translation[] = new float[3];
                 float rotation[] = new float[4];
+                if (locationMarker.anchor == null) {
+                    return;
+                }
                 locationMarker.anchor.getPose().getTranslation(translation, 0);
                 frame.getCamera().getPose().getRotationQuaternion(rotation, 0);
 
@@ -153,8 +166,13 @@ public class LocationScene {
                 // Compute lighting from average intensity of the image.
                 final float lightIntensity = frame.getLightEstimate().getPixelIntensity();
 
-                locationMarker.renderer.updateModelMatrix(mAnchorMatrix, scale);
-                locationMarker.renderer.draw(viewMatrix, projectionMatrix, lightIntensity);
+                // Compute lighting from average intensity of the image.
+                // The first three components are color scaling factors.
+                // The last one is the average pixel intensity in gamma space.
+                final float[] colorCorrectionRgba = new float[4];
+                frame.getLightEstimate().getColorCorrection(colorCorrectionRgba, 0);
+                locationMarker.renderer.updateModelMatrix(mAnchorMatrix, scale, 0);
+                locationMarker.renderer.draw(viewMatrix, projectionMatrix, colorCorrectionRgba, lightIntensity);
 
 
             } catch (Exception e) {
@@ -208,7 +226,6 @@ public class LocationScene {
 
                     // Adjustment to add markers on horizon, instead of just directly in front of camera
                     double heightAdjustment = Math.round(renderDistance * (Math.tan(Math.toRadians(deviceOrientation.pitch))));
-
                     // Raise distant markers for better illusion of distance
                     // Hacky - but it works as a temporary measure
                     int cappedRealDistance = markerDistance > 500 ? 500 : markerDistance;
@@ -221,13 +238,46 @@ public class LocationScene {
                     float zRotated = (float) (z * Math.cos(rotation) - x * Math.sin(rotation));
                     float xRotated = (float) -(z * Math.sin(rotation) + x * Math.cos(rotation));
 
-                    // Current camera height
-                    float y = frame.getCamera().getDisplayOrientedPose().ty();
+                    // Approximate the surface level
+                    Collection<Plane> allTrackables = mSession.getAllTrackables(Plane.class);
+                    List<Float> levels = new ArrayList<>();
+                    Plane plane = null;
+                    for (Plane p : allTrackables) {
+                        float y = p.getCenterPose().ty();
+                        if (p.isPoseInPolygon(frame.getCamera().getPose()
+                                .compose(Pose.makeTranslation(xRotated, y, zRotated)))) {
+                            Log.i(TAG, "Pose is in Polygon");
+                            plane = p;
+                            mActivity.runOnUiThread(() -> {
+                                TextView t = mActivity.findViewById(R.id.logText);
+                                t.setText("Found Pose over Polygon");
+                            });
+                        }
+                        levels.add(p.getCenterPose().ty());
+                    }
+                    OptionalDouble average = levels
+                            .stream()
+                            .mapToDouble(a -> a)
+                            .average();
+                    float y = average.isPresent() ? (float) average.getAsDouble() : frame.getCamera().getDisplayOrientedPose().ty();
 
+                    // Current camera height
+//                    float y = frame.getCamera().getDisplayOrientedPose().ty();
+                    float finalMarkerBearing = markerBearing;
+                    int finalRenderDistance = renderDistance;
+                    mActivity.runOnUiThread(() -> {
+                        ((ArActivity) mActivity).fillDebugText(deviceLocation.getCurrentBestLocation(), deviceOrientation.currentDegree, finalMarkerBearing, markerDistance, finalRenderDistance);
+                    });
                     // Don't immediately assign newly created anchor in-case of exceptions
-                    Anchor newAnchor = mSession.createAnchor(
-                            frame.getCamera().getPose()
-                                    .compose(Pose.makeTranslation(xRotated, y + (float) heightAdjustment, zRotated)));
+//                    Collection<Plane> allTrackables = mSession.getAllTrackables(Plane.class);
+//                    for (Plane p : allTrackables) {
+//                        p.
+//                    }
+
+                    Pose newPose = frame.getCamera().getPose()
+                            .compose(Pose.makeTranslation(xRotated, (float) y, zRotated));
+
+                    Anchor newAnchor = mSession.createAnchor(newPose);
 
                     mLocationMarkers.get(i).anchor = newAnchor;
 
@@ -242,7 +292,6 @@ public class LocationScene {
     }
 
 
-
     public int getBearingAdjustment() {
         return bearingAdjustment;
     }
@@ -253,14 +302,16 @@ public class LocationScene {
     }
 
     public void resume() {
+        deviceLocation.resume();
         deviceOrientation.resume();
     }
 
     public void pause() {
+        deviceLocation.pause();
         deviceOrientation.pause();
     }
 
-    void startCalculationTask() {
+    private void startCalculationTask() {
         anchorRefreshTask.run();
     }
 

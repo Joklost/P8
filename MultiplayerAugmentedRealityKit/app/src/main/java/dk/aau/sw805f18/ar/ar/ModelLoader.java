@@ -16,20 +16,28 @@ public class ModelLoader {
             return mAssets.get(assetName);
         }
 
-        ObjectRenderer obj = new ObjectRenderer();
-        ObjectRenderer objShadow = new ObjectRenderer();
+        if (context == null) {
+            return null;
+        }
+
+        ObjectRenderer obj = new ObjectRenderer(
+                String.format("models/%s.obj", assetName),
+                String.format("models/%s.png", assetName)
+        );
+        ObjectRenderer objShadow = new ObjectRenderer(
+                String.format("models/%s_shadow.obj", assetName),
+                String.format("models/%s_shadow.png", assetName)
+        );
 
         obj.createOnGlThread(
                 context,
-                String.format("models/%s.obj", assetName),
-                String.format("models/%s.png", assetName)
+                0
         );
         obj.setMaterialProperties(0.0f, 2.0f, 0.5f, 6.0f);
 
         objShadow.createOnGlThread(
                 context,
-                String.format("models/%s_shadow.obj", assetName),
-                String.format("models/%s_shadow.png", assetName)
+                0
         );
         objShadow.setBlendMode(ObjectRenderer.BlendMode.Shadow);
         objShadow.setMaterialProperties(1.0f, 0.0f, 0.0f, 1.0f);

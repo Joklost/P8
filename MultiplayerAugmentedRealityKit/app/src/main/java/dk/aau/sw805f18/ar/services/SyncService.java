@@ -16,9 +16,12 @@ import android.support.annotation.Nullable;
 import android.util.Log;
 
 import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.function.Consumer;
 
 import dk.aau.sw805f18.ar.common.websocket.Packet;
 import dk.aau.sw805f18.ar.common.websocket.WebSocketWrapper;
+import dk.aau.sw805f18.ar.common.websocket.WebSocketeer;
 import dk.aau.sw805f18.ar.common.wifip2p.WifiP2pReceiver;
 
 public class SyncService extends Service {
@@ -35,6 +38,7 @@ public class SyncService extends Service {
     private boolean mIsWifiP2pEnabled;
 
     private WebSocketWrapper mWebSocket;
+    private WebSocketeer mWebSocketeer;
 
     public WifiP2pReceiver getReceiver() {
         return mReceiver;
@@ -48,7 +52,18 @@ public class SyncService extends Service {
         mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);
         mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION);
 
-        mWebSocket = WebSocketWrapper.getInstance("http://warpapp.xyz/connect/test");
+        try {
+            mWebSocketeer = new WebSocketeer("http://warpapp.xyz/connect/test");
+        } catch (ExecutionException | InterruptedException e) {
+            Log.e(TAG, "Failed to instantiate WebSocketeer.");
+            Log.e(TAG, e.getMessage());
+        }
+
+//        mWebSocket = WebSocketWrapper.getInstance("http://warpapp.xyz/connect/test");
+    }
+
+    public void attachHandler(String type, Consumer<Packet> handler) {
+        mWebSocketeer.attachHandler(type, handler);
     }
 
     public void connectGroup() {
@@ -214,6 +229,7 @@ public class SyncService extends Service {
         mManager.requestGroupInfo(mChannel, listener);
     }
 
+
     public void createGroup() {
         if (mGroupCreated) {
             return;
@@ -247,6 +263,10 @@ public class SyncService extends Service {
                 Log.e(TAG, "Failed to remove group.");
             }
         });
+    }
+    public void txSocket(Packet packet) {
+        Log.i(TAG, "txSocket()");
+        mWebSocketeer.send(packet);
     }
 }
 

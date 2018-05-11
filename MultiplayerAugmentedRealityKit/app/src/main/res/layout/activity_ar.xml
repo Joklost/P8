@@ -13,7 +13,8 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 -->
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -21,11 +22,13 @@
 
     <android.opengl.GLSurfaceView
         android:id="@+id/surfaceview"
-        android:layout_width="fill_parent"
+        android:layout_width="match_parent"
         android:layout_height="fill_parent"
         android:layout_alignParentStart="true"
         android:layout_alignParentTop="true"
-        android:layout_gravity="top" />
+        android:layout_gravity="top"
+        tools:layout_editor_absoluteX="0dp"
+        tools:layout_editor_absoluteY="0dp" />
 
     <ToggleButton
         android:id="@+id/toggleButton"
@@ -36,7 +39,8 @@
         android:checked="true"
         android:text="Show Planes"
         android:textOff="Planes Hidden"
-        android:textOn="Planes Shown" />
+        android:textOn="Planes Shown"
+        android:visibility="gone" />
 
     <TextView
         android:id="@+id/textView"
@@ -45,7 +49,8 @@
         android:layout_alignParentEnd="true"
         android:layout_below="@+id/toggleButton"
         android:layout_marginEnd="32dp"
-        android:text="@string/no_object_selected" />
+        android:text="@string/no_object_selected"
+        android:visibility="gone" />
 
     <SeekBar
         android:id="@+id/rotationBar"
@@ -53,10 +58,12 @@
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
-        android:layout_marginBottom="53dp"
+        android:layout_marginBottom="32dp"
         android:max="@integer/rotation_max"
         android:progress="1"
-        android:progressTint="@android:color/transparent" />
+        android:progressTint="@android:color/transparent"
+        app:layout_constraintBottom_toTopOf="@+id/scaleBar"
+        tools:layout_editor_absoluteX="48dp" />
 
     <SeekBar
         android:id="@+id/scaleBar"
@@ -64,9 +71,58 @@
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
-        android:layout_marginBottom="85dp"
+        android:layout_marginBottom="24dp"
         android:max="@integer/scale_max"
         android:progress="1"
-        android:progressTint="@android:color/transparent" />
+        android:progressTint="@android:color/transparent"
+        app:layout_constraintBottom_toBottomOf="@+id/surfaceview"
+        tools:layout_editor_absoluteX="48dp" />
 
-</RelativeLayout>
+    <TextView
+        android:id="@+id/textData"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:shadowColor="@color/primary_text"
+        android:textColor="@color/white"
+        android:text="TextView"
+        app:layout_constraintBottom_toTopOf="@+id/logText"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/textData2"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/textData2"
+        android:layout_width="193dp"
+        android:layout_height="match_parent"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentTop="true"
+        android:shadowColor="@color/primary_text"
+        android:text="TextView"
+        android:textColor="@color/white"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/logText"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:text="TextView"
+        android:shadowColor="@color/primary_text"
+        android:textColor="@color/white"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintDimensionRatio="1:1"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <Button
+        android:id="@+id/refreshAnchors"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:onClick="onRefreshAnchorsClick"
+        android:text="Button"
+        tools:layout_editor_absoluteX="295dp"
+        tools:layout_editor_absoluteY="518dp" />
+
+</android.support.constraint.ConstraintLayout>

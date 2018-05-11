@@ -101,7 +101,7 @@ public class WifiP2pReceiver extends BroadcastReceiver {
                 synchronized (mLock) {
                     mSyncService.requestConnectionInfo(info -> {
                         if (!info.groupFormed) {
-                            mSyncService.connectGroup();
+//                            mSyncService.connectGroup();
                         }
                     });
                 }

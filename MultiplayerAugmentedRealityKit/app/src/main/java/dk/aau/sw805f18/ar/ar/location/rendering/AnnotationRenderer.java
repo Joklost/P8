@@ -23,7 +23,7 @@ import java.nio.FloatBuffer;
 
 import dk.aau.sw805f18.ar.ar.location.utils.ShaderUtil;
 
-public class AnnotationRenderer extends Renderer {
+public class AnnotationRenderer implements Renderer {
     private static final String TAG = "AnnotationRenderer";
 
     private int[] mTextures = new int[1];
@@ -80,19 +80,17 @@ public class AnnotationRenderer extends Renderer {
     private float[] mModelViewMatrix = new float[16];
     private float[] mModelViewProjectionMatrix = new float[16];
 
-    private String annotationText;
+    private String mAnnotationText;
     public AnnotationRenderer(Object... data) {
-        annotationText = (String) data[0];
+        mAnnotationText = (String) data[0];
     }
 
     @Override
     public void createOnGlThread(Context context, int distance) {
-        String text = annotationText;
-
         // Read the texture.
-        Bitmap textureBitmap = null;
+        Bitmap textureBitmap;
         try {
-            textureBitmap = drawTextToAnnotation(context, text, metresReadable(distance));
+            textureBitmap = drawTextToAnnotation(mAnnotationText, metresReadable(distance));
             textureBitmap.setHasAlpha(true);
         } catch (Exception e) {
             Log.e(TAG, "Exception reading texture", e);
@@ -162,15 +160,14 @@ public class AnnotationRenderer extends Renderer {
         Matrix.setIdentityM(mModelMatrix, 0);
     }
 
-    public String metresReadable(int metres) {
+    private String metresReadable(int metres) {
         if(metres < 1000)
             return Integer.toString(metres) + "M";
         else
             return Integer.toString(Math.round(metres / 1000)) + "KM";
     }
 
-    public Bitmap drawTextToAnnotation(Context gContext,
-                                   String gText, String gDistance) {
+    private Bitmap drawTextToAnnotation(String gText, String gDistance) {
 
         float shadow_size = 16f;
         int font_size = 120;
@@ -269,7 +266,7 @@ public class AnnotationRenderer extends Renderer {
     }
 
     @Override
-    public void updateModelMatrix(float[] modelMatrix, float scaleFactor) {
+    public void updateModelMatrix(float[] modelMatrix, float scaleFactor, float rotation) {
         float[] scaleMatrix = new float[16];
         Matrix.setIdentityM(scaleMatrix, 0);
         scaleMatrix[0] = scaleFactor;
@@ -279,7 +276,7 @@ public class AnnotationRenderer extends Renderer {
     }
 
     @Override
-    public void draw(float[] cameraView, float[] cameraPerspective, float lightIntensity) {
+    public void draw(float[] cameraView, float[] cameraPerspective, float[] colorCorrectionRgba, float lightIntensity) {
         ShaderUtil.checkGLError(TAG, "Before draw");
         Matrix.multiplyMM(mModelViewMatrix, 0, cameraView, 0, mModelMatrix, 0);
         Matrix.multiplyMM(mModelViewProjectionMatrix, 0, cameraPerspective, 0, mModelViewMatrix, 0);

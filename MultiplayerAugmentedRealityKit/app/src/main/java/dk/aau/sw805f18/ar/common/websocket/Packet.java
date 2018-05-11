@@ -7,6 +7,7 @@ public class Packet {
     public static final String JOIN_TYPE = "join";
     public static final String START_TYPE = "start";
     public static final String PLAYERS_TYPE = "players";
+    public static final String OBJECTS_TYPE = "objects";
 
     public static final String TRUE = "true";
 
