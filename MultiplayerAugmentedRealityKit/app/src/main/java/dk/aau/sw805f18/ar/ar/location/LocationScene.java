@@ -90,7 +90,7 @@ public class LocationScene {
 
         startCalculationTask();
 
-        deviceLocation = new DeviceLocation(mActivity);
+        deviceLocation = DeviceLocation.getInstance(mActivity);
         deviceOrientation = new DeviceOrientation();
     }
 
