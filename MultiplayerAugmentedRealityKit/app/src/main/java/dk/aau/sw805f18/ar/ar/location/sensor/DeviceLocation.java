@@ -14,10 +14,6 @@ import com.google.android.gms.location.LocationServices;
 import dk.aau.sw805f18.ar.ar.location.utils.ArLocationPermissionHelper;
 
 
-/**
- * Created by John on 02/03/2018.
- */
-
 public class DeviceLocation {
     //    private static final int TWO_MINUTES = 60 * 2 * 1000;
     private static final String TAG = DeviceLocation.class.getSimpleName();
