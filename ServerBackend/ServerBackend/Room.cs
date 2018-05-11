@@ -1,10 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Device.Location;
 using System.Linq;
 using System.Threading.Tasks;
 using Accord.MachineLearning;
-using Accord.Math;
 using Accord.Math.Distances;
 using Red;
 
@@ -32,71 +30,49 @@ namespace ServerBackend
             }
         }
 
-        private async void AutoGroupLoop()
-        {
-            while (AutoGroupingMode)
-            {
-                var players = Players.Where(p => p.Location.Latitude == 0).ToList();
-                
-                KMeans kmeans = new KMeans(MinGroups);
-                var observations = players.Select(p => new[] {p.Location.Latitude, p.Location.Longitude}).ToArray();
-                var clusters = kmeans.Learn(observations);
-                int[] labels = clusters.Decide(observations);
-                
-                for (int i = 0; i < labels.Length; i++)
-                {
-                    var player = players[i];
-                    player.Team = labels[i];
-                    var msg = new WsMsg
-                    {
-                        Type = "newgroup",
-                        Data = player.Team.ToString()
-                    };
-                    player.Wsd.SendText(msg.ToJSON());
-                }
-                
-                await Task.Delay(1000);
-            }
-        }
 
 
         private readonly Dictionary<string, Player> _players = new Dictionary<string, Player>();
         public IEnumerable<Player> Players => _players.Values;
+        
         public List<Group> Groups { get; set; }
 
         public List<ArObject> ArObjects = new List<ArObject>();
-        private bool _autoGroupingMode = false;
+        private bool _autoGroupingMode;
 
         public Room()
         {
-            Groups = new List<Group>(Enumerable.Repeat<Group>(new Group(), MaxGroups));
+            Groups = new List<Group>(Enumerable.Repeat(new Group(), MaxGroups));
             
         }
 
         public bool SetPlayerTeam(string id, int newTeam)
         {
-            
+
             if (newTeam >= 0 && newTeam < MaxGroups && _players.TryGetValue(id, out var player))
             {
                 if (Groups.Count - 1 < newTeam)
-                    
-                Groups[player.Team].Players.Remove(player);
+                {
+                    if (newTeam == Groups.Count)
+                    {
+                        Groups.Add(new Group());
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+
+                if (player.Team != -1)
+                {
+                    Groups[player.Team].Players.Remove(player);
+                }   
                 Groups[newTeam].Players.Add(player);
                 player.Team = newTeam;
-                var data = new WsMsg
-                {
-                    Type = "team",
-                    Data = new TeamChangeMsg
-                    {
-                        Id = id,
-                        Team = newTeam
-                    }.ToJSON()
-                };
-                Players.Relay(data.ToJSON());
                 return true;
             }
-            else
-                return false;
+
+            return false;
         }
         
         public Player AddPlayer(string id, WebSocketDialog wsd)
@@ -108,7 +84,7 @@ namespace ServerBackend
                 Type = "players",
                 Data = Players.ToJSON()
             };
-            Players.Relay(data.ToJSON());
+            Players.Relay(data);
             return p;
         }
 
@@ -127,11 +103,38 @@ namespace ServerBackend
                     Type = "players",
                     Data = Players.ToJSON()
                 };
-                Players.Relay(data.ToJSON());
+                Players.Relay(data);
             }
 
             return _players.Count == 0;
 
+        }
+        
+        private async void AutoGroupLoop()
+        {
+            while (AutoGroupingMode)
+            {
+                var players = Players.Where(p => p.Location == GeoCoordinate.Unknown).ToList();
+                
+                var kmeans = new KMeans(MinGroups);
+                var observations = players.Select(p => new[] {p.Location.Latitude, p.Location.Longitude}).ToArray();
+                var clusters = kmeans.Learn(observations);
+                var labels = clusters.Decide(observations);
+                
+                for (var i = 0; i < labels.Length; i++)
+                {
+                    var player = players[i];
+                    player.Team = labels[i];
+                    var msg = new WsMsg
+                    {
+                        Type = "newgroup",
+                        Data = player.Team.ToString()
+                    };
+                    player.Wsd.SendText(msg.ToJSON());
+                }
+                
+                await Task.Delay(1000);
+            }
         }
     }
 

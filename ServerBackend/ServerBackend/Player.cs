@@ -2,7 +2,6 @@
 using Newtonsoft.Json;
 using Red;
 
-
 namespace ServerBackend
 {
     class Player
@@ -14,9 +13,11 @@ namespace ServerBackend
         }
 
         public string Id { get; set; }
-        public string DisplayName { get; set; } = "Unnamed jonas";
-        public int Team { get; set; } = 0;
-        public GeoCoordinate Location { get; set; } = new GeoCoordinate();
+        public string DisplayName { get; set; } = "[Unnamed]";
+        public int Team { get; set; } = -1;
+        public GeoCoordinate Location { get; set; } = GeoCoordinate.Unknown;
+
+        public bool Ready { get; set; } = false;
 
         [JsonIgnore] 
         public WebSocketDialog Wsd;

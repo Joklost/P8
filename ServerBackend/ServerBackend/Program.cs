@@ -4,8 +4,6 @@ using System.Collections.Generic;
 using System.Device.Location;
 using System.Linq;
 using System.Net;
-using Accord.MachineLearning;
-using Accord.Math.Distances;
 using Red;
 using Red.CookieSessions;
 
@@ -18,7 +16,7 @@ namespace ServerBackend
             var server = new RedHttpServer(5000);
 
             // Temporary "id" generator
-            int roomId = 1;
+            var roomId = 1;
 
             var rooms = new ConcurrentDictionary<string, Room>();
             rooms["test"] = new Room
@@ -81,8 +79,6 @@ namespace ServerBackend
                 }
 
                 var player = room.AddPlayer(roomId++.ToString(), wsd);
-                Group Group() => room.Groups[player.Team];
-
 
                 void ParseWsMsg(WebSocketDialog.TextMessageEventArgs textEvent)
                 {
@@ -91,15 +87,22 @@ namespace ServerBackend
                     switch (msg.Type)
                     {
                         case "position":
-                            var loc = msg.Data.FromJSON<Location>();
-                            player.Location.Latitude = loc.Lat;
-                            player.Location.Longitude = loc.Lon;
+                            var location = msg.Data.FromJSON<Location>();
+                            if (player.Location == GeoCoordinate.Unknown)
+                            {
+                                player.Location = new GeoCoordinate(location.Lat, location.Lon);
+                            }
+                            else
+                            {
+                                player.Location.Latitude = location.Lat;
+                                player.Location.Longitude = location.Lon;
+                            }
                             break;
                         case "autogroup":
                             if (player.DisplayName == room.Owner)
                             {
+                                room.Players.Relay(msg);
                                 room.AutoGroupingMode = msg.Data == "true";
-                                room.Players.Relay(textEvent.Text);
                             }
                             break;
                         case "objects":
@@ -109,64 +112,60 @@ namespace ServerBackend
                                 Data = room.ArObjects.ToJSON()
                             });
                             break;
+                        case "ready":
+                            player.Ready = true;
+                            if (room.Players.All(p => p.Ready))
+                            {
+                                room.Players.Relay(msg);
+                            }
+                            break;
                         case "team":
                             var teamChangeEvent = msg.Data.FromJSON<TeamChangeMsg>();
                             if (player.Id == teamChangeEvent.Id || player.Id == room.Owner)
                             {
-                                room.SetPlayerTeam(teamChangeEvent.Id, teamChangeEvent.Team);
+                                if (room.SetPlayerTeam(teamChangeEvent.Id, teamChangeEvent.Team))
+                                {
+                                    room.Players.Relay(msg);
+                                }
                             }
-
-                            wsd.SendText(new WsMsg
-                            {
-                                Type = "mac",
-                                Data = Group().LeaderMac
-                            }.ToJSON());
                             break;
                         case "mac":
-                            var g = Group();
-                            g.LeaderMac = msg.Data;
-                            var response = new WsMsg
+                            if (player.Team == -1) 
+                                break;
+                            
+                            var g = room.Groups[player.Team];
+                            if (g.LeaderId == player.Id)
                             {
-                                Type = "mac",
-                                Data = g.LeaderMac
-                            }.ToJSON();
-                            g.Players.Where(p => p != player).Relay(response);
-                            break;
-                        case "name":
-                            player.DisplayName = msg.Data;
-                            room.Players.Where(p => p.Id != player.Id)
-                                .Relay(room.Players.Select(p => new {Name = p.DisplayName, Team = p.Team}));
-
-
-                            // Make Jonas' phone to wifi p2p group owner
-                            if (player.DisplayName == room.Owner)
-                            {
-                                wsd.SendText(new WsMsg
-                                {
-                                    Type = "owner",
-                                    Data = "true"
-                                }.ToJSON());
-                            }
-                            // Only for dev
-                            else if (!string.IsNullOrEmpty((g = Group()).LeaderMac))
-                            {
-                                wsd.SendText(new WsMsg
+                                g.LeaderMac = msg.Data;
+                                g.Players.Where(p => p != player).Relay(new WsMsg
                                 {
                                     Type = "mac",
                                     Data = g.LeaderMac
-                                }.ToJSON());
+                                });
                             }
-                            else
-                            {
-                                wsd.SendText(new WsMsg
+                            break;
+                        case "name":
+                            player.DisplayName = msg.Data;
+                            
+                            room.Players.Where(p => p.Id != player.Id).Relay(new WsMsg
                                 {
-                                    Type = "owner",
-                                    Data = "false"
-                                }.ToJSON());
-                            }
-
+                                    Type = "player",
+                                    Data = room.Players.ToJSON()
+                                });
                             break;
                         case "start":
+                            if (player.DisplayName == room.Owner)
+                            {
+                                foreach (var group in room.Groups)
+                                {
+                                    var leader = group.Players.First();
+                                    leader.Wsd.SendText(new WsMsg
+                                    {
+                                        Type = "owner",
+                                        Data = "true"
+                                    }.ToJSON());
+                                }
+                            }
                             break;
                     }
                 }
