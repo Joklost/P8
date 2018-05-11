@@ -246,17 +246,27 @@ public class LocationScene {
                         LocationMarker current = mLocationMarkers.get(i);
                         Pose pose = current.anchor.getPose().extractTranslation();
                         boolean b = p.isPoseInPolygon(pose);
-                        if(b) {
-                            current.anchor.detach();
-                            pose.compose(pose.makeTranslation(0, p.getCenterPose().ty(), 0));
+                        if (b) {
+                            //detach anchor
+                            pose = pose.compose(Pose.makeTranslation(0, shiftYAxisBy(p.getCenterPose().ty(), pose.ty()), 0));
+                            ((ArActivity) mActivity).spawnObject(p.createAnchor(pose), "rabbit");
+                            removeAnchor(current.anchor);
+                            mLocationMarkers.remove(i);
                         }
+                        Pose finalPose = pose;
                         mActivity.runOnUiThread(() -> {
                             TextView t = mActivity.findViewById(R.id.logText);
-                            if(b) {
-                                ((ArActivity) mActivity).spawnObject(p.createAnchor(pose), "rabbit");
-                            }
-                            else{
-                                t.setText("Found no Pose over Polygon");
+                            TextView y = mActivity.findViewById(R.id.textData);
+                            if (b) {
+                                t.setText("Found  Pose over Polygon" + "\n" +
+                                        "number of objects in plane: " + mSession.getAllAnchors().size());
+                                y.setText("Plane y:" + p.getCenterPose().ty() + "\n" +
+                                        "object y: " + finalPose.ty());
+
+
+                            } else {
+                                t.setText("Found no Pose over Polygon" + "\n" +
+                                        "number of objects in plane: " + mSession.getAllAnchors().size());
                             }
                         });
                     }
@@ -283,8 +293,10 @@ public class LocationScene {
                     Pose newPose = frame.getCamera().getPose()
                             .compose(Pose.makeTranslation(xRotated, (float) y, zRotated));
 
-                    Anchor newAnchor = mSession.createAnchor(newPose);
+                    //TODO Detach anchor when we place a new one
+                    removeAnchor(mLocationMarkers.get(i).anchor);
 
+                    Anchor newAnchor = mSession.createAnchor(newPose);
                     mLocationMarkers.get(i).anchor = newAnchor;
 
                     mLocationMarkers.get(i).renderer.createOnGlThread(mContext, markerDistance);
@@ -297,7 +309,17 @@ public class LocationScene {
         }
     }
 
+    private float shiftYAxisBy(double planeAnchor, double airAnchor){
+        return (float)(planeAnchor - airAnchor);
+    }
 
+    private void removeAnchor(Anchor anchor){
+        for (Anchor a : mSession.getAllAnchors()) {
+            if (a.equals(anchor)) {
+                a.detach();
+            }
+        }
+    }
     public int getBearingAdjustment() {
         return bearingAdjustment;
     }

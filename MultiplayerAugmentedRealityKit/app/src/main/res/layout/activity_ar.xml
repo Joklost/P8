@@ -120,9 +120,11 @@
         android:id="@+id/refreshAnchors"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="32dp"
+        android:layout_marginEnd="8dp"
         android:onClick="onRefreshAnchorsClick"
         android:text="Button"
-        tools:layout_editor_absoluteX="295dp"
-        tools:layout_editor_absoluteY="518dp" />
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
 </android.support.constraint.ConstraintLayout>

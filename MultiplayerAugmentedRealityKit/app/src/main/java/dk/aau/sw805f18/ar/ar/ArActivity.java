@@ -643,50 +643,50 @@ public class ArActivity extends AppCompatActivity implements GLSurfaceView.Rende
     private ServiceConnection mConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
-            SyncService.LocalBinder binder = (SyncService.LocalBinder) service;
-            mSyncService = binder.getService();
-            mSyncService.init();
-
-            //mSyncService.discoverPeers();
-            mSyncService.attachHandler(Packet.OBJECTS_TYPE, packet -> new Thread(() -> {
-                Gson gson = new Gson();
-                List<Marker> markers = gson.fromJson(packet.Data, new TypeToken<ArrayList<Marker>>() {
-                }.getType());
-                StringBuilder b = new StringBuilder();
-                for (Marker marker : markers) {
-                    b.append(marker.Model).append(", Lon: ").append(marker.Location.Lon).append(", Lat: ").append(marker.Location.Lat).append("\n");
-                    ArModel model = null;
-                    try {
-                        model = ModelLoader.load(null, marker.Model);
-                    } catch (IOException ignore) {
-                    }
-
-                    if (model == null) {
-                        return;
-                    }
-
-                    mLocationScene.mLocationMarkers.add(
-                            new LocationMarker(
-                                    marker.Location.Lon,
-                                    marker.Location.Lat,
-                                    model.getObject()
-                            )
-                    );
-                    mLocationScene.mLocationMarkers.add(
-                            new LocationMarker(
-                                    marker.Location.Lon,
-                                    marker.Location.Lat,
-                                    new AnnotationRenderer(marker.Model)
-                            )
-                    );
-                }
-
-                runOnUiThread(() -> {
-                    mLogText = findViewById(R.id.logText);
-                    mLogText.setText(b);
-                });
-            }).start());
-            mSyncService.txSocket(new Packet(Packet.OBJECTS_TYPE, ""));
+//            SyncService.LocalBinder binder = (SyncService.LocalBinder) service;
+//            mSyncService = binder.getService();
+//            mSyncService.init();
+//
+//            //mSyncService.discoverPeers();
+//            mSyncService.attachHandler(Packet.OBJECTS_TYPE, packet -> new Thread(() -> {
+//                Gson gson = new Gson();
+//                List<Marker> markers = gson.fromJson(packet.Data, new TypeToken<ArrayList<Marker>>() {
+//                }.getType());
+//                StringBuilder b = new StringBuilder();
+//                for (Marker marker : markers) {
+//                    b.append(marker.Model).append(", Lon: ").append(marker.Location.Lon).append(", Lat: ").append(marker.Location.Lat).append("\n");
+//                    ArModel model = null;
+//                    try {
+//                        model = ModelLoader.load(null, marker.Model);
+//                    } catch (IOException ignore) {
+//                    }
+//
+//                    if (model == null) {
+//                        return;
+//                    }
+//
+//                    mLocationScene.mLocationMarkers.add(
+//                            new LocationMarker(
+//                                    marker.Location.Lon,
+//                                    marker.Location.Lat,
+//                                    model.getObject()
+//                            )
+//                    );
+//                    mLocationScene.mLocationMarkers.add(
+//                            new LocationMarker(
+//                                    marker.Location.Lon,
+//                                    marker.Location.Lat,
+//                                    new AnnotationRenderer(marker.Model)
+//                            )
+//                    );
+//                }
+//
+//                runOnUiThread(() -> {
+//                    mLogText = findViewById(R.id.logText);
+//                    mLogText.setText(b);
+//                });
+//            }).start());
+//            mSyncService.txSocket(new Packet(Packet.OBJECTS_TYPE, ""));
         }
 
 
