@@ -1,5 +1,6 @@
 package dk.aau.sw805f18.ar.main;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.Fragment;
@@ -16,6 +17,7 @@ import android.widget.Toast;
 import java.util.Date;
 
 import dk.aau.sw805f18.ar.R;
+import dk.aau.sw805f18.ar.ar.ArActivity;
 import dk.aau.sw805f18.ar.fragments.AboutFragment;
 import dk.aau.sw805f18.ar.common.helpers.SyncServiceHelper;
 
@@ -129,6 +131,8 @@ public class MainActivity extends AppCompatActivity {
                     drawerItemIndex = 4;
                     CURRENT_TAG = AboutFragment.TAG_ABOUT;
                     break;
+                case R.id.nav_ar:
+                    startActivity(new Intent(this, ArActivity.class));
                 default:
                     drawerItemIndex = 0;
             }
