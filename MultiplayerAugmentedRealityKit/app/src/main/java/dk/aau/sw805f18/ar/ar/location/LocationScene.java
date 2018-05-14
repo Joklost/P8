@@ -61,14 +61,14 @@ public class LocationScene {
             if (marker.isLocked()) {
                 continue;
             }
-            // Get the current pose of an Anchor in world space. The Anchor pose is updated
-            // during calls to session.update() as ARCore refines its estimate of the world.
-
-            float translation[] = new float[3];
-            float rotation[] = new float[4];
             if (marker.getAnchor() == null) {
                 return;
             }
+
+            // Get the current pose of an Anchor in world space. The Anchor pose is updated
+            // during calls to session.update() as ARCore refines its estimate of the world.
+            float translation[] = new float[3];
+            float rotation[] = new float[4];
             marker.getAnchor().getPose().getTranslation(translation, 0);
             frame.getCamera().getPose().getRotationQuaternion(rotation, 0);
 
