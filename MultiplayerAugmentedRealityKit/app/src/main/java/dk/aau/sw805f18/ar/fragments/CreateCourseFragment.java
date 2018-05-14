@@ -16,6 +16,9 @@ import dk.aau.sw805f18.ar.R;
 import dk.aau.sw805f18.ar.main.FragmentOpener;
 
 public class CreateCourseFragment extends Fragment {
+    public static final String GROUPING = "grouping";
+    public static final String GROUPS = "groups";
+    public static final String MAX_PLAYERS = "maxPlayers";
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -37,11 +40,20 @@ public class CreateCourseFragment extends Fragment {
         groupSpinner.setAdapter(groupSelectAdapter);
 
         Button creatBtn = getView().findViewById(R.id.create_course_create_button);
-        creatBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                FragmentOpener.getInstance().open(new LobbyFragment());
-            }
+        creatBtn.setOnClickListener(v -> {
+            String selectedGroupingMethod = (String) groupSpinner.getSelectedItem();
+            int numberOfTeams = 3;
+            int maxPlayers = 16;
+
+            Bundle gameOptionBundle = new Bundle();
+            gameOptionBundle.putString(GROUPING, selectedGroupingMethod);
+            gameOptionBundle.putInt(GROUPS, numberOfTeams);
+            gameOptionBundle.putInt(MAX_PLAYERS, maxPlayers);
+
+            LobbyFragment lobbyFragment = new LobbyFragment();
+            lobbyFragment.setArguments(gameOptionBundle);
+            FragmentOpener.getInstance().open(lobbyFragment);
         });
     }
 }
+

@@ -17,6 +17,7 @@ import java.util.Date;
 import dk.aau.sw805f18.ar.R;
 import dk.aau.sw805f18.ar.ar.ArActivity;
 import dk.aau.sw805f18.ar.databinding.ActivityMainBinding;
+import dk.aau.sw805f18.ar.fragments.CreateCourseFragment;
 import dk.aau.sw805f18.ar.fragments.GroupFragment;
 import dk.aau.sw805f18.ar.fragments.HomeFragment;
 import dk.aau.sw805f18.ar.fragments.MapFragment;
@@ -48,6 +49,9 @@ public class MainActivity extends AppCompatActivity {
                             break;
                         case "Profile":
                             FragmentOpener.getInstance().open(new ProfileFragment());
+                            break;
+                        case "Create game":
+                            FragmentOpener.getInstance().open(new CreateCourseFragment());
                             break;
                     }
 
