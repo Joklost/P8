@@ -18,6 +18,7 @@ import dk.aau.sw805f18.ar.main.MainActivity;
 
 public class CreateCourseFragment extends Fragment {
     public static final String TAG_CREATE = "createcourse";
+
     public static final String GROUPING = "grouping";
     public static final String GROUPS = "groups";
     public static final String MAX_PLAYERS = "maxPlayers";

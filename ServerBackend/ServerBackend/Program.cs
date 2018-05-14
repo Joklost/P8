@@ -119,8 +119,8 @@ namespace ServerBackend
                                 room.Players.Relay(msg);
                             }
                             break;
-                        case "team":
-                            var teamChangeEvent = msg.Data.FromJSON<TeamChangeMsg>();
+                        case "setgroup":
+                            var teamChangeEvent = msg.Data.FromJSON<GroupChangeMsg>();
                             if (player.Id == teamChangeEvent.Id || player.Id == room.Owner)
                             {
                                 if (room.SetPlayerTeam(teamChangeEvent.Id, teamChangeEvent.Team))

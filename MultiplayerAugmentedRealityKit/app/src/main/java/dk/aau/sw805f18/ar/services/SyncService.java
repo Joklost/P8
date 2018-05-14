@@ -21,7 +21,6 @@ import java.util.function.Consumer;
 
 import dk.aau.sw805f18.ar.common.helpers.RunnableExecutor;
 import dk.aau.sw805f18.ar.common.websocket.Packet;
-import dk.aau.sw805f18.ar.common.websocket.WebSocketWrapper;
 import dk.aau.sw805f18.ar.common.websocket.WebSocketeer;
 import dk.aau.sw805f18.ar.common.wifip2p.WifiP2pReceiver;
 
@@ -43,8 +42,7 @@ public class SyncService extends Service {
 
     private boolean mIsWifiP2pEnabled;
 
-    private WebSocketWrapper mWebSocket;
-    private WebSocketeer mWebSocketeer;
+    public WebSocketeer mWebSocketeer;
 
     public WifiP2pReceiver getReceiver() {
         return mReceiver;
@@ -64,8 +62,6 @@ public class SyncService extends Service {
             Log.e(TAG, "Failed to instantiate WebSocketeer.");
             Log.e(TAG, e.getMessage());
         }
-
-//        mWebSocket = WebSocketWrapper.getInstance("http://warpapp.xyz/connect/test");
     }
 
     public void attachHandler(String type, Consumer<Packet> handler) {
@@ -75,44 +71,7 @@ public class SyncService extends Service {
         mWebSocketeer.send(packet);
     }
 
-    public void connectGroup() {
-//        mWebSocket.sendPacket(new Packet(Packet.NAME_TYPE, mDeviceName));
-
-        Log.i(TAG, "Waiting for initial packet...");
-        Packet packet = mWebSocket.waitPacket();
-
-        // TODO: packet should contain color code, make enumerable
-//        switch (packet.Type) {
-//            case Packet.OWNER_TYPE:
-//                if (packet.Data.equals(Packet.TRUE)) {
-//                    Log.i(TAG, "Creating group...");
-//                    createGroup();
-//                    Log.i(TAG, "Group created, transmitting Device Address: " + mDeviceAddress);
-//                    mWebSocket.sendPacket(new Packet(Packet.MAC_TYPE, mDeviceAddress));
-//                    Log.i(TAG, "Awaiting connections");
-//
-//                    completeGroup();
-//                }
-//                break;
-//            case Packet.MAC_TYPE:
-//                if (packet.Data != null) {
-//                    try {
-//                        new Handler().postDelayed(() -> {
-//                            Log.i(TAG, "Connecting to: " + packet.Data);
-//                            connect(packet.Data);
-//                        }, 3000);
-//                    } catch (Exception e) {
-//                        Log.e(TAG, e.toString());
-//                    }
-//
-//                } else {
-//                    Log.e(TAG, "Received 'mac' packet without Device Address!");
-//                }
-//                break;
-//        }
-    }
-
-    @Nullable
+       @Nullable
     @Override
     public IBinder onBind(Intent intent) {
         return mBinder;
@@ -157,26 +116,8 @@ public class SyncService extends Service {
         mDeviceName = deviceName;
     }
 
-    public void joinGroup(String token) {
-        String masterAddress;
-        int port;
-
-        mWebSocket.sendPacket(new Packet(Packet.JOIN_TYPE, token + ";" + mDeviceAddress));
-        Log.i(TAG, "Sent Join Packet, waiting for response.");
-
-        Packet packet = mWebSocket.waitPacket();
-        if (packet.Type.equals(Packet.OK_TYPE)) {
-            // TODO: set spinner or something while waiting
-            String[] data = packet.Data.split(",");
-            masterAddress = data[0];
-            port = Integer.parseInt(data[1]);
-
-            packet = mWebSocket.waitPacket();
-
-            if (packet.Type.equals(Packet.GROUP_COMPLETED_TYPE)) {
-                connect(masterAddress);
-            }
-        }
+    public void joinGroup(String playerId, int groupNo) {
+        mWebSocketeer.send(new Packet(Packet.JOIN_TYPE, String.format("{Id:\"%s\",Team:\"%s\"}", playerId, groupNo)));
     }
 
     public class LocalBinder extends Binder {
@@ -272,14 +213,6 @@ public class SyncService extends Service {
     public void createGroup() {
         if (mGroupCreated) return;
 
-        // Send start group packet to server, with own device address
-        mWebSocket.sendPacket(new Packet(Packet.CREATE_TYPE, mDeviceAddress));
-
-        Packet packet = mWebSocket.waitPacket();
-        if (packet.Type.equals(Packet.OWNER_TYPE)) mToken = packet.Data;
-        else if (packet.Type.equals(Packet.ERROR_TYPE)) Log.e(TAG, packet.Data);
-        else Log.e(TAG, "Invalid packet recieved");
-
         mManager.createGroup(mChannel, new WifiP2pManager.ActionListener() {
             @Override
             public void onSuccess() {
@@ -315,7 +248,6 @@ public class SyncService extends Service {
 
     }
     public HashMap<String, Integer> completeGroup() {
-        mWebSocket.sendPacket(new Packet(Packet.GROUP_COMPLETED_TYPE, ""));
         int port = 5000;
         HashMap<String, Integer> portMap = new HashMap<String, Integer>();
 

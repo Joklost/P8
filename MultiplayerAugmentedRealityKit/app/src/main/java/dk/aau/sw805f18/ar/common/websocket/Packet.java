@@ -10,7 +10,7 @@ public class Packet {
     public static final String OWNER_TYPE = "owner";            // Response to START. DATA: group ID string
     public static final String GROUP_COMPLETED_TYPE = "group";  // Send when all group members have joined, to finalize communications. DATA: n/a
 
-    public static final String JOIN_TYPE = "join";              // Send when joining group. DATA: group ID string
+    public static final String JOIN_TYPE = "setgroup";              // Send when joining group. DATA: group ID string
     public static final String OK_TYPE = "ok";                  // Response to JOIN. DATA: port, master device MAC
 
     public static final String ERROR_TYPE = "error";            // Some error occurred serverside (fx. input group ID not found). DATA: error message

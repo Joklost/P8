@@ -1,6 +1,6 @@
 ﻿namespace ServerBackend
 {
-    class TeamChangeMsg
+    class GroupChangeMsg
     {
         public string Id { get; set; }
         public int Team { get; set; }
