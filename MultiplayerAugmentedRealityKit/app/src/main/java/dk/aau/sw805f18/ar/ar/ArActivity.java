@@ -1,10 +1,6 @@
 package dk.aau.sw805f18.ar.ar;
 
 import android.annotation.SuppressLint;
-import android.content.ComponentName;
-import android.content.Context;
-import android.content.Intent;
-import android.content.ServiceConnection;
 import android.location.Location;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
@@ -56,6 +52,7 @@ import dk.aau.sw805f18.ar.common.rendering.AnnotationRenderer;
 import dk.aau.sw805f18.ar.ar.location.utils.ArLocationPermissionHelper;
 import dk.aau.sw805f18.ar.common.helpers.DisplayRotationHelper;
 import dk.aau.sw805f18.ar.common.helpers.FullScreenHelper;
+import dk.aau.sw805f18.ar.common.helpers.SyncServiceHelper;
 import dk.aau.sw805f18.ar.common.helpers.gestures.GestureEvent;
 import dk.aau.sw805f18.ar.common.helpers.gestures.LongPress;
 import dk.aau.sw805f18.ar.common.helpers.gestures.Scroll;
@@ -68,7 +65,6 @@ import dk.aau.sw805f18.ar.common.rendering.PointCloudRenderer;
 import dk.aau.sw805f18.ar.common.websocket.Packet;
 import dk.aau.sw805f18.ar.fragments.ModelDialogFragment;
 import dk.aau.sw805f18.ar.models.Marker;
-import dk.aau.sw805f18.ar.services.SyncService;
 
 public class ArActivity extends AppCompatActivity implements GLSurfaceView.Renderer {
     private static final String TAG = ArActivity.class.getSimpleName();
@@ -175,6 +171,48 @@ public class ArActivity extends AppCompatActivity implements GLSurfaceView.Rende
 
         mTextData = findViewById(R.id.textData);
         mTextData2 = findViewById(R.id.textData2);
+
+        //mSyncService.discoverPeers();
+        SyncServiceHelper.getInstance().attachHandler(Packet.OBJECTS_TYPE, packet -> new Thread(() -> {
+            Gson gson = new Gson();
+            List<Marker> markers = gson.fromJson(packet.Data, new TypeToken<ArrayList<Marker>>() {
+            }.getType());
+            StringBuilder b = new StringBuilder();
+            for (Marker marker : markers) {
+                b.append(marker.Model).append(", Lon: ").append(marker.Location.Lon).append(", Lat: ").append(marker.Location.Lat).append("\n");
+                ArModel model = null;
+                try {
+                    model = ModelLoader.load(null, marker.Model);
+                } catch (IOException ignore) {
+                }
+
+                if (model == null) {
+                    return;
+                }
+
+                mLocationScene.mLocationMarkers.add(
+                        new LocationMarker(
+                                marker.Location.Lon,
+                                marker.Location.Lat,
+                                model.getObject()
+                        )
+                );
+                mLocationScene.mLocationMarkers.add(
+                        new LocationMarker(
+                                marker.Location.Lon,
+                                marker.Location.Lat,
+                                new AnnotationRenderer(marker.Model)
+                        )
+                );
+            }
+
+            runOnUiThread(() -> {
+                mLogText = findViewById(R.id.logText);
+                mLogText.setText(b);
+            });
+        }).start());
+
+        SyncServiceHelper.getInstance().send(new Packet(Packet.OBJECTS_TYPE, ""));
     }
 
 
@@ -276,13 +314,6 @@ public class ArActivity extends AppCompatActivity implements GLSurfaceView.Rende
             mLocationScene.resume();
         }
 
-        // Bind SyncService
-        if (mBound) {
-            return;
-        }
-        Intent intent = new Intent(this, SyncService.class);
-        bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
-        mBound = true;
     }
 
     @Override
@@ -300,16 +331,6 @@ public class ArActivity extends AppCompatActivity implements GLSurfaceView.Rende
             mSession.pause();
 
         }
-
-        //Unbinding from service
-        if (!mBound) {
-            return;
-        }
-
-        unbindService(mConnection);
-        mBound = false;
-
-
     }
 
     @Override
@@ -695,6 +716,7 @@ public class ArActivity extends AppCompatActivity implements GLSurfaceView.Rende
             mSyncService.deinit();
         }
     };
+
 
     public void onRefreshAnchorsClick(View v) {
         mLocationScene.refreshAnchors();

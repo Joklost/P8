@@ -70,6 +70,9 @@ public class SyncService extends Service {
     public void attachHandler(String type, Consumer<Packet> handler) {
         mWebSocketeer.attachHandler(type, handler);
     }
+    public void send(Packet packet) {
+        mWebSocketeer.send(packet);
+    }
 
     public void connectGroup() {
 //        mWebSocket.sendPacket(new Packet(Packet.NAME_TYPE, mDeviceName));

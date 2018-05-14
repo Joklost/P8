@@ -16,6 +16,7 @@ public class Packet {
     public static final String ERROR_TYPE = "error";            // Some error occurred serverside (fx. input group ID not found). DATA: error message
 
     public static final String POSITION_TYPE = "position";
+    public static final String NEW_GROUP_TYPE = "newgroup";
 
     public String Type;
     public String Data;
