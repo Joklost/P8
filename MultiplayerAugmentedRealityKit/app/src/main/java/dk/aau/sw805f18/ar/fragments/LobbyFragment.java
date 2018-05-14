@@ -22,10 +22,12 @@ import dk.aau.sw805f18.ar.common.websocket.WebSocketeer;
 import dk.aau.sw805f18.ar.main.DialogLobby;
 
 
+
 public class LobbyFragment extends Fragment {
     public static final String TAG_LOBBY = "lobby";
 
-    private static final int[] GROUP_COLROS = new int[]{
+
+    private static final int[] GROUP_COLROS = new int[] {
             0xEF5350,
             0xEC407A,
             0xAB47BC,
@@ -39,7 +41,6 @@ public class LobbyFragment extends Fragment {
             0x8D6E63,
             0x78909C,
     };
-
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -56,7 +57,6 @@ public class LobbyFragment extends Fragment {
         RecyclerView rvGrid = getView().findViewById(R.id.lobby_group_recyclerview);
         LobbyGroupAdapter adapter = new LobbyGroupAdapter();
         String[] data = {"mBoi", "bitte", "øøøh"};
-
 
         switch (gameOptionsBundle.getString(CreateCourseFragment.GROUPING)) {
             case "Troop leader":

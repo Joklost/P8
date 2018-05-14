@@ -55,6 +55,7 @@ public class CreateCourseFragment extends Fragment {
             LobbyFragment lobbyFragment = new LobbyFragment();
             lobbyFragment.setArguments(gameOptionBundle);
             FragmentOpener.getInstance().open(lobbyFragment, TAG_CREATE);
+
         });
     }
 

@@ -20,6 +20,7 @@ import dk.aau.sw805f18.ar.fragments.AboutFragment;
 import dk.aau.sw805f18.ar.ar.ArActivity;
 import dk.aau.sw805f18.ar.common.helpers.SyncServiceHelper;
 import dk.aau.sw805f18.ar.databinding.ActivityMainBinding;
+import dk.aau.sw805f18.ar.fragments.CreateCourseFragment;
 import dk.aau.sw805f18.ar.fragments.GroupFragment;
 import dk.aau.sw805f18.ar.fragments.HomeFragment;
 import dk.aau.sw805f18.ar.fragments.ProfileFragment;
@@ -67,6 +68,7 @@ public class MainActivity extends AppCompatActivity {
             CURRENT_TAG = HomeFragment.TAG_HOME;
             getSupportActionBar().setTitle(getString(R.string.home_title));
             loadHomeFragment();
+
         }
 
         setDrawerInfo();

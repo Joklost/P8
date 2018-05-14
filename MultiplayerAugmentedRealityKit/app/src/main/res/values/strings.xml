@@ -89,7 +89,7 @@
     <string-array name="create_course_group_selection_array">
         <item>Troop leader</item>
         <item>Self selection</item>
-        <item>WIFI selection</item>
+        <item>Auto grouping</item>
     </string-array>
 
     <!--Profile fragment-->
