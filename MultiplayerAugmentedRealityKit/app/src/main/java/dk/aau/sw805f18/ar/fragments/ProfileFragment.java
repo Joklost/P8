@@ -30,19 +30,16 @@ public class ProfileFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         FloatingActionButton editBtn = getView().findViewById(R.id.profile_edit_save_button);
-        editBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                editBtn.setImageDrawable(ContextCompat.getDrawable(getContext(),
-                        mSaveState ?
-                                R.drawable.ic_edit_white_24dp :
-                                R.drawable.ic_save_white_24dp));
-                mSaveState = !mSaveState;
+        editBtn.setOnClickListener(v -> {
+            editBtn.setImageDrawable(ContextCompat.getDrawable(getContext(),
+                    mSaveState ?
+                            R.drawable.ic_edit_white_24dp :
+                            R.drawable.ic_save_white_24dp));
+            mSaveState = !mSaveState;
 
-                // TODO: make fields editable
-                // TODO: actually save changes
-                // TODO: populate fields with appropiate information
-            }
+            // TODO: make fields editable
+            // TODO: actually save changes
+            // TODO: populate fields with appropiate information
         });
     }
 

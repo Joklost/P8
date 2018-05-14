@@ -5,8 +5,6 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -34,19 +32,9 @@ public class HomeFragment extends Fragment {
         Button findBtn = getView().findViewById(R.id.home_find_course_button);
         Button createBtn = getView().findViewById(R.id.home_create_course_button);
 
-        findBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                FragmentOpener.getInstance().open(new FindCourseFragment(), FindCourseFragment.TAG_FIND);
-            }
-        });
+        findBtn.setOnClickListener(v -> FragmentOpener.getInstance().open(new FindCourseFragment(), FindCourseFragment.TAG_FIND));
 
-        createBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                FragmentOpener.getInstance().open(new CreateCourseFragment(), CreateCourseFragment.TAG_CREATE);
-            }
-        });
+        createBtn.setOnClickListener(v -> FragmentOpener.getInstance().open(new CreateCourseFragment(), CreateCourseFragment.TAG_CREATE));
     }
 
     @Override

@@ -65,12 +65,7 @@ public class FindCourseFragment extends Fragment {
         lv.setAdapter(lvAdapter);
 
         Button sendBtn = getView().findViewById(R.id.find_course_join_by_code_button);
-        sendBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                FragmentOpener.getInstance().open(new LobbyFragment(), TAG_FIND);
-            }
-        });
+        sendBtn.setOnClickListener(v -> FragmentOpener.getInstance().open(new LobbyFragment(), TAG_FIND));
     }
 
     @Override
