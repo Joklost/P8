@@ -14,15 +14,19 @@ import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
+import com.koushikdutta.async.http.WebSocket;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
 
+import dk.aau.sw805f18.ar.ar.location.sensor.DeviceLocation;
 import dk.aau.sw805f18.ar.common.helpers.RunnableExecutor;
 import dk.aau.sw805f18.ar.common.websocket.Packet;
 import dk.aau.sw805f18.ar.common.websocket.WebSocketeer;
 import dk.aau.sw805f18.ar.common.wifip2p.WifiP2pReceiver;
+import dk.aau.sw805f18.ar.models.AutoGrouping;
 
 public class SyncService extends Service {
     private static final String TAG = SyncService.class.getSimpleName();
@@ -43,12 +47,14 @@ public class SyncService extends Service {
     private boolean mIsWifiP2pEnabled;
 
     public WebSocketeer mWebSocketeer;
+    private AutoGrouping mAutoGrouping;
 
     public WifiP2pReceiver getReceiver() {
         return mReceiver;
     }
 
     private WifiP2pReceiver mReceiver;
+    private DeviceLocation mDeviceLocation;
 
     public SyncService() {
         mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION); // Whether Wifi P2P is enabled or not
@@ -67,11 +73,12 @@ public class SyncService extends Service {
     public void attachHandler(String type, Consumer<Packet> handler) {
         mWebSocketeer.attachHandler(type, handler);
     }
+
     public void send(Packet packet) {
         mWebSocketeer.send(packet);
     }
 
-       @Nullable
+    @Nullable
     @Override
     public IBinder onBind(Intent intent) {
         return mBinder;
@@ -149,6 +156,8 @@ public class SyncService extends Service {
                 Log.i(TAG, info.toString());
             }
         });
+
+        mAutoGrouping = new AutoGrouping(mDeviceLocation, mWebSocketeer);
 
         removeGroup();
     }
@@ -242,14 +251,17 @@ public class SyncService extends Service {
             }
         });
     }
+
     public void txSocket(Packet packet) {
         Log.i(TAG, "txSocket()");
         mWebSocketeer.send(packet);
 
     }
+
     public HashMap<String, Integer> completeGroup() {
+        mWebSocketeer.send(new Packet(Packet.GROUP_COMPLETED_TYPE, ""));
         int port = 5000;
-        HashMap<String, Integer> portMap = new HashMap<String, Integer>();
+        HashMap<String, Integer> portMap = new HashMap<>();
 
         List<WifiP2pDevice> peers = getReceiver().getPeers();
         ServerSocketService socket;
@@ -268,17 +280,16 @@ public class SyncService extends Service {
         return mToken;
     }
 
+    public void setDeviceLocation(DeviceLocation dl) {
+        mDeviceLocation = dl;
+    }
 
-    public void autoGrouping() {
-        // Thread for sending position, when auto grouping
-        RunnableExecutor.getInstance().execute(() -> {
+    public void startAutoGrouping() {
+        mAutoGrouping.start();
+    }
 
-        });
-
-        // Thread for receiving group data, when auto grouping
-        RunnableExecutor.getInstance().execute(() -> {
-
-        });
+    public void stopAutoGrouping() {
+        mAutoGrouping.stop();
     }
 }
 

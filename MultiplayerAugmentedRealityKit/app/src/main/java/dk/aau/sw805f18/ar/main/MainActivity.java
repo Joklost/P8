@@ -18,6 +18,7 @@ import java.util.Date;
 
 import dk.aau.sw805f18.ar.R;
 import dk.aau.sw805f18.ar.ar.ArActivity;
+import dk.aau.sw805f18.ar.ar.location.sensor.DeviceLocation;
 import dk.aau.sw805f18.ar.fragments.AboutFragment;
 import dk.aau.sw805f18.ar.common.helpers.SyncServiceHelper;
 
@@ -69,7 +70,7 @@ public class MainActivity extends AppCompatActivity {
             loadHomeFragment();
         }
 
-        SyncServiceHelper.init(this);
+        SyncServiceHelper.init(this, DeviceLocation.getInstance(this));
     }
 
     private void loadHomeFragment() {
