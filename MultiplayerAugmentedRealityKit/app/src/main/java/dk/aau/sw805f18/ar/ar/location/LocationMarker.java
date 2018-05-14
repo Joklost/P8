@@ -1,31 +1,26 @@
 package dk.aau.sw805f18.ar.ar.location;
 
+import android.location.Location;
+
 import com.google.ar.core.Anchor;
 
 import dk.aau.sw805f18.ar.common.rendering.Renderer;
 
-/**
- * Created by John on 02/03/2018.
- */
-
 public class LocationMarker {
 
     // Location in real-world terms
-    public double longitude;
-    public double latitude;
-
+    private Location mLocation;
     // Location in AR terms
     private Anchor mAnchor;
 
     private boolean mLocked;
 
     //Renderer
-    public Renderer renderer;
+    private Renderer mRenderer;
 
-    public LocationMarker(double longitude, double latitude, Renderer renderer) {
-        this.longitude = longitude;
-        this.latitude = latitude;
-        this.renderer = renderer;
+    public LocationMarker(Location location, Renderer renderer) {
+        this.mLocation = location;
+        this.mRenderer = renderer;
     }
 
     public void setOnTouchListener(Runnable touchEvent) {
@@ -54,11 +49,19 @@ public class LocationMarker {
         this.mAnchor = anchor;
     }
 
+    public Location getLocation() {
+        return mLocation;
+    }
+
     public boolean isLocked() {
         return mLocked;
     }
 
-    public void setLocked(boolean mLocked) {
-        this.mLocked = mLocked;
+    public void setLocked(boolean locked) {
+        this.mLocked = locked;
+    }
+
+    public Renderer getRenderer() {
+        return mRenderer;
     }
 }

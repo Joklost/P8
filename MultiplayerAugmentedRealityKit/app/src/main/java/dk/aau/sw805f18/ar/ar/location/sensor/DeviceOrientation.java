@@ -9,10 +9,6 @@ import android.hardware.SensorManager;
 import dk.aau.sw805f18.ar.ar.location.LocationScene;
 
 
-/**
- * Created by John on 02/03/2018.
- */
-
 public class DeviceOrientation implements SensorEventListener {
 
     private SensorManager mSensorManager;
@@ -32,8 +28,8 @@ public class DeviceOrientation implements SensorEventListener {
     // North
     public float currentDegree = 0f;
 
-    public DeviceOrientation() {
-        mSensorManager = (SensorManager) LocationScene.mContext.getSystemService(Context.SENSOR_SERVICE);
+    public DeviceOrientation(Context context) {
+        mSensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
     }
 
     @Override

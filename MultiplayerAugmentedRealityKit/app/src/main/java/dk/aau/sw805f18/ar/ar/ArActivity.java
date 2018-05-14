@@ -1,13 +1,9 @@
 package dk.aau.sw805f18.ar.ar;
 
 import android.annotation.SuppressLint;
-import android.content.ComponentName;
-import android.content.ServiceConnection;
-import android.location.Location;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
-import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
@@ -50,6 +46,7 @@ import javax.microedition.khronos.opengles.GL10;
 import dk.aau.sw805f18.ar.R;
 import dk.aau.sw805f18.ar.ar.location.LocationMarker;
 import dk.aau.sw805f18.ar.ar.location.LocationScene;
+import dk.aau.sw805f18.ar.ar.location.sensor.DeviceLocation;
 import dk.aau.sw805f18.ar.common.rendering.AnnotationRenderer;
 import dk.aau.sw805f18.ar.ar.location.utils.ArLocationPermissionHelper;
 import dk.aau.sw805f18.ar.common.helpers.DisplayRotationHelper;
@@ -171,18 +168,12 @@ public class ArActivity extends AppCompatActivity implements GLSurfaceView.Rende
         mSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
 
         mInstallRequested = false;
-
-        mTextData = findViewById(R.id.textData);
-        mTextData2 = findViewById(R.id.textData2);
-
-        //mSyncService.discoverPeers();
+        SyncServiceHelper.getInstance().init();
         SyncServiceHelper.getInstance().attachHandler(Packet.OBJECTS_TYPE, packet -> new Thread(() -> {
             Gson gson = new Gson();
             List<Marker> markers = gson.fromJson(packet.Data, new TypeToken<ArrayList<Marker>>() {
             }.getType());
-            StringBuilder b = new StringBuilder();
             for (Marker marker : markers) {
-                b.append(marker.Model).append(", Lon: ").append(marker.Location.Lon).append(", Lat: ").append(marker.Location.Lat).append("\n");
                 ArModel model = null;
                 try {
                     model = ModelLoader.load(null, marker.Model);
@@ -195,52 +186,25 @@ public class ArActivity extends AppCompatActivity implements GLSurfaceView.Rende
 
                 mLocationScene.mLocationMarkers.add(
                         new LocationMarker(
-                                marker.Location.Lon,
-                                marker.Location.Lat,
+                                DeviceLocation.BuildLocation(marker.Location.Lat, marker.Location.Lon),
                                 model.getObject()
                         )
                 );
                 mLocationScene.mLocationMarkers.add(
                         new LocationMarker(
-                                marker.Location.Lon,
-                                marker.Location.Lat,
+                                DeviceLocation.BuildLocation(marker.Location.Lat, marker.Location.Lon),
                                 new AnnotationRenderer(marker.Model)
                         )
                 );
             }
-
-            runOnUiThread(() -> {
-                mLogText = findViewById(R.id.logText);
-                mLogText.setText(b);
-            });
         }).start());
 
         SyncServiceHelper.getInstance().send(new Packet(Packet.OBJECTS_TYPE, ""));
-    }
 
-
-    private TextView mTextData;
-    private TextView mTextData2;
-    private TextView mLogText;
-
-    public void fillDebugText(Location location, float degree, double bearing, int markerDistance, int renderDistance) {
-        String b = "Longitude: " + location.getLongitude() + "\n" +
-                "Latitude: " + location.getLatitude() + "\n" +
-                "Accuracy: " + location.getAccuracy() + "\n" +
-                "Bearing: " + bearing + "\n" +
-                "Degree: " + degree + "\n" +
-                "Distance: " + markerDistance + "\n" +
-                "RenderDistance: " + renderDistance + "\n";
-
-        mTextData.setText(b);
-    }
-
-    //sammel dem i en
-    public void fillDebugText2(Location location) {
-        String b = "Longitude: " + location.getLongitude() + "\n" +
-                "Latitude: " + location.getLatitude() + "\n" +
-                "Accuracy: " + location.getAccuracy();
-        mTextData2.setText(b);
+        mLocationScene = new LocationScene(this);
+        mLocationScene.mLocationMarkers.add(new LocationMarker(
+                DeviceLocation.BuildLocation(57.013973, 9.988686),
+                new AnnotationRenderer("P-Plads")));
     }
 
     @Override
@@ -268,12 +232,6 @@ public class ArActivity extends AppCompatActivity implements GLSurfaceView.Rende
 
                 // create the session
                 mSession = new Session(this);
-                mLocationScene = new LocationScene(this, this, mSession);
-                mLocationScene.mLocationMarkers.add(new LocationMarker(
-                        9.988686,
-                        57.013973,
-                        new AnnotationRenderer("P-Plads")));
-
             } catch (UnavailableArcoreNotInstalledException
                     | UnavailableUserDeclinedInstallationException e) {
                 message = "Please install ARCore";
@@ -382,6 +340,7 @@ public class ArActivity extends AppCompatActivity implements GLSurfaceView.Rende
         GLES20.glViewport(0, 0, width, height);
     }
 
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     private boolean hitsPlaneOrPoint(Trackable trackable, HitResult hit) {
         return ((trackable instanceof Plane) && ((Plane) trackable).isPoseInPolygon(hit.getHitPose()))
                 || ((trackable instanceof Point)
@@ -499,9 +458,7 @@ public class ArActivity extends AppCompatActivity implements GLSurfaceView.Rende
             // give the dialog the hit result, so such that we can pass it on to the
             // spawnObject method
             modelDialogFragment.setHitResult(hit);
-            runOnUiThread(() -> {
-                modelDialogFragment.show(getSupportFragmentManager(), "modelDialog", ASSETS_TO_LOAD);
-            });
+            runOnUiThread(() -> modelDialogFragment.show(getSupportFragmentManager(), "modelDialog", ASSETS_TO_LOAD));
 
             return;
         }
@@ -589,7 +546,7 @@ public class ArActivity extends AppCompatActivity implements GLSurfaceView.Rende
             }
 
             // Draw location markers
-            mLocationScene.draw(frame);
+            mLocationScene.draw(mSession, frame);
 
             // Get projection matrix.
             float[] projmtx = new float[16];
@@ -661,68 +618,4 @@ public class ArActivity extends AppCompatActivity implements GLSurfaceView.Rende
             Log.e(TAG, "Exception on the OpenGL thread", t);
         }
     }
-
-    private SyncService mSyncService;
-    private boolean mBound;
-    private ServiceConnection mConnection = new ServiceConnection() {
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder service) {
-//            SyncService.LocalBinder binder = (SyncService.LocalBinder) service;
-//            mSyncService = binder.getService();
-//            mSyncService.init();
-//
-//            //mSyncService.discoverPeers();
-//            mSyncService.attachHandler(Packet.OBJECTS_TYPE, packet -> new Thread(() -> {
-//                Gson gson = new Gson();
-//                List<Marker> markers = gson.fromJson(packet.Data, new TypeToken<ArrayList<Marker>>() {
-//                }.getType());
-//                StringBuilder b = new StringBuilder();
-//                for (Marker marker : markers) {
-//                    b.append(marker.Model).append(", Lon: ").append(marker.Location.Lon).append(", Lat: ").append(marker.Location.Lat).append("\n");
-//                    ArModel model = null;
-//                    try {
-//                        model = ModelLoader.load(null, marker.Model);
-//                    } catch (IOException ignore) {
-//                    }
-//
-//                    if (model == null) {
-//                        return;
-//                    }
-//
-//                    mLocationScene.mLocationMarkers.add(
-//                            new LocationMarker(
-//                                    marker.Location.Lon,
-//                                    marker.Location.Lat,
-//                                    model.getObject()
-//                            )
-//                    );
-//                    mLocationScene.mLocationMarkers.add(
-//                            new LocationMarker(
-//                                    marker.Location.Lon,
-//                                    marker.Location.Lat,
-//                                    new AnnotationRenderer(marker.Model)
-//                            )
-//                    );
-//                }
-//
-//                runOnUiThread(() -> {
-//                    mLogText = findViewById(R.id.logText);
-//                    mLogText.setText(b);
-//                });
-//            }).start());
-//            mSyncService.txSocket(new Packet(Packet.OBJECTS_TYPE, ""));
-        }
-
-
-        @Override
-        public void onServiceDisconnected(ComponentName name) {
-            mSyncService.deinit();
-        }
-    };
-
-    public void onRefreshAnchorsClick(View v) {
-        mLocationScene.refreshAnchors();
-    }
-
-
 }
