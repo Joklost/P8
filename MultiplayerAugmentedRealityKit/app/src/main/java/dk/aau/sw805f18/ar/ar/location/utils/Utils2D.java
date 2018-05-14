@@ -30,10 +30,10 @@ public class Utils2D {
             frame.getCamera().getProjectionMatrix(projectionMatrix, 0, 0.1f, 100.0f);
 
             float[] anchorMatrix = new float[16];
-            marker.anchor.getPose().toMatrix(anchorMatrix, 0);
+            marker.getAnchor().getPose().toMatrix(anchorMatrix, 0);
 
             float[] world2screenMatrix = Utils2D.calculateWorld2CameraMatrix(anchorMatrix, viewMatrix, projectionMatrix);
-            double[] anchor_2d = Utils2D.world2Screen(marker.anchor.getPose(), width, height, world2screenMatrix);
+            double[] anchor_2d = Utils2D.world2Screen(marker.getAnchor().getPose(), width, height, world2screenMatrix);
 
 
             if (marker.getTouchableSize() <= 0)

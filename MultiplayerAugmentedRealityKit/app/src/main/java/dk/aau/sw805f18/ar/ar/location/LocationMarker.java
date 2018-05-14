@@ -15,7 +15,9 @@ public class LocationMarker {
     public double latitude;
 
     // Location in AR terms
-    public Anchor anchor;
+    private Anchor mAnchor;
+
+    private boolean mLocked;
 
     //Renderer
     public Renderer renderer;
@@ -42,5 +44,21 @@ public class LocationMarker {
 
     public void setTouchableSize(int touchableSize) {
         this.touchableSize = touchableSize;
+    }
+
+    public Anchor getAnchor() {
+        return mAnchor;
+    }
+
+    public void setAnchor(Anchor anchor) {
+        this.mAnchor = anchor;
+    }
+
+    public boolean isLocked() {
+        return mLocked;
+    }
+
+    public void setLocked(boolean mLocked) {
+        this.mLocked = mLocked;
     }
 }
