@@ -35,4 +35,8 @@
         <item name="android:focusableInTouchMode">false</item>
         <item name="android:clickable">false</item>
     </style>
+    
+    <style name="ThemeOverlay.AppCompat.drawerTheme">
+        <item name="colorControlHighlight">@android:color/transparent</item>
+    </style>
 </resources>
