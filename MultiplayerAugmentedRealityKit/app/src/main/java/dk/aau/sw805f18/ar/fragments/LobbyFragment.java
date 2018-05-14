@@ -21,6 +21,7 @@ import dk.aau.sw805f18.ar.common.helpers.RunnableExecutor;
 import dk.aau.sw805f18.ar.common.websocket.WebSocketeer;
 import dk.aau.sw805f18.ar.main.DialogLobby;
 
+import dk.aau.sw805f18.ar.main.MainActivity;
 
 
 public class LobbyFragment extends Fragment {
@@ -77,11 +78,10 @@ public class LobbyFragment extends Fragment {
 
         adapter.setOnItemClickListener((position, v) -> {
             LobbyDialogFragment dialog = new LobbyDialogFragment();
-            adapter.setOnItemClickListener((position, v) -> {
-                DialogLobby dialog = new DialogLobby();
-                android.app.FragmentManager fragmentManager = getActivity().getFragmentManager();
-                dialog.show(fragmentManager, "dialog");
-            });
+
+            android.app.FragmentManager fragmentManager = getActivity().getFragmentManager();
+            dialog.show(fragmentManager, "dialog");
+        });
 
             rvGrid.setAdapter(adapter);
             rvGrid.setLayoutManager(new GridLayoutManager(getContext(), 2));
@@ -96,9 +96,6 @@ public class LobbyFragment extends Fragment {
             RunnableExecutor.getInstance().execute(() -> {
 
             });
-
-        });
-
 
     }
 
