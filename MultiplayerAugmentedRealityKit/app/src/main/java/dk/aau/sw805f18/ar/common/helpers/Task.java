@@ -18,7 +18,7 @@ public class Task {
     }
 
     private static void init() {
-        int corePoolSize = 3;
+        int corePoolSize = 2;
         int maxPoolSize = 10;
         long keepAliveTime = 5000;
 

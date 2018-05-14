@@ -69,7 +69,7 @@ public class LobbyFragment extends Fragment {
             case "Auto grouping":
                 // Start sending GPS coordinates to server
 
-                syncService.attachHandler("newgroup", packet -> {
+                syncService.mWebSocketeer.attachHandler("newgroup", packet -> {
                     int newGroup = parseInt(packet.Data);
                     lobbyLayout.setBackgroundColor(GROUP_COLOURS[newGroup]);
                 });
