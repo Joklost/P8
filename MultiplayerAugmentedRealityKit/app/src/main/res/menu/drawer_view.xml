@@ -1,35 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
-    <group android:checkableBehavior="single" />
-
-    <item
-        android:id="@+id/nav_home"
-        android:icon="@drawable/ic_home_black_24dp"
-        android:title="Home" />
-    <item
-        android:id="@+id/nav_profile"
-        android:icon="@drawable/ic_person_black_24dp"
-        android:title="Profile" />
-    <item
-        android:id="@+id/nav_stats"
-        android:icon="@drawable/ic_equalizer_black_24dp"
-        android:title="Stats/Highscore" />
-    <item
-        android:id="@+id/nav_settings"
-        android:icon="@drawable/ic_settings_black_24dp"
-        android:title="Settings" />
-    <item
-        android:id="@+id/nav_about"
-        android:icon="@drawable/ic_info_black_24dp"
-        android:title="About" />
-    <item
-        android:id="@+id/nav_ar"
-        android:icon="@drawable/ic_camera_enhance_black_24dp"
-        android:title="AR" />
-    <item
-        android:id="@+id/nav_groups"
-        android:title="Groups DEBUG" />
-
-
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Navigation drawer items group -->
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/nav_home"
+            android:icon="@drawable/ic_home_black_24dp"
+            android:title="@string/nav_home" />
+        <item
+            android:id="@+id/nav_profile"
+            android:icon="@drawable/ic_person_black_24dp"
+            android:title="@string/nav_profile" />
+        <item
+            android:id="@+id/nav_stats"
+            android:icon="@drawable/ic_equalizer_black_24dp"
+            android:title="@string/nav_stats" />
+        <item
+            android:id="@+id/nav_settings"
+            android:icon="@drawable/ic_settings_black_24dp"
+            android:title="@string/nav_settings" />
+        <item
+            android:id="@+id/nav_about"
+            android:icon="@drawable/ic_info_black_24dp"
+            android:title="@string/nav_about" />
+        <item
+            android:id="@+id/nav_ar"
+            android:icon="@drawable/ic_camera_enhance_black_24dp"
+            android:title="AR" />
+    </group >
 </menu>

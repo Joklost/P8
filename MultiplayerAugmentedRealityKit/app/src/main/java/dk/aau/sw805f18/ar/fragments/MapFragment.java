@@ -24,6 +24,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import dk.aau.sw805f18.ar.R;
 
 public class MapFragment extends Fragment implements OnMapReadyCallback {
+    public static final String TAG_MAP = "map";
 
     private GoogleMap googleMap;
     MapView mMapView;

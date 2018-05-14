@@ -12,9 +12,11 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import dk.aau.sw805f18.ar.R;
+import dk.aau.sw805f18.ar.main.MainActivity;
 
 
 public class ProfileFragment extends Fragment {
+    public static final String TAG_PROFILE = "profile";
     private boolean mSaveState = false;
 
     @Override
@@ -42,5 +44,11 @@ public class ProfileFragment extends Fragment {
                 // TODO: populate fields with appropiate information
             }
         });
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        MainActivity.CURRENT_FRAGMENT = TAG_PROFILE;
     }
 }

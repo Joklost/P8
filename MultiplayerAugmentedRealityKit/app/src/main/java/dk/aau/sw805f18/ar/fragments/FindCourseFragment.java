@@ -17,10 +17,12 @@ import java.util.ArrayList;
 import dk.aau.sw805f18.ar.R;
 import dk.aau.sw805f18.ar.common.adapters.FindCourseListItemAdapter;
 import dk.aau.sw805f18.ar.main.FragmentOpener;
+import dk.aau.sw805f18.ar.main.MainActivity;
 import dk.aau.sw805f18.ar.models.FindCourseItem;
 
 
 public class FindCourseFragment extends Fragment {
+    public static final String TAG_FIND = "findcourse";
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -66,9 +68,15 @@ public class FindCourseFragment extends Fragment {
         sendBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                FragmentOpener.getInstance().open(new LobbyFragment());
+                FragmentOpener.getInstance().open(new LobbyFragment(), TAG_FIND);
             }
         });
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        MainActivity.CURRENT_FRAGMENT = TAG_FIND;
     }
 
     private ArrayList<String> getTypeItems() {

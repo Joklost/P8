@@ -25,6 +25,7 @@ import dk.aau.sw805f18.ar.services.SyncService;
 
 
 public class GroupFragment extends Fragment {
+    public static final String TAG_GROUP = "group";
     private TextView mMake, mJoin;
     private Button mDone;
     private String mToken;

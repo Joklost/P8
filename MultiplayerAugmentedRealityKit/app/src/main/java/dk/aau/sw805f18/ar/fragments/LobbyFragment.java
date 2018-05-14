@@ -13,11 +13,11 @@ import android.view.ViewGroup;
 
 import dk.aau.sw805f18.ar.R;
 import dk.aau.sw805f18.ar.common.adapters.LobbyGroupAdapter;
-import dk.aau.sw805f18.ar.main.DialogLobby;
-
+import dk.aau.sw805f18.ar.main.MainActivity;
 
 
 public class LobbyFragment extends Fragment {
+    public static final String TAG_LOBBY = "lobby";
 
     private static final int[] GROUP_COLROS = new int[] {
             0xEF5350,
@@ -70,7 +70,7 @@ public class LobbyFragment extends Fragment {
         }
 
         adapter.setOnItemClickListener((position, v) -> {
-            DialogLobby dialog = new DialogLobby();
+            LobbyDialogFragment dialog = new LobbyDialogFragment();
             android.app.FragmentManager fragmentManager = getActivity().getFragmentManager();
             dialog.show(fragmentManager, "dialog");
         });
@@ -78,5 +78,11 @@ public class LobbyFragment extends Fragment {
         rvGrid.setAdapter(adapter);
         rvGrid.setLayoutManager(new GridLayoutManager(getContext(), 2));
 
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        MainActivity.CURRENT_FRAGMENT = TAG_LOBBY;
     }
 }

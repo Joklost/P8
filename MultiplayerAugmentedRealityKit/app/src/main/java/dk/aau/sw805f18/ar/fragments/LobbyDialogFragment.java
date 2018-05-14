@@ -1,4 +1,4 @@
-package dk.aau.sw805f18.ar.main;
+package dk.aau.sw805f18.ar.fragments;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -11,7 +11,7 @@ import android.view.LayoutInflater;
 import dk.aau.sw805f18.ar.R;
 import dk.aau.sw805f18.ar.common.adapters.DialogLobbyAssignedAdapter;
 
-public class DialogLobby extends DialogFragment {
+public class LobbyDialogFragment extends DialogFragment {
 
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {

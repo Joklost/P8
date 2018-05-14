@@ -14,8 +14,10 @@ import android.widget.Spinner;
 
 import dk.aau.sw805f18.ar.R;
 import dk.aau.sw805f18.ar.main.FragmentOpener;
+import dk.aau.sw805f18.ar.main.MainActivity;
 
 public class CreateCourseFragment extends Fragment {
+    public static final String TAG_CREATE = "createcourse";
     public static final String GROUPING = "grouping";
     public static final String GROUPS = "groups";
     public static final String MAX_PLAYERS = "maxPlayers";
@@ -52,8 +54,14 @@ public class CreateCourseFragment extends Fragment {
 
             LobbyFragment lobbyFragment = new LobbyFragment();
             lobbyFragment.setArguments(gameOptionBundle);
-            FragmentOpener.getInstance().open(lobbyFragment);
+            FragmentOpener.getInstance().open(lobbyFragment, TAG_CREATE);
         });
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        MainActivity.CURRENT_FRAGMENT = TAG_CREATE;
     }
 }
 

@@ -14,9 +14,11 @@ import android.widget.Button;
 
 import dk.aau.sw805f18.ar.R;
 import dk.aau.sw805f18.ar.main.FragmentOpener;
+import dk.aau.sw805f18.ar.main.MainActivity;
 
 
 public class HomeFragment extends Fragment {
+    public static final String TAG_HOME = "home";
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -35,15 +37,21 @@ public class HomeFragment extends Fragment {
         findBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                FragmentOpener.getInstance().open(new FindCourseFragment());
+                FragmentOpener.getInstance().open(new FindCourseFragment(), FindCourseFragment.TAG_FIND);
             }
         });
 
         createBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                FragmentOpener.getInstance().open(new CreateCourseFragment());
+                FragmentOpener.getInstance().open(new CreateCourseFragment(), CreateCourseFragment.TAG_CREATE);
             }
         });
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        MainActivity.CURRENT_FRAGMENT = TAG_HOME;
     }
 }
