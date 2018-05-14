@@ -50,6 +50,14 @@ public class WebSocketeer {
     }
 
     /**
+     * @param type The type of the websocket Packet
+     */
+    public void removeHandler(String type) {
+        _handlers.remove(type);
+        Log.i(TAG, "REMOVED HANDLER: " + type);
+    }
+
+    /**
      * @param packet The packet to send
      */
     public void send(Packet packet) {
