@@ -1,11 +1,5 @@
 package dk.aau.sw805f18.ar.ar.location;
 
-import android.app.Activity;
-import android.content.Context;
-import android.location.Location;
-import android.os.Handler;
-import android.widget.TextView;
-
 import com.google.ar.core.Anchor;
 import com.google.ar.core.Frame;
 import com.google.ar.core.Plane;
@@ -18,31 +12,21 @@ import java.util.Collection;
 import java.util.List;
 import java.util.OptionalDouble;
 
-import dk.aau.sw805f18.ar.R;
 import dk.aau.sw805f18.ar.ar.ArActivity;
 import dk.aau.sw805f18.ar.ar.location.sensor.DeviceLocation;
 import dk.aau.sw805f18.ar.ar.location.sensor.DeviceOrientation;
 import dk.aau.sw805f18.ar.ar.location.utils.LocationUtils;
 
 
-/**
- * Created by John on 02/03/2018.
- */
-
 public class LocationScene {
-
-    // Anchors are currently re-drawn on an interval. There are likely better
-    // ways of doing this, however it's sufficient for now.
-    private final static int ANCHOR_REFRESH_INTERVAL = 1000 * 8; // 8 seconds
-    public static Context mContext;
-    public static Activity mActivity;
+    private static final String TAG = LocationScene.class.getSimpleName();
 
     // Temporary matrix allocated here to reduce number of allocations for each frame.
     private final float[] mAnchorMatrix = new float[16];
     public ArrayList<LocationMarker> mLocationMarkers = new ArrayList<>();
 
-    public DeviceLocation deviceLocation;
-    public DeviceOrientation deviceOrientation;
+    private DeviceLocation deviceLocation;
+    private DeviceOrientation deviceOrientation;
 
     // Limit of where to draw markers within AR scene.
     // They will auto scale, but this helps prevents rendering issues
@@ -50,74 +34,31 @@ public class LocationScene {
 
     // Bearing adjustment. Can be set to calibrate with true north
     private int bearingAdjustment = 0;
-    private Location mCachedLocation;
 
-    private String TAG = "LocationScene";
-    private boolean anchorsNeedRefresh = false;
-    private Handler mHandler = new Handler();
+    private ArActivity mActivity;
 
-    public void refreshAnchors() {
-        anchorsNeedRefresh = true;
+    public LocationScene(ArActivity activity) {
+        mActivity = activity;
+        deviceLocation = DeviceLocation.getInstance(activity);
+        deviceOrientation = new DeviceOrientation(activity);
     }
 
-    private Runnable anchorRefreshTask = new Runnable() {
-        @Override
-        public void run() {
-
-            if (deviceLocation != null && deviceLocation.getCurrentBestLocation() != null && mCachedLocation == null) {
-//                anchorsNeedRefresh = true;
-                mCachedLocation = deviceLocation.getCurrentBestLocation();
-            } else if (deviceLocation != null && deviceLocation.getCurrentBestLocation() != null &&
-                    LocationUtils.distance(deviceLocation.getCurrentBestLocation().getLatitude(),
-                            mCachedLocation.getLatitude(),
-                            deviceLocation.getCurrentBestLocation().getLongitude(),
-                            mCachedLocation.getLongitude(),
-                            0,
-                            0) > 5) {
-//                anchorsNeedRefresh = true;
-                mCachedLocation = deviceLocation.getCurrentBestLocation();
-            }
-            mHandler.postDelayed(anchorRefreshTask, ANCHOR_REFRESH_INTERVAL);
-        }
-    };
-    private Session mSession;
-
-    public LocationScene(Context mContext, Activity mActivity, Session mSession) {
-        this.mContext = mContext;
-        this.mActivity = mActivity;
-        this.mSession = mSession;
-
-        startCalculationTask();
-
-        deviceLocation = DeviceLocation.getInstance(mActivity);
-        deviceOrientation = new DeviceOrientation();
-    }
-
-
-    public void draw(Frame frame) {
+    public void draw(Session session, Frame frame) {
         // Refresh the anchors in the scene.
         // Needs to occur in the draw method, as we need details about the camera
-        refreshAnchorsIfRequired(frame);
+        refreshAnchors(session, frame);
 
-        checkForPlanes();
+        // check if the anchors in each LocationMarker is above a Plane,
+        // and if so, add the anchor to the plane and lock the LocationMarker.
+        checkForPlanes(session);
+
         // Draw each anchor with it's individual renderer.
         drawMarkers(frame);
-
-
-
-//        for (LocationMarker lm : mLocationMarkers) {
-//            if (lm.anchor == null) {
-//                anchorsNeedRefresh = true;
-//            }
-//        }
-//
-//        if (frame.getCamera().getTrackingState() != TrackingState.TRACKING)
-//            anchorsNeedRefresh = true;
     }
 
     private void drawMarkers(Frame frame) {
-        for (LocationMarker locationMarker : mLocationMarkers) {
-            if (locationMarker.isLocked()) {
+        for (LocationMarker marker : mLocationMarkers) {
+            if (marker.isLocked()) {
                 continue;
             }
             // Get the current pose of an Anchor in world space. The Anchor pose is updated
@@ -125,10 +66,10 @@ public class LocationScene {
 
             float translation[] = new float[3];
             float rotation[] = new float[4];
-            if (locationMarker.getAnchor() == null) {
+            if (marker.getAnchor() == null) {
                 return;
             }
-            locationMarker.getAnchor().getPose().getTranslation(translation, 0);
+            marker.getAnchor().getPose().getTranslation(translation, 0);
             frame.getCamera().getPose().getRotationQuaternion(rotation, 0);
 
             Pose rotatedPose = new Pose(translation, rotation);
@@ -136,9 +77,9 @@ public class LocationScene {
 
             int markerDistance = (int) Math.ceil(
                     LocationUtils.distance(
-                            locationMarker.latitude,
+                            marker.getLocation().getLatitude(),
                             deviceLocation.getCurrentBestLocation().getLatitude(),
-                            locationMarker.longitude,
+                            marker.getLocation().getLongitude(),
                             deviceLocation.getCurrentBestLocation().getLongitude(),
                             0,
                             0)
@@ -173,17 +114,17 @@ public class LocationScene {
             // The last one is the average pixel intensity in gamma space.
             final float[] colorCorrectionRgba = new float[4];
             frame.getLightEstimate().getColorCorrection(colorCorrectionRgba, 0);
-            locationMarker.renderer.updateModelMatrix(mAnchorMatrix, scale, 0);
-            locationMarker.renderer.draw(viewMatrix, projectionMatrix, colorCorrectionRgba, lightIntensity);
+            marker.getRenderer().updateModelMatrix(mAnchorMatrix, scale, 0);
+            marker.getRenderer().draw(viewMatrix, projectionMatrix, colorCorrectionRgba, lightIntensity);
         }
     }
 
-    private void checkForPlanes() {
+    private void checkForPlanes(Session session) {
         for (LocationMarker marker : mLocationMarkers) {
             if (marker.isLocked()) {
                 continue;
             }
-            for (Plane p : mSession.getAllTrackables(Plane.class)) {
+            for (Plane p : session.getAllTrackables(Plane.class)) {
                 Pose pose = marker.getAnchor().getPose().extractTranslation();
 
                 if (!p.isPoseInPolygon(pose)) {
@@ -191,28 +132,28 @@ public class LocationScene {
                 }
 
                 pose = pose.compose(Pose.makeTranslation(0, shiftYAxisBy(p.getCenterPose().ty(), pose.ty()), 0));
-                ((ArActivity) mActivity).spawnObject(p.createAnchor(pose), "rabbit");
-                removeAnchor(marker.getAnchor());
+                mActivity.spawnObject(p.createAnchor(pose), "rabbit");
+                removeAnchor(session, marker.getAnchor());
                 marker.setLocked(true);
             }
         }
     }
 
-    private void refreshAnchorsIfRequired(Frame frame) {
-        if (!anchorsNeedRefresh) {
-            return;
-        }
-        anchorsNeedRefresh = false;
-
+    private void refreshAnchors(Session session, Frame frame) {
         for (LocationMarker marker : mLocationMarkers) {
             if (marker.isLocked()) {
                 continue;
             }
+
+            if (marker.getAnchor() != null) {
+                continue;
+            }
+
             int markerDistance = (int) Math.round(
                     LocationUtils.distance(
-                            marker.latitude,
+                            marker.getLocation().getLatitude(),
                             deviceLocation.getCurrentBestLocation().getLatitude(),
-                            marker.longitude,
+                            marker.getLocation().getLongitude(),
                             deviceLocation.getCurrentBestLocation().getLongitude(),
                             0,
                             0)
@@ -221,8 +162,8 @@ public class LocationScene {
             float markerBearing = deviceOrientation.currentDegree + (float) LocationUtils.bearing(
                     deviceLocation.getCurrentBestLocation().getLatitude(),
                     deviceLocation.getCurrentBestLocation().getLongitude(),
-                    marker.latitude,
-                    marker.longitude);
+                    marker.getLocation().getLatitude(),
+                    marker.getLocation().getLongitude());
 
             // Bearing adjustment can be set if you are trying to
             // correct the heading of north - setBearingAdjustment(10)
@@ -261,20 +202,11 @@ public class LocationScene {
             float xRotated = (float) -(z * Math.sin(rotation) + x * Math.cos(rotation));
 
             // Approximate the surface level
-            Collection<Plane> allTrackables = mSession.getAllTrackables(Plane.class);
+            Collection<Plane> allTrackables = session.getAllTrackables(Plane.class);
             List<Float> levels = new ArrayList<>();
 
             for (Plane p : allTrackables) {
                 levels.add(p.getCenterPose().ty());
-//                Pose pose = marker.getAnchor().getPose().extractTranslation();
-//
-//                if (!p.isPoseInPolygon(pose)) {
-//                    continue;
-//                }
-//
-//                pose = pose.compose(Pose.makeTranslation(0, shiftYAxisBy(p.getCenterPose().ty(), pose.ty()), 0));
-//                ((ArActivity) mActivity).spawnObject(p.createAnchor(pose), "rabbit");
-//                removeAnchor(marker.getAnchor());
             }
 
             OptionalDouble average = levels
@@ -283,21 +215,14 @@ public class LocationScene {
                     .average();
             float y = average.isPresent() ? (float) average.getAsDouble() : frame.getCamera().getDisplayOrientedPose().ty();
 
-            // Current camera height
-//                    float y = frame.getCamera().getDisplayOrientedPose().ty();
-            float finalMarkerBearing = markerBearing;
-            int finalRenderDistance = renderDistance;
-            mActivity.runOnUiThread(() -> {
-                ((ArActivity) mActivity).fillDebugText(deviceLocation.getCurrentBestLocation(), deviceOrientation.currentDegree, finalMarkerBearing, markerDistance, finalRenderDistance);
-            });
-
             Pose newPose = frame.getCamera().getPose()
                     .compose(Pose.makeTranslation(xRotated, y, zRotated));
 
-            removeAnchor(marker.getAnchor());
-            marker.setAnchor(mSession.createAnchor(newPose));
+            // TODO: Might not be needed
+            removeAnchor(session, marker.getAnchor());
+            marker.setAnchor(session.createAnchor(newPose));
             try {
-                marker.renderer.createOnGlThread(mContext, markerDistance);
+                marker.getRenderer().createOnGlThread(mActivity, markerDistance);
             } catch (IOException ignore) {}
         }
     }
@@ -306,8 +231,8 @@ public class LocationScene {
         return (float) (planeAnchor - airAnchor);
     }
 
-    private void removeAnchor(Anchor anchor) {
-        for (Anchor a : mSession.getAllAnchors()) {
+    private void removeAnchor(Session session, Anchor anchor) {
+        for (Anchor a : session.getAllAnchors()) {
             if (a.equals(anchor)) {
                 a.detach();
             }
@@ -320,7 +245,6 @@ public class LocationScene {
 
     public void setBearingAdjustment(int i) {
         bearingAdjustment = i;
-        anchorsNeedRefresh = true;
     }
 
     public void resume() {
@@ -331,13 +255,5 @@ public class LocationScene {
     public void pause() {
         deviceLocation.pause();
         deviceOrientation.pause();
-    }
-
-    private void startCalculationTask() {
-        anchorRefreshTask.run();
-    }
-
-    void stopCalculationTask() {
-        mHandler.removeCallbacks(anchorRefreshTask);
     }
 }
