@@ -68,8 +68,6 @@
             android:name=".services.SyncService"
             android:exported="false" />
         <service android:name=".services.SocketService" />
-        <service android:name=".services.AutoGroupPositionService" />
-        <service android:name=".services.AutoGroupReceiveService" />
     </application>
 
 </manifest>
