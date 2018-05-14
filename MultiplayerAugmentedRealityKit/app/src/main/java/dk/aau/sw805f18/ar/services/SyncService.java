@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
 
+import dk.aau.sw805f18.ar.common.helpers.RunnableExecutor;
 import dk.aau.sw805f18.ar.common.websocket.Packet;
 import dk.aau.sw805f18.ar.common.websocket.WebSocketWrapper;
 import dk.aau.sw805f18.ar.common.websocket.WebSocketeer;
@@ -333,6 +334,19 @@ public class SyncService extends Service {
 
     public String getToken() {
         return mToken;
+    }
+
+
+    public void autoGrouping() {
+        // Thread for sending position, when auto grouping
+        RunnableExecutor.getInstance().execute(() -> {
+
+        });
+
+        // Thread for receiving group data, when auto grouping
+        RunnableExecutor.getInstance().execute(() -> {
+
+        });
     }
 }
 

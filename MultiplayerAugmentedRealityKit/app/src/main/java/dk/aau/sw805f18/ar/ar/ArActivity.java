@@ -1,6 +1,8 @@
 package dk.aau.sw805f18.ar.ar;
 
 import android.annotation.SuppressLint;
+import android.content.ComponentName;
+import android.content.ServiceConnection;
 import android.location.Location;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
@@ -65,6 +67,7 @@ import dk.aau.sw805f18.ar.common.rendering.PointCloudRenderer;
 import dk.aau.sw805f18.ar.common.websocket.Packet;
 import dk.aau.sw805f18.ar.fragments.ModelDialogFragment;
 import dk.aau.sw805f18.ar.models.Marker;
+import dk.aau.sw805f18.ar.services.SyncService;
 
 public class ArActivity extends AppCompatActivity implements GLSurfaceView.Renderer {
     private static final String TAG = ArActivity.class.getSimpleName();
@@ -658,64 +661,6 @@ public class ArActivity extends AppCompatActivity implements GLSurfaceView.Rende
             Log.e(TAG, "Exception on the OpenGL thread", t);
         }
     }
-
-    private SyncService mSyncService;
-    private boolean mBound;
-    private ServiceConnection mConnection = new ServiceConnection() {
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder service) {
-//            SyncService.LocalBinder binder = (SyncService.LocalBinder) service;
-//            mSyncService = binder.getService();
-//            mSyncService.init();
-//
-//            //mSyncService.discoverPeers();
-//            mSyncService.attachHandler(Packet.OBJECTS_TYPE, packet -> new Thread(() -> {
-//                Gson gson = new Gson();
-//                List<Marker> markers = gson.fromJson(packet.Data, new TypeToken<ArrayList<Marker>>() {
-//                }.getType());
-//                StringBuilder b = new StringBuilder();
-//                for (Marker marker : markers) {
-//                    b.append(marker.Model).append(", Lon: ").append(marker.Location.Lon).append(", Lat: ").append(marker.Location.Lat).append("\n");
-//                    ArModel model = null;
-//                    try {
-//                        model = ModelLoader.load(null, marker.Model);
-//                    } catch (IOException ignore) {
-//                    }
-//
-//                    if (model == null) {
-//                        return;
-//                    }
-//
-//                    mLocationScene.mLocationMarkers.add(
-//                            new LocationMarker(
-//                                    marker.Location.Lon,
-//                                    marker.Location.Lat,
-//                                    model.getObject()
-//                            )
-//                    );
-//                    mLocationScene.mLocationMarkers.add(
-//                            new LocationMarker(
-//                                    marker.Location.Lon,
-//                                    marker.Location.Lat,
-//                                    new AnnotationRenderer(marker.Model)
-//                            )
-//                    );
-//                }
-//
-//                runOnUiThread(() -> {
-//                    mLogText = findViewById(R.id.logText);
-//                    mLogText.setText(b);
-//                });
-//            }).start());
-//            mSyncService.txSocket(new Packet(Packet.OBJECTS_TYPE, ""));
-        }
-
-
-        @Override
-        public void onServiceDisconnected(ComponentName name) {
-            mSyncService.deinit();
-        }
-    };
 
     private SyncService mSyncService;
     private boolean mBound;

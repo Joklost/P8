@@ -1,9 +1,5 @@
 package dk.aau.sw805f18.ar.fragments;
 
-
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -17,18 +13,13 @@ import android.view.ViewGroup;
 import dk.aau.sw805f18.ar.R;
 import dk.aau.sw805f18.ar.common.adapters.LobbyGroupAdapter;
 import dk.aau.sw805f18.ar.main.MainActivity;
-import dk.aau.sw805f18.ar.common.helpers.RunnableExecutor;
-import dk.aau.sw805f18.ar.common.websocket.WebSocketeer;
-import dk.aau.sw805f18.ar.main.DialogLobby;
-
-import dk.aau.sw805f18.ar.main.MainActivity;
 
 
 public class LobbyFragment extends Fragment {
     public static final String TAG_LOBBY = "lobby";
 
 
-    private static final int[] GROUP_COLROS = new int[] {
+    private static final int[] GROUP_COLOURS = new int[]{
             0xEF5350,
             0xEC407A,
             0xAB47BC,
@@ -83,20 +74,8 @@ public class LobbyFragment extends Fragment {
             dialog.show(fragmentManager, "dialog");
         });
 
-            rvGrid.setAdapter(adapter);
-            rvGrid.setLayoutManager(new GridLayoutManager(getContext(), 2));
-
-
-            // Thread for sending position data, when auto grouping
-            RunnableExecutor.getInstance().execute(() -> {
-
-            });
-
-            // Thread for receiving group data, when auto grouping
-            RunnableExecutor.getInstance().execute(() -> {
-
-            });
-
+        rvGrid.setAdapter(adapter);
+        rvGrid.setLayoutManager(new GridLayoutManager(getContext(), 2));
     }
 
     @Override

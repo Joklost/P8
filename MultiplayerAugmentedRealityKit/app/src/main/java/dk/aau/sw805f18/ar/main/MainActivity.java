@@ -17,12 +17,8 @@ import java.util.Date;
 
 import dk.aau.sw805f18.ar.R;
 import dk.aau.sw805f18.ar.fragments.AboutFragment;
-import dk.aau.sw805f18.ar.ar.ArActivity;
 import dk.aau.sw805f18.ar.common.helpers.SyncServiceHelper;
-import dk.aau.sw805f18.ar.databinding.ActivityMainBinding;
-import dk.aau.sw805f18.ar.fragments.CreateCourseFragment;
-import dk.aau.sw805f18.ar.fragments.GroupFragment;
-import dk.aau.sw805f18.ar.fragments.AboutFragment;
+
 import dk.aau.sw805f18.ar.fragments.HomeFragment;
 import dk.aau.sw805f18.ar.fragments.ProfileFragment;
 import dk.aau.sw805f18.ar.fragments.SettingsFragment;
@@ -71,7 +67,6 @@ public class MainActivity extends AppCompatActivity {
             loadHomeFragment();
         }
 
-        setDrawerInfo();
         SyncServiceHelper.init(this);
     }
 
