@@ -11,11 +11,11 @@ public class Task {
     private static ExecutorService mExecutorService;
 
 
-    public static void run(Callable callable) {
+    public static void run(Runnable runnable) {
         if (!mInit) {
             init();
         }
-        mExecutorService.submit(callable);
+        mExecutorService.submit(runnable);
     }
 
     public static <T> Future<T> getResult(Callable<T> callable) {
@@ -27,7 +27,6 @@ public class Task {
 
     private static void init() {
         int corePoolSize = 2;
-
         mExecutorService = Executors.newFixedThreadPool(corePoolSize);
         mInit = true;
     }
