@@ -23,6 +23,11 @@ public class LocationScene {
 
     // Temporary matrix allocated here to reduce number of allocations for each frame.
     private final float[] mAnchorMatrix = new float[16];
+
+    public ArrayList<LocationMarker> getLocationMarkers() {
+        return mLocationMarkers;
+    }
+
     private ArrayList<LocationMarker> mLocationMarkers = new ArrayList<>();
 
     private DeviceLocation mDeviceLocation;

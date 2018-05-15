@@ -15,6 +15,12 @@ public class SyncServiceHelper {
     private static SyncService sInstance;
     private static Consumer<SyncService> sOnBound;
 
+    public static boolean isBound() {
+        return sBound;
+    }
+
+    private static boolean sBound;
+
     public static SyncService getInstance() {
         return sInstance;
     }
@@ -38,6 +44,7 @@ public class SyncServiceHelper {
             sInstance = binder.getService();
             sInstance.init();
             sOnBound.accept(sInstance);
+
         }
 
         @Override
