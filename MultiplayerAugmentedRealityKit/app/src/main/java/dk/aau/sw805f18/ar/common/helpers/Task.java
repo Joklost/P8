@@ -27,7 +27,7 @@ public class Task {
 
     private static void init() {
         int corePoolSize = 2;
-        mExecutorService = Executors.newFixedThreadPool(corePoolSize);
+        mExecutorService = Executors.newScheduledThreadPool(corePoolSize);
         mInit = true;
     }
 }
