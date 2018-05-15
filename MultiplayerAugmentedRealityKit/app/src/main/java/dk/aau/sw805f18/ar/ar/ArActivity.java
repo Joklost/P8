@@ -47,6 +47,7 @@ import dk.aau.sw805f18.ar.R;
 import dk.aau.sw805f18.ar.ar.location.LocationMarker;
 import dk.aau.sw805f18.ar.ar.location.LocationScene;
 import dk.aau.sw805f18.ar.ar.location.sensor.DeviceLocation;
+import dk.aau.sw805f18.ar.common.helpers.Task;
 import dk.aau.sw805f18.ar.common.rendering.AnnotationRenderer;
 import dk.aau.sw805f18.ar.common.helpers.ArLocationPermissionHelper;
 import dk.aau.sw805f18.ar.common.helpers.DisplayRotationHelper;
@@ -81,7 +82,7 @@ public class ArActivity extends AppCompatActivity implements GLSurfaceView.Rende
     private DisplayRotationHelper mDisplayRotationHelper;
     private GestureHelper mGestureHelper;
     private LocationScene mLocationScene;
-
+    private TreasureHunt mGame;
     // DEBUG: Used to toggle rendering planes
     private ToggleButton mToggle;
 
@@ -111,7 +112,6 @@ public class ArActivity extends AppCompatActivity implements GLSurfaceView.Rende
         setContentView(R.layout.activity_ar);
         mSurfaceView = findViewById(R.id.surfaceview);
         mDisplayRotationHelper = new DisplayRotationHelper(this);
-
         mToggle = findViewById(R.id.toggleButton);
         mRotationBar = findViewById(R.id.rotationBar);
         mRotationBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
@@ -167,8 +167,28 @@ public class ArActivity extends AppCompatActivity implements GLSurfaceView.Rende
         mSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
 
         mInstallRequested = false;
+
+        mLocationScene = new LocationScene(this);
+        mLocationScene.getLocationMarkers().add(new LocationMarker(
+                DeviceLocation.BuildLocation(57.013973, 9.988686),
+                new AnnotationRenderer("P-Plads1")));
+        mLocationScene.getLocationMarkers().add(new LocationMarker(
+                DeviceLocation.BuildLocation(57.013833, 9.988444),
+                new AnnotationRenderer("P-Plads2")));
+        mLocationScene.getLocationMarkers().add(new LocationMarker(
+                DeviceLocation.BuildLocation(57.014007, 9.988455),
+                new AnnotationRenderer("P-Plads3")));
+
+        mGame = new TreasureHunt(this, mLocationScene);
+        //TODO change so that the game only start when the user agrees to
+        mGame.StartGame();
+    }
+
+    public void fetchTreasureHuntModels() {
+
         SyncServiceHelper.getInstance().init();
-        SyncServiceHelper.getInstance().attachHandler(Packet.OBJECTS_TYPE, packet -> new Thread(() -> {
+
+        SyncServiceHelper.getInstance().attachHandler(Packet.OBJECTS_TYPE, packet -> Task.run(() -> {
             Gson gson = new Gson();
             List<Marker> markers = gson.fromJson(packet.Data, new TypeToken<ArrayList<Marker>>() {
             }.getType());
@@ -189,21 +209,11 @@ public class ArActivity extends AppCompatActivity implements GLSurfaceView.Rende
                                 model.getObject()
                         )
                 );
-                mLocationScene.add(
-                        new LocationMarker(
-                                DeviceLocation.BuildLocation(marker.Location.Lat, marker.Location.Lon),
-                                new AnnotationRenderer(marker.Model)
-                        )
-                );
+
             }
-        }).start());
+        }));
 
         SyncServiceHelper.getInstance().send(new Packet(Packet.OBJECTS_TYPE, ""));
-
-        mLocationScene = new LocationScene(this);
-        mLocationScene.add(new LocationMarker(
-                DeviceLocation.BuildLocation(57.013973, 9.988686),
-                new AnnotationRenderer("P-Plads")));
     }
 
     @Override
@@ -347,7 +357,7 @@ public class ArActivity extends AppCompatActivity implements GLSurfaceView.Rende
                 == Point.OrientationMode.ESTIMATED_SURFACE_NORMAL));
     }
 
-    private float calcPoseDistance(Pose start, Pose end) {
+    public float calcPoseDistance(Pose start, Pose end) {
         float dx = start.tx() - end.tx();
         float dy = start.ty() - end.ty();
         float dz = start.tz() - end.tz();
@@ -546,7 +556,7 @@ public class ArActivity extends AppCompatActivity implements GLSurfaceView.Rende
 
             // Draw location markers
             mLocationScene.draw(mSession, frame);
-
+            mGame.gameLoop(frame);
             // Get projection matrix.
             float[] projmtx = new float[16];
             camera.getProjectionMatrix(projmtx, 0, 0.1f, 100.0f);

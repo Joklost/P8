@@ -58,6 +58,10 @@ public class AnnotationRenderer implements Renderer {
     private float[] mModelViewMatrix = new float[16];
     private float[] mModelViewProjectionMatrix = new float[16];
 
+    public String getmAnnotationText() {
+        return mAnnotationText;
+    }
+
     private String mAnnotationText;
     public AnnotationRenderer(Object... data) {
         mAnnotationText = (String) data[0];
