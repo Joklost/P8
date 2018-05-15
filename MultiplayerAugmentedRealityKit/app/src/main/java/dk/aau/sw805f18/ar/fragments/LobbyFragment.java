@@ -11,9 +11,12 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import java.util.concurrent.Future;
+
 import dk.aau.sw805f18.ar.R;
 import dk.aau.sw805f18.ar.common.adapters.LobbyGroupAdapter;
 import dk.aau.sw805f18.ar.common.helpers.SyncServiceHelper;
+import dk.aau.sw805f18.ar.common.helpers.Task;
 import dk.aau.sw805f18.ar.main.MainActivity;
 import dk.aau.sw805f18.ar.services.SyncService;
 
@@ -108,7 +111,7 @@ public class LobbyFragment extends Fragment {
 
     @Override
     public void onPause() {
-        super.onResume();
+        super.onPause();
         syncService.mWebSocketeer.removeHandler("autogroup");
         syncService.mWebSocketeer.removeHandler("newgroup");
     }
