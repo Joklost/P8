@@ -11,7 +11,7 @@ import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
 
-import dk.aau.sw805f18.ar.ar.location.utils.ArLocationPermissionHelper;
+import dk.aau.sw805f18.ar.common.helpers.ArLocationPermissionHelper;
 
 
 public class DeviceLocation {
