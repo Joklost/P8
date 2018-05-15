@@ -64,7 +64,6 @@ import dk.aau.sw805f18.ar.common.rendering.PointCloudRenderer;
 import dk.aau.sw805f18.ar.common.websocket.Packet;
 import dk.aau.sw805f18.ar.fragments.ModelDialogFragment;
 import dk.aau.sw805f18.ar.models.Marker;
-import dk.aau.sw805f18.ar.services.SyncService;
 
 public class ArActivity extends AppCompatActivity implements GLSurfaceView.Renderer {
     private static final String TAG = ArActivity.class.getSimpleName();
@@ -184,13 +183,13 @@ public class ArActivity extends AppCompatActivity implements GLSurfaceView.Rende
                     return;
                 }
 
-                mLocationScene.mLocationMarkers.add(
+                mLocationScene.add(
                         new LocationMarker(
                                 DeviceLocation.BuildLocation(marker.Location.Lat, marker.Location.Lon),
                                 model.getObject()
                         )
                 );
-                mLocationScene.mLocationMarkers.add(
+                mLocationScene.add(
                         new LocationMarker(
                                 DeviceLocation.BuildLocation(marker.Location.Lat, marker.Location.Lon),
                                 new AnnotationRenderer(marker.Model)
@@ -202,7 +201,7 @@ public class ArActivity extends AppCompatActivity implements GLSurfaceView.Rende
         SyncServiceHelper.getInstance().send(new Packet(Packet.OBJECTS_TYPE, ""));
 
         mLocationScene = new LocationScene(this);
-        mLocationScene.mLocationMarkers.add(new LocationMarker(
+        mLocationScene.add(new LocationMarker(
                 DeviceLocation.BuildLocation(57.013973, 9.988686),
                 new AnnotationRenderer("P-Plads")));
     }

@@ -3,7 +3,6 @@ package dk.aau.sw805f18.ar.models;
 import android.location.Location;
 
 import dk.aau.sw805f18.ar.ar.location.sensor.DeviceLocation;
-import dk.aau.sw805f18.ar.common.helpers.RunnableExecutor;
 import dk.aau.sw805f18.ar.common.helpers.Task;
 import dk.aau.sw805f18.ar.common.websocket.Packet;
 import dk.aau.sw805f18.ar.common.websocket.WebSocketeer;
