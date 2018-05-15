@@ -16,9 +16,7 @@ import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
-import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.net.Socket;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -282,7 +280,6 @@ public class SyncService extends Service {
 
     /**
      * Setup sockets to each peer, for master device
-     *
      * @return Device address to port mapping
      */
     public HashMap<String, Integer> serverSocketSetup() {
@@ -327,6 +324,32 @@ public class SyncService extends Service {
 
 //        intent.putExtra("address", address.toString());
         context.bindService(intent, connection, context.BIND_AUTO_CREATE);
+    }
+
+    public void wifitest() {
+//        Name: displayname, Team: #number
+        send(new Packet(Packet.SET_GROUP_TYPE, String.format("{Name: %s, Team: 0}", mDeviceName)));
+        send(new Packet(Packet.START_TYPE, ""));
+
+        attachHandler(Packet.OWNER_TYPE, packet -> {
+            Log.i(TAG, "Owner packet received. Data: " + packet.Data);
+
+            if (packet.Data.equals("true")) {
+                Log.i(TAG, "Creating group");
+                createGroup();
+                Log.i(TAG, "Sent MAC packet");
+                send(new Packet(Packet.MAC_TYPE, mDeviceAddress));
+                Log.i(TAG, "Sent READY packet");
+                send(new Packet(Packet.READY_TYPE, ""));
+            } else {
+                attachHandler(Packet.MAC_TYPE, packet1 -> {
+                    Log.i(TAG, "Connecting to group");
+                    connect(packet1.Data);
+                    Log.i(TAG, "Sent READY packet");
+                    send(new Packet(Packet.READY_TYPE, ""));
+                });
+            }
+        });
     }
 
 

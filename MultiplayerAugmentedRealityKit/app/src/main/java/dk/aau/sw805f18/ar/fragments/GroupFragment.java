@@ -88,7 +88,7 @@ public class GroupFragment extends Fragment {
 
         // TODO: Fix hardcoded token for join (debug)
         mJoin.setOnClickListener(v -> {
-            mSyncService.joinGroup("NIGGA", 1);
+//            mSyncService.joinGroup("NIGGA", 1);
 
         });
 

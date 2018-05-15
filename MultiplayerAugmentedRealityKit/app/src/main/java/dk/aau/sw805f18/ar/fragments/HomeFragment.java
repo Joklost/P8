@@ -11,6 +11,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 
 import dk.aau.sw805f18.ar.R;
+import dk.aau.sw805f18.ar.common.helpers.SyncServiceHelper;
 import dk.aau.sw805f18.ar.main.FragmentOpener;
 import dk.aau.sw805f18.ar.main.MainActivity;
 
@@ -35,6 +36,10 @@ public class HomeFragment extends Fragment {
         findBtn.setOnClickListener(v -> FragmentOpener.getInstance().open(new FindCourseFragment(), FindCourseFragment.TAG_FIND));
 
         createBtn.setOnClickListener(v -> FragmentOpener.getInstance().open(new CreateCourseFragment(), CreateCourseFragment.TAG_CREATE));
+
+        getView().findViewById(R.id.home_test_button).setOnClickListener(v -> {
+            SyncServiceHelper.getInstance().wifitest();
+        });
     }
 
     @Override
@@ -42,4 +47,5 @@ public class HomeFragment extends Fragment {
         super.onResume();
         MainActivity.CURRENT_FRAGMENT = TAG_HOME;
     }
+
 }
