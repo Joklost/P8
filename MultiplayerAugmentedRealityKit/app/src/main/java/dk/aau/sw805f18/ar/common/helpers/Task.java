@@ -1,35 +1,26 @@
 package dk.aau.sw805f18.ar.common.helpers;
 
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.Executors;
+
 
 public class Task {
     private static boolean mInit;
     private static ExecutorService mExecutorService;
 
-
-    public static void run(Runnable runnable) {
+    public static void run(Callable callable) {
         if (!mInit) {
             init();
         }
-        mExecutorService.execute(runnable);
+        mExecutorService.submit(callable);
     }
 
     private static void init() {
         int corePoolSize = 2;
-        int maxPoolSize = 10;
-        long keepAliveTime = 5000;
 
-        mExecutorService =
-                new ThreadPoolExecutor(
-                        corePoolSize,
-                        maxPoolSize,
-                        keepAliveTime,
-                        TimeUnit.MILLISECONDS,
-                        new LinkedBlockingQueue<>()
-                );
+        mExecutorService = Executors.newFixedThreadPool(corePoolSize);
         mInit = true;
     }
 }
+
