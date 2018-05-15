@@ -1,4 +1,4 @@
-package dk.aau.sw805f18.ar.ar.location.utils;
+package dk.aau.sw805f18.ar.common.helpers;
 
 import android.Manifest;
 import android.app.Activity;
@@ -17,6 +17,7 @@ public final class ArLocationPermissionHelper {
     /**
      * Check to see we have the necessary permissions for this app.
      */
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public static boolean hasPermission(Activity activity) {
         return ContextCompat.checkSelfPermission(activity, CAMERA_PERMISSION)
                 == PackageManager.PERMISSION_GRANTED && ContextCompat.checkSelfPermission(activity, LOCATION_PERMISSION)

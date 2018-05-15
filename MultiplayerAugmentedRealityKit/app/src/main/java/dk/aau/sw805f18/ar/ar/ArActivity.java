@@ -48,7 +48,7 @@ import dk.aau.sw805f18.ar.ar.location.LocationMarker;
 import dk.aau.sw805f18.ar.ar.location.LocationScene;
 import dk.aau.sw805f18.ar.ar.location.sensor.DeviceLocation;
 import dk.aau.sw805f18.ar.common.rendering.AnnotationRenderer;
-import dk.aau.sw805f18.ar.ar.location.utils.ArLocationPermissionHelper;
+import dk.aau.sw805f18.ar.common.helpers.ArLocationPermissionHelper;
 import dk.aau.sw805f18.ar.common.helpers.DisplayRotationHelper;
 import dk.aau.sw805f18.ar.common.helpers.FullScreenHelper;
 import dk.aau.sw805f18.ar.common.helpers.SyncServiceHelper;
