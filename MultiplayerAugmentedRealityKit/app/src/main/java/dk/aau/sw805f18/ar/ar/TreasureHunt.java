@@ -55,13 +55,13 @@ public class TreasureHunt {
         firstChestBtn.setOnClickListener(v -> {
             if (chosenChest.equals(randomChest)) {
                 AlertDialog.Builder alert = new AlertDialog.Builder(mArActivity);
+                if(mGameState == GameState.ONECHEST) {
+                    mGameState = GameState.FINISHED;
+                }
                 if(mGameState == GameState.STARTED) {
                     mGameState = GameState.ONECHEST;
                 }
-                if(mGameState == GameState.ONECHEST)
-                {
-                    mGameState = GameState.FINISHED;
-                }
+
 
                 List<LocationMarker> threeNearest = getThreeNearestChest();
                 AssignRandomChest(threeNearest);
