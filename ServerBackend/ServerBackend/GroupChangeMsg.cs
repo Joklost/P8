@@ -2,7 +2,7 @@
 {
     class GroupChangeMsg
     {
-        public string Id { get; set; }
+        public string Name { get; set; }
         public int Team { get; set; }
     }
 }
