@@ -70,7 +70,9 @@ public class MainActivity extends AppCompatActivity {
             loadHomeFragment();
         }
 
-        SyncServiceHelper.init(this, DeviceLocation.getInstance(this));
+        SyncServiceHelper.init(this, syncService -> {
+            syncService.setDeviceLocation(DeviceLocation.getInstance(this));
+        });
     }
 
     private void loadHomeFragment() {
