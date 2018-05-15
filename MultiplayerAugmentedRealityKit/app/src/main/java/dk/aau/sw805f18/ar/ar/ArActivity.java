@@ -183,13 +183,13 @@ public class ArActivity extends AppCompatActivity implements GLSurfaceView.Rende
                     return;
                 }
 
-                mLocationScene.mLocationMarkers.add(
+                mLocationScene.add(
                         new LocationMarker(
                                 DeviceLocation.BuildLocation(marker.Location.Lat, marker.Location.Lon),
                                 model.getObject()
                         )
                 );
-                mLocationScene.mLocationMarkers.add(
+                mLocationScene.add(
                         new LocationMarker(
                                 DeviceLocation.BuildLocation(marker.Location.Lat, marker.Location.Lon),
                                 new AnnotationRenderer(marker.Model)
@@ -201,7 +201,7 @@ public class ArActivity extends AppCompatActivity implements GLSurfaceView.Rende
         SyncServiceHelper.getInstance().send(new Packet(Packet.OBJECTS_TYPE, ""));
 
         mLocationScene = new LocationScene(this);
-        mLocationScene.mLocationMarkers.add(new LocationMarker(
+        mLocationScene.add(new LocationMarker(
                 DeviceLocation.BuildLocation(57.013973, 9.988686),
                 new AnnotationRenderer("P-Plads")));
     }

@@ -23,24 +23,24 @@ public class LocationScene {
 
     // Temporary matrix allocated here to reduce number of allocations for each frame.
     private final float[] mAnchorMatrix = new float[16];
-    public ArrayList<LocationMarker> mLocationMarkers = new ArrayList<>();
+    private ArrayList<LocationMarker> mLocationMarkers = new ArrayList<>();
 
-    private DeviceLocation deviceLocation;
-    private DeviceOrientation deviceOrientation;
+    private DeviceLocation mDeviceLocation;
+    private DeviceOrientation mDeviceOrientation;
 
     // Limit of where to draw markers within AR scene.
     // They will auto scale, but this helps prevents rendering issues
-    private int distanceLimit = 50;
+    private int mDistanceLimit = 50;
 
     // Bearing adjustment. Can be set to calibrate with true north
-    private int bearingAdjustment = 0;
+    private int mBearingAdjustment = 0;
 
     private ArActivity mActivity;
 
     public LocationScene(ArActivity activity) {
         mActivity = activity;
-        deviceLocation = DeviceLocation.getInstance(activity);
-        deviceOrientation = new DeviceOrientation(activity);
+        mDeviceLocation = DeviceLocation.getInstance(activity);
+        mDeviceOrientation = new DeviceOrientation(activity);
     }
 
     public void draw(Session session, Frame frame) {
@@ -78,9 +78,9 @@ public class LocationScene {
             int markerDistance = (int) Math.ceil(
                     LocationUtils.distance(
                             marker.getLocation().getLatitude(),
-                            deviceLocation.getCurrentBestLocation().getLatitude(),
+                            mDeviceLocation.getCurrentBestLocation().getLatitude(),
                             marker.getLocation().getLongitude(),
-                            deviceLocation.getCurrentBestLocation().getLongitude(),
+                            mDeviceLocation.getCurrentBestLocation().getLongitude(),
                             0,
                             0)
             );
@@ -88,8 +88,8 @@ public class LocationScene {
             // Limit the distance of the Anchor within the scene.
             // Prevents uk.co.appoly.arcorelocation.rendering issues.
             int renderDistance = markerDistance;
-            if (renderDistance > distanceLimit)
-                renderDistance = distanceLimit;
+            if (renderDistance > mDistanceLimit)
+                renderDistance = mDistanceLimit;
 
 
             float[] projectionMatrix = new float[16];
@@ -132,9 +132,11 @@ public class LocationScene {
                 }
 
                 pose = pose.compose(Pose.makeTranslation(0, shiftYAxisBy(p.getCenterPose().ty(), pose.ty()), 0));
-                mActivity.spawnObject(p.createAnchor(pose), "rabbit");
                 removeAnchor(session, marker.getAnchor());
                 marker.setLocked(true);
+                marker.setAnchor(p.createAnchor(pose));
+                // TODO: Change modelName, so that it is not hardcoded in.
+                mActivity.spawnObject(marker.getAnchor(), "rabbit");
             }
         }
     }
@@ -152,22 +154,22 @@ public class LocationScene {
             int markerDistance = (int) Math.round(
                     LocationUtils.distance(
                             marker.getLocation().getLatitude(),
-                            deviceLocation.getCurrentBestLocation().getLatitude(),
+                            mDeviceLocation.getCurrentBestLocation().getLatitude(),
                             marker.getLocation().getLongitude(),
-                            deviceLocation.getCurrentBestLocation().getLongitude(),
+                            mDeviceLocation.getCurrentBestLocation().getLongitude(),
                             0,
                             0)
             );
 
-            float markerBearing = deviceOrientation.currentDegree + (float) LocationUtils.bearing(
-                    deviceLocation.getCurrentBestLocation().getLatitude(),
-                    deviceLocation.getCurrentBestLocation().getLongitude(),
+            float markerBearing = mDeviceOrientation.currentDegree + (float) LocationUtils.bearing(
+                    mDeviceLocation.getCurrentBestLocation().getLatitude(),
+                    mDeviceLocation.getCurrentBestLocation().getLongitude(),
                     marker.getLocation().getLatitude(),
                     marker.getLocation().getLongitude());
 
             // Bearing adjustment can be set if you are trying to
             // correct the heading of north - setBearingAdjustment(10)
-            markerBearing = markerBearing + bearingAdjustment;
+            markerBearing = markerBearing + mBearingAdjustment;
             markerBearing = markerBearing % 360;
 
             double rotation = Math.floor(markerBearing);
@@ -175,19 +177,19 @@ public class LocationScene {
             // When pointing device upwards (camera towards sky)
             // the compass bearing can flip.
             // In experiments this seems to happen at pitch~=-25
-            if (deviceOrientation.pitch > -25)
+            if (mDeviceOrientation.pitch > -25)
                 rotation = rotation * Math.PI / 180;
 
             int renderDistance = markerDistance;
 
             // Limit the distance of the Anchor within the scene.
             // Prevents rendering issues.
-            if (renderDistance > distanceLimit) {
-                renderDistance = distanceLimit;
+            if (renderDistance > mDistanceLimit) {
+                renderDistance = mDistanceLimit;
             }
 
             // Adjustment to add markers on horizon, instead of just directly in front of camera
-            double heightAdjustment = Math.round(renderDistance * (Math.tan(Math.toRadians(deviceOrientation.pitch))));
+            double heightAdjustment = Math.round(renderDistance * (Math.tan(Math.toRadians(mDeviceOrientation.pitch))));
             // Raise distant markers for better illusion of distance
             // Hacky - but it works as a temporary measure
             int cappedRealDistance = markerDistance > 500 ? 500 : markerDistance;
@@ -240,20 +242,28 @@ public class LocationScene {
     }
 
     public int getBearingAdjustment() {
-        return bearingAdjustment;
+        return mBearingAdjustment;
     }
 
     public void setBearingAdjustment(int i) {
-        bearingAdjustment = i;
+        mBearingAdjustment = i;
+    }
+
+    public void add(LocationMarker marker) {
+        mLocationMarkers.add(marker);
+    }
+
+    public void addAll(Collection<LocationMarker> markers) {
+        mLocationMarkers.addAll(markers);
     }
 
     public void resume() {
-        deviceLocation.resume();
-        deviceOrientation.resume();
+        mDeviceLocation.resume();
+        mDeviceOrientation.resume();
     }
 
     public void pause() {
-        deviceLocation.pause();
-        deviceOrientation.pause();
+        mDeviceLocation.pause();
+        mDeviceOrientation.pause();
     }
 }
