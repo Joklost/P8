@@ -49,6 +49,10 @@ public class LocationScene {
     }
 
     public void draw(Session session, Frame frame) {
+        if (session.getAllTrackables(Plane.class).size() == 0) {
+            return;
+        }
+
         // Refresh the anchors in the scene.
         // Needs to occur in the draw method, as we need details about the camera
         refreshAnchors(session, frame);
@@ -225,7 +229,6 @@ public class LocationScene {
             Pose newPose = frame.getCamera().getPose()
                     .compose(Pose.makeTranslation(xRotated, y, zRotated));
 
-            // TODO: Might not be needed
             removeAnchor(session, marker.getAnchor());
             marker.setAnchor(session.createAnchor(newPose));
             try {

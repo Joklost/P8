@@ -121,6 +121,9 @@ public class TreasureHunt {
             double closestRange = 9999;
             LocationMarker tempChest = null;
             for (LocationMarker marker : mScene.getLocationMarkers()) {
+                if (marker.getAnchor() == null) {
+                    return;
+                }
                 double range = mArActivity.calcPoseDistance(marker.getAnchor().getPose(), frame.getCamera().getPose());
                 if (range < 5 && range < closestRange) {
                     closestRange = range;
