@@ -171,7 +171,13 @@ public class ArActivity extends AppCompatActivity implements GLSurfaceView.Rende
         mLocationScene = new LocationScene(this);
         mLocationScene.getLocationMarkers().add(new LocationMarker(
                 DeviceLocation.BuildLocation(57.013973, 9.988686),
-                new AnnotationRenderer("P-Plads")));
+                new AnnotationRenderer("P-Plads1")));
+        mLocationScene.getLocationMarkers().add(new LocationMarker(
+                DeviceLocation.BuildLocation(57.013833, 9.988444),
+                new AnnotationRenderer("P-Plads2")));
+        mLocationScene.getLocationMarkers().add(new LocationMarker(
+                DeviceLocation.BuildLocation(57.014007, 9.988455),
+                new AnnotationRenderer("P-Plads3")));
 
         mGame = new TreasureHunt(this, mLocationScene);
         //TODO change so that the game only start when the user agrees to
@@ -203,6 +209,7 @@ public class ArActivity extends AppCompatActivity implements GLSurfaceView.Rende
                                 model.getObject()
                         )
                 );
+
             }
         }));
 
