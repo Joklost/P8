@@ -60,7 +60,7 @@ public class ServerSocketService extends Service {
         while (true) {
             try {
                 bytes = mInStream.read(buff);
-                Log.i(TAG, buff.toString());
+                Log.i(TAG, "WiFi data received: " + buff.toString());
                 // TODO: Do something with input.
             } catch (IOException e) {
                 e.printStackTrace();

@@ -19,26 +19,10 @@ public class WifiP2pReceiver extends BroadcastReceiver {
     private final Object mLock = new Object();
 
     private final SyncService mSyncService;
-    private List<WifiP2pDevice> mPeers = new ArrayList<>();
 
     public WifiP2pReceiver(SyncService syncService) {
         mSyncService = syncService;
     }
-
-    private WifiP2pManager.PeerListListener peerListListener = peerList -> {
-
-        // Out with the old, in with the new.
-        mPeers.clear();
-        mPeers.addAll(peerList.getDeviceList());
-
-        // If an AdapterView is backed by this Data, notify it
-        // of the change.  For instance, if you have a ListView of available
-        // peers, trigger an update.
-
-        if (mPeers.size() == 0) {
-            Log.d(TAG, "No devices found");
-        }
-    };
 
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -51,19 +35,19 @@ public class WifiP2pReceiver extends BroadcastReceiver {
         switch (action) {
             case WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION:
                 Log.i(TAG, WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION);
-                int state = intent.getIntExtra(WifiP2pManager.EXTRA_WIFI_STATE, -1);
-                if (state == WifiP2pManager.WIFI_P2P_STATE_ENABLED) {
-                    ((SyncService) context).setIsWifiP2pEnabled(true);
-                } else {
-                    ((SyncService) context).setIsWifiP2pEnabled(false);
-                }
+//                int state = intent.getIntExtra(WifiP2pManager.EXTRA_WIFI_STATE, -1);
+//                if (state == WifiP2pManager.WIFI_P2P_STATE_ENABLED) {
+//                    ((SyncService) context).setIsWifiP2pEnabled(true);
+//                } else {
+//                    ((SyncService) context).setIsWifiP2pEnabled(false);
+//                }
                 break;
             case WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION:
                 // The peer list has changed!
                 Log.i(TAG, WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION);
 
                 if (mSyncService != null) {
-                    mSyncService.requestPeers(peerListListener);
+                    mSyncService.requestPeers();
                 }
                 break;
             case WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION:
@@ -99,9 +83,5 @@ public class WifiP2pReceiver extends BroadcastReceiver {
 //                }
                 break;
         }
-    }
-
-    public List<WifiP2pDevice> getPeers() {
-        return mPeers;
     }
 }

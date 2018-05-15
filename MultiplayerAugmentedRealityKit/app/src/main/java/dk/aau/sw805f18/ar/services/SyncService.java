@@ -1,9 +1,11 @@
 package dk.aau.sw805f18.ar.services;
 
 import android.app.Service;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.ServiceConnection;
 import android.net.wifi.WpsInfo;
 import android.net.wifi.p2p.WifiP2pConfig;
 import android.net.wifi.p2p.WifiP2pDevice;
@@ -14,6 +16,10 @@ import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.Socket;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -33,22 +39,22 @@ public class SyncService extends Service {
 
     private WifiP2pManager.Channel mChannel;
     private WifiP2pManager mManager;
+
     private String mDeviceAddress;
     private String mDeviceName;
-
-
+    private boolean mDiscoverInitiated;
+    private boolean mGroupCreated;
     private String mToken;
     private SocketService mSocketService;
     private HashMap<Integer, ServerSocketService> mServerSocketServices;
 
-    private boolean mIsWifiP2pEnabled;
+    private final int PORT = 5000;
+
+//    private boolean mIsWifiP2pEnabled;
 
     public WebSocketeer mWebSocketeer;
     private AutoGrouping mAutoGrouping;
-
-    public WifiP2pReceiver getReceiver() {
-        return mReceiver;
-    }
+    private List<WifiP2pDevice> mPeers = new ArrayList<>();
 
     private WifiP2pReceiver mReceiver;
     private DeviceLocation mDeviceLocation;
@@ -67,69 +73,9 @@ public class SyncService extends Service {
         }
     }
 
-    public void attachHandler(String type, Consumer<Packet> handler) {
-        mWebSocketeer.attachHandler(type, handler);
-    }
-
-    public void send(Packet packet) {
-        mWebSocketeer.send(packet);
-    }
-
-    @Nullable
-    @Override
-    public IBinder onBind(Intent intent) {
-        return mBinder;
-    }
-
-    public void setIsWifiP2pEnabled(boolean isWifiP2pEnabled) {
-        mIsWifiP2pEnabled = isWifiP2pEnabled;
-    }
-
-    public void connect(WifiP2pDevice device) {
-        connect(device.deviceAddress);
-    }
-
-    public void connect(String deviceAddress) {
-        if (deviceAddress == null) {
-            Log.e(TAG, "DEVICE IS NULL");
-            return;
-        }
-
-        WifiP2pConfig config = new WifiP2pConfig();
-        config.deviceAddress = deviceAddress;
-        config.wps.setup = WpsInfo.PBC;
-
-        mManager.connect(mChannel, config, new WifiP2pManager.ActionListener() {
-            @Override
-            public void onSuccess() {
-                Log.i(TAG, "Successfully connected to: " + config.deviceAddress);
-            }
-
-            @Override
-            public void onFailure(int reason) {
-                Log.i(TAG, "Failed to connect to: " + config.deviceAddress);
-            }
-        });
-    }
-
-    public void setDeviceAddress(String deviceAddress) {
-        this.mDeviceAddress = deviceAddress;
-    }
-
-    public void setDeviceName(String deviceName) {
-        mDeviceName = deviceName;
-    }
-
-    public void joinGroup(String playerId, int groupNo) {
-        mWebSocketeer.send(new Packet(Packet.JOIN_TYPE, String.format("{Id:\"%s\",Team:\"%s\"}", playerId, groupNo)));
-    }
-
-    public class LocalBinder extends Binder {
-        public SyncService getService() {
-            return SyncService.this;
-        }
-    }
-
+    /**
+     * Initialises the service by starting WifiP2pReceiver, WifiP2pManager and AutoGrouping.
+     */
     public void init() {
         if (mReceiver != null) {
             return;
@@ -156,6 +102,7 @@ public class SyncService extends Service {
 
         mAutoGrouping = new AutoGrouping(mDeviceLocation, mWebSocketeer);
 
+        // Remove any existing group, so a new one can be created.
         removeGroup();
     }
 
@@ -174,14 +121,75 @@ public class SyncService extends Service {
         }
     }
 
-    @Override
-    public void onDestroy() {
-        deinit();
-        super.onDestroy();
+    /**
+     * Helper function for WebSocketeer access.
+     *
+     * @param type    The type of Packet the handler should handle.
+     * @param handler Handles the Packet.
+     */
+    public void attachHandler(String type, Consumer<Packet> handler) {
+        mWebSocketeer.attachHandler(type, handler);
     }
 
-    private boolean mDiscoverInitiated;
-    private boolean mGroupCreated;
+    /**
+     * Helper function for WebSocketeer access.
+     *
+     * @param packet The Packet to be sent.
+     */
+    public void send(Packet packet) {
+        mWebSocketeer.send(packet);
+    }
+
+
+    /**
+     * Binder implementation for SyncService.
+     */
+    public class LocalBinder extends Binder {
+        public SyncService getService() {
+            return SyncService.this;
+        }
+    }
+
+//    public void setIsWifiP2pEnabled(boolean isWifiP2pEnabled) {
+//        mIsWifiP2pEnabled = isWifiP2pEnabled;
+//    }
+
+    /**
+     * Connects to a device using WifiP2P.
+     *
+     * @param device The device to connect to.
+     */
+    public void connect(WifiP2pDevice device) {
+        connect(device.deviceAddress);
+    }
+
+    /**
+     * Connects to a device using WifiP2P.
+     *
+     * @param deviceAddress The address of the device to connect to.
+     */
+    public void connect(String deviceAddress) {
+        if (deviceAddress == null) {
+            Log.e(TAG, "DEVICE IS NULL");
+            return;
+        }
+
+        WifiP2pConfig config = new WifiP2pConfig();
+        config.deviceAddress = deviceAddress;
+        config.wps.setup = WpsInfo.PBC;
+
+        mManager.connect(mChannel, config, new WifiP2pManager.ActionListener() {
+            @Override
+            public void onSuccess() {
+                Log.i(TAG, "Successfully connected to: " + config.deviceAddress);
+            }
+
+            @Override
+            public void onFailure(int reason) {
+                Log.i(TAG, "Failed to connect to: " + config.deviceAddress);
+            }
+        });
+    }
 
     public void discoverPeers() {
         if (mDiscoverInitiated) {
@@ -203,8 +211,21 @@ public class SyncService extends Service {
         });
     }
 
-    public void requestPeers(WifiP2pManager.PeerListListener listener) {
-        mManager.requestPeers(mChannel, listener);
+    public void requestPeers() {
+        mManager.requestPeers(mChannel, peerList -> {
+
+            // Out with the old, in with the new.
+            mPeers.clear();
+            mPeers.addAll(peerList.getDeviceList());
+
+            // If an AdapterView is backed by this Data, notify it
+            // of the change.  For instance, if you have a ListView of available
+            // peers, trigger an update.
+
+            if (mPeers.size() == 0) {
+                Log.d(TAG, "No devices found");
+            }
+        });
     }
 
     public void requestConnectionInfo(WifiP2pManager.ConnectionInfoListener listener) {
@@ -215,7 +236,9 @@ public class SyncService extends Service {
         mManager.requestGroupInfo(mChannel, listener);
     }
 
-
+    /**
+     * Creates a Wifi P2P group, if one doesn't exist already.
+     */
     public void createGroup() {
         if (mGroupCreated) return;
 
@@ -234,6 +257,9 @@ public class SyncService extends Service {
         });
     }
 
+    /**
+     * Removes an existing Wifi P2P group.
+     */
     public void removeGroup() {
         mManager.removeGroup(mChannel, new WifiP2pManager.ActionListener() {
             @Override
@@ -252,25 +278,87 @@ public class SyncService extends Service {
     public void txSocket(Packet packet) {
         Log.i(TAG, "txSocket()");
         mWebSocketeer.send(packet);
-
     }
 
-    public HashMap<String, Integer> completeGroup() {
+    /**
+     * Setup sockets to each peer, for master device
+     *
+     * @return Device address to port mapping
+     */
+    public HashMap<String, Integer> serverSocketSetup() {
         mWebSocketeer.send(new Packet(Packet.GROUP_COMPLETED_TYPE, ""));
-        int port = 5000;
+        int port = PORT;
         HashMap<String, Integer> portMap = new HashMap<>();
 
-        List<WifiP2pDevice> peers = getReceiver().getPeers();
         ServerSocketService socket;
 
-        for (WifiP2pDevice peer : peers) {
+        for (WifiP2pDevice peer : mPeers) {
             if (peer.deviceAddress.equals(mDeviceAddress)) continue;
+
             portMap.put(peer.deviceAddress, port);
             socket = new ServerSocketService(peer.deviceAddress, port++);
             socket.run();
         }
 
         return portMap;
+    }
+
+    /**
+     * Setup socket for client
+     */
+    public void socketSetup(InetSocketAddress address) {
+        Context context = getApplicationContext();
+
+        ServiceConnection connection = new ServiceConnection() {
+            @Override
+            public void onServiceConnected(ComponentName name, IBinder service) {
+                SocketService.LocalBinder binder = (SocketService.LocalBinder) service;
+                mSocketService = binder.getService();
+            }
+
+            @Override
+            public void onServiceDisconnected(ComponentName name) {
+                Log.e(TAG, "Socket service disconnected");
+            }
+        };
+        Intent intent = new Intent(context, SocketService.class);
+        intent.putExtra("address", address.getAddress().toString());
+        intent.putExtra("port", address.getPort());
+
+//        intent.putExtra("address", address.toString());
+        context.bindService(intent, connection, context.BIND_AUTO_CREATE);
+    }
+
+
+    public void startAutoGrouping() {
+        mAutoGrouping.start();
+    }
+
+    public void stopAutoGrouping() {
+        mAutoGrouping.stop();
+    }
+
+    //region overrides
+    @Override
+    public void onDestroy() {
+        deinit();
+        super.onDestroy();
+    }
+
+    @Nullable
+    @Override
+    public IBinder onBind(Intent intent) {
+        return mBinder;
+    }
+    //endregion
+
+    //region getters and setters
+    public void setDeviceAddress(String deviceAddress) {
+        this.mDeviceAddress = deviceAddress;
+    }
+
+    public void setDeviceName(String deviceName) {
+        mDeviceName = deviceName;
     }
 
     public String getToken() {
@@ -280,13 +368,6 @@ public class SyncService extends Service {
     public void setDeviceLocation(DeviceLocation dl) {
         mDeviceLocation = dl;
     }
-
-    public void startAutoGrouping() {
-        mAutoGrouping.start();
-    }
-
-    public void stopAutoGrouping() {
-        mAutoGrouping.stop();
-    }
+    //endregion
 }
 

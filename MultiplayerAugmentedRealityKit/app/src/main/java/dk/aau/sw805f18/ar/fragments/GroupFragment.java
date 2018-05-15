@@ -93,7 +93,7 @@ public class GroupFragment extends Fragment {
         });
 
         mDone.setOnClickListener(v -> {
-            mPortMap = mSyncService.completeGroup();
+            mPortMap = mSyncService.serverSocketSetup();
         });
     }
 }
