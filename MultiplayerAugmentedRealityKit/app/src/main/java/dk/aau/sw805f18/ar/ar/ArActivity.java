@@ -64,7 +64,6 @@ import dk.aau.sw805f18.ar.common.rendering.PointCloudRenderer;
 import dk.aau.sw805f18.ar.common.websocket.Packet;
 import dk.aau.sw805f18.ar.fragments.ModelDialogFragment;
 import dk.aau.sw805f18.ar.models.Marker;
-import dk.aau.sw805f18.ar.services.SyncService;
 
 public class ArActivity extends AppCompatActivity implements GLSurfaceView.Renderer {
     private static final String TAG = ArActivity.class.getSimpleName();

@@ -14,15 +14,12 @@ import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
-import com.koushikdutta.async.http.WebSocket;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
 
 import dk.aau.sw805f18.ar.ar.location.sensor.DeviceLocation;
-import dk.aau.sw805f18.ar.common.helpers.RunnableExecutor;
 import dk.aau.sw805f18.ar.common.websocket.Packet;
 import dk.aau.sw805f18.ar.common.websocket.WebSocketeer;
 import dk.aau.sw805f18.ar.common.wifip2p.WifiP2pReceiver;
