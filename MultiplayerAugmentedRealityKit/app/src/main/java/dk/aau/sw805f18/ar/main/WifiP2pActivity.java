@@ -77,7 +77,7 @@ public class WifiP2pActivity extends AppCompatActivity {
     }
 
     public void joinGroup(View v) {
-        mSyncService.joinGroup("NIGGA");
+        mSyncService.joinGroup("NIGGA", 1);
     }
 
     public void createGroup(View v) {
