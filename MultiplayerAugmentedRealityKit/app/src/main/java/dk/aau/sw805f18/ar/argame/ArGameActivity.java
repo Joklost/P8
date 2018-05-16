@@ -31,7 +31,7 @@ public class ArGameActivity extends AppCompatActivity {
         // When you build a Renderable, Sceneform loads its resources in the background while returning
         // a CompletableFuture. Call thenAccept(), handle(), or check isDone() before calling get().
         ModelRenderable.builder()
-                .setSource(this, R.raw.andy)
+                .setSource(this, R.raw.treasure)
                 .build()
                 .thenAccept(modelRenderable -> mAndyRenderable = modelRenderable)
                 .exceptionally(throwable -> {
