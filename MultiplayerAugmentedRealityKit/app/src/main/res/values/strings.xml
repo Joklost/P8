@@ -25,6 +25,7 @@
     <string name="profile_title">Profile</string>
     <string name="settings_title">Settings</string>
     <string name="stats_title">Stats</string>
+    <string name="game_title">Game</string>
 
     <string name="about_text">This app was developed as the product for an 8th semester project report by SW805f18, a student group at Aalborg University in the spring of 2018.</string>
 
@@ -99,6 +100,9 @@
     <string name="profile_birthday_hint">Birthday</string>
     <string name="profile_troop_hint">Troop name</string>
 
+
+    <!--Lobby fragment-->
+    <string name="lobby_start_button_text">Start</string>
 
     <!--Others-->
     <string name="infinity">&#8734;</string>

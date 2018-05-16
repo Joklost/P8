@@ -16,6 +16,7 @@ import dk.aau.sw805f18.ar.R;
 import dk.aau.sw805f18.ar.common.adapters.LobbyGroupAdapter;
 import dk.aau.sw805f18.ar.common.helpers.SyncServiceHelper;
 import dk.aau.sw805f18.ar.common.websocket.Packet;
+import dk.aau.sw805f18.ar.main.FragmentOpener;
 import dk.aau.sw805f18.ar.main.MainActivity;
 import dk.aau.sw805f18.ar.services.SyncService;
 
@@ -83,6 +84,10 @@ public class LobbyFragment extends Fragment {
 
         // set up handlers for
 
+
+        getView().findViewById(R.id.lobby_start_button).setOnClickListener(v -> {
+            FragmentOpener.getInstance().open(new MapFragment(), MapFragment.TAG);
+        });
     }
 
     @Override

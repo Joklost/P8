@@ -18,16 +18,23 @@ import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import dk.aau.sw805f18.ar.R;
+import dk.aau.sw805f18.ar.common.helpers.SyncServiceHelper;
+import dk.aau.sw805f18.ar.common.websocket.Packet;
+import dk.aau.sw805f18.ar.models.Marker;
 
 public class MapFragment extends Fragment implements OnMapReadyCallback {
+    public static final String TAG = MapFragment.class.getSimpleName();
     public static final String TAG_MAP = "map";
-
-    private GoogleMap googleMap;
     MapView mMapView;
+    private GoogleMap googleMap;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -49,28 +56,44 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
-        if (ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+        if (ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
+                ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             //kan spørge efter permisions, måske en future TODO
 //                return;
-//            googleMap.setMyLocationEnabled(true);
+            googleMap.setMyLocationEnabled(true);
         }
 
-        LatLng cass = new LatLng(57.013234, 9.991280);
-        LatLngBounds cass_bounds = new LatLngBounds(cass, new LatLng(57.020992, 9.977574));
+        SyncServiceHelper.getInstance().send(new Packet(Packet.OBJECTS_TYPE, ""));
 
-        // Set marker on cass and move camera
-        googleMap.addMarker(new MarkerOptions().position(cass).title("Marker Title").snippet("Marker Description"));
-        CameraPosition cameraPosition = new CameraPosition.Builder().target(cass).zoom(15).build();
-        googleMap.moveCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+        SyncServiceHelper.getInstance().attachHandler(Packet.OBJECTS_TYPE, packet -> {
+            Gson gson = new Gson();
+            List<Marker> markers = gson.fromJson(packet.Data, new TypeToken<ArrayList<Marker>>() {
+            }.getType());
 
-        // Set bounds to cass area
-        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(cass_bounds.getCenter(), 10));
+            boolean firstEl = true;
+            for (Marker marker : markers) {
+                LatLng location = new LatLng(marker.Location.Lat, marker.Location.Lon);
 
-//        googleMap.setLatLngBoundsForCameraTarget(cass_bounds);
-//        googleMap.setMaxZoomPreference(12.0f);
-//        googleMap.setMinZoomPreference(12.0f);
+                if (firstEl) {
+                    CameraPosition cameraPosition = new CameraPosition.Builder().target(location).zoom(17).build();
+                    getActivity().runOnUiThread(() -> {
+                        googleMap.moveCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+                        googleMap.getUiSettings().setZoomGesturesEnabled(false);
+                        googleMap.getUiSettings().setScrollGesturesEnabled(false);
+                        googleMap.getUiSettings().setRotateGesturesEnabled(false);
+                        googleMap.getUiSettings().setTiltGesturesEnabled(false);
+                    });
 
+                    firstEl = false;
+                }
 
+                getActivity().runOnUiThread(() -> {
+                    googleMap.addMarker(new MarkerOptions().position(location));
+                });
+            }
+
+            SyncServiceHelper.getInstance().mWebSocketeer.removeHandler(Packet.OBJECTS_TYPE);
+        });
     }
 }
 
