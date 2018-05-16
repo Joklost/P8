@@ -38,6 +38,8 @@ dependencies {
     implementation 'com.android.support:recyclerview-v7:27.1.1'
     // ARCore library
     implementation 'com.google.ar:core:1.2.0'
+    implementation "com.google.ar.sceneform:core:1.0.0"
+    implementation "com.google.ar.sceneform.ux:sceneform-ux:1.0.0"
 
     // Obj - a simple Wavefront OBJ file loader
     // https://github.com/javagl/Obj
@@ -51,3 +53,10 @@ dependencies {
     implementation 'com.koushikdutta.async:androidasync:2.2.1'
 
 }
+
+apply plugin: 'com.google.ar.sceneform.plugin'
+
+sceneform.asset('sampledata/models/andy.obj',
+        'default',
+        'sampledata/models/andy.sfa',
+        'src/main/res/raw/andy')

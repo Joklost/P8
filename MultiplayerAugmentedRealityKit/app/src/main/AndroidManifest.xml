@@ -46,6 +46,12 @@
             android:name=".ar.ArActivity"
             android:parentActivityName=".main.MainActivity" />
 
+        <activity
+            android:name=".argame.ArGameActivity"
+            android:parentActivityName=".main.MainActivity"
+            android:configChanges="orientation|screenSize"
+            android:screenOrientation="locked"/>
+
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyBSNhvpyhdLo3wdkzVvQGqeaP9RnxHlcP4" />
