@@ -35,20 +35,10 @@ public class WifiP2pReceiver extends BroadcastReceiver {
         switch (action) {
             case WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION:
                 Log.i(TAG, WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION);
-//                int state = intent.getIntExtra(WifiP2pManager.EXTRA_WIFI_STATE, -1);
-//                if (state == WifiP2pManager.WIFI_P2P_STATE_ENABLED) {
-//                    ((SyncService) context).setIsWifiP2pEnabled(true);
-//                } else {
-//                    ((SyncService) context).setIsWifiP2pEnabled(false);
-//                }
                 break;
             case WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION:
                 // The peer list has changed!
                 Log.i(TAG, WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION);
-
-                if (mSyncService != null) {
-                    mSyncService.requestPeers();
-                }
                 break;
             case WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION:
                 // Connection state changed!
@@ -70,17 +60,6 @@ public class WifiP2pReceiver extends BroadcastReceiver {
 
                 mSyncService.setDeviceAddress(device.deviceAddress);
                 mSyncService.setDeviceName(device.deviceName);
-
-                // now that we know device address and and device name,
-                // we can use the WebSocket to connect all devices in a group
-
-//                synchronized (mLock) {
-//                    mSyncService.requestConnectionInfo(info -> {
-//                        if (!info.groupFormed) {
-//                            mSyncService.connectGroup();
-//                        }
-//                    });
-//                }
                 break;
         }
     }

@@ -90,7 +90,7 @@ public class LobbyFragment extends Fragment {
         super.onResume();
         MainActivity.CURRENT_FRAGMENT = TAG_LOBBY;
 
-        syncService.mWebSocket.attachHandler(Packet.AUTO_GROUP, packet -> {
+        syncService.getWebSocket().attachHandler(Packet.AUTO_GROUP, packet -> {
             boolean enabled = packet.Data.equals("true");
             if (enabled) {
                 syncService.startAutoGrouping();
@@ -100,12 +100,12 @@ public class LobbyFragment extends Fragment {
             }
         });
 
-        syncService.mWebSocket.attachHandler(Packet.NEW_GROUP_TYPE, packet -> {
+        syncService.getWebSocket().attachHandler(Packet.NEW_GROUP_TYPE, packet -> {
             int newGroup = parseInt(packet.Data);
             lobbyLayout.setBackgroundColor(GROUP_COLOURS[newGroup]);
         });
 
-        syncService.mWebSocket.attachHandler(Packet.MAC_TYPE, packet -> {
+        syncService.getWebSocket().attachHandler(Packet.MAC_TYPE, packet -> {
             String mac = packet.Data;
             syncService.connect(mac);
         });
@@ -114,7 +114,7 @@ public class LobbyFragment extends Fragment {
     @Override
     public void onPause() {
         super.onPause();
-        syncService.mWebSocket.removeHandler(Packet.AUTO_GROUP);
-        syncService.mWebSocket.removeHandler(Packet.NEW_GROUP_TYPE);
+        syncService.getWebSocket().removeHandler(Packet.AUTO_GROUP);
+        syncService.getWebSocket().removeHandler(Packet.NEW_GROUP_TYPE);
     }
 }

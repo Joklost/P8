@@ -22,6 +22,7 @@ public class CreateCourseFragment extends Fragment {
     public static final String GROUPING = "grouping";
     public static final String GROUPS = "groups";
     public static final String MAX_PLAYERS = "maxPlayers";
+    public static final String LOBBY_ID = "lobbyId";
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -47,11 +48,13 @@ public class CreateCourseFragment extends Fragment {
             String selectedGroupingMethod = (String) groupSpinner.getSelectedItem();
             int numberOfTeams = 3;
             int maxPlayers = 16;
+            String lobbyId = "test";
 
             Bundle gameOptionBundle = new Bundle();
             gameOptionBundle.putString(GROUPING, selectedGroupingMethod);
             gameOptionBundle.putInt(GROUPS, numberOfTeams);
             gameOptionBundle.putInt(MAX_PLAYERS, maxPlayers);
+            gameOptionBundle.putString(LOBBY_ID, lobbyId);
 
             LobbyFragment lobbyFragment = new LobbyFragment();
             lobbyFragment.setArguments(gameOptionBundle);

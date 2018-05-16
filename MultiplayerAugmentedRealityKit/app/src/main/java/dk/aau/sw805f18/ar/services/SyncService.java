@@ -1,14 +1,11 @@
 package dk.aau.sw805f18.ar.services;
 
 import android.app.Service;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.ServiceConnection;
 import android.net.wifi.WpsInfo;
 import android.net.wifi.p2p.WifiP2pConfig;
-import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.os.Binder;
 import android.os.Build;
@@ -18,19 +15,14 @@ import android.util.Log;
 
 import com.google.gson.Gson;
 
-import java.net.InetSocketAddress;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 import dk.aau.sw805f18.ar.ar.location.sensor.DeviceLocation;
-import dk.aau.sw805f18.ar.common.websocket.Packet;
 import dk.aau.sw805f18.ar.common.websocket.WebSocketeer;
 import dk.aau.sw805f18.ar.common.websocket.WebSocketeerServer;
 import dk.aau.sw805f18.ar.common.wifip2p.WifiP2pReceiver;
 import dk.aau.sw805f18.ar.models.AutoGrouping;
-import dk.aau.sw805f18.ar.models.PacketSetupGroup;
 
 public class SyncService extends Service {
     private static final String TAG = SyncService.class.getSimpleName();
@@ -55,15 +47,12 @@ public class SyncService extends Service {
 
     private Gson mJson = new Gson();
 
-    public WebSocketeer getWebSocket() {
-        return mWebSocket;
-    }
 
-    public WebSocketeer mWebSocket;
-    public WebSocketeer mWifiP2PSocket;
-    public WebSocketeerServer mWebSocketeerServer;
+
+    private WebSocketeer mWebSocket;
+    private WebSocketeer mWifiP2pSocket;
+    private WebSocketeerServer mWebSocketeerServer;
     private AutoGrouping mAutoGrouping;
-    private List<WifiP2pDevice> mPeers = new ArrayList<>();
 
     private WifiP2pReceiver mReceiver;
     private DeviceLocation mDeviceLocation;
@@ -168,24 +157,6 @@ public class SyncService extends Service {
         });
     }
 
-
-    public void requestPeers() {
-        mManager.requestPeers(mChannel, peerList -> {
-
-            // Out with the old, in with the new.
-            mPeers.clear();
-            mPeers.addAll(peerList.getDeviceList());
-
-            // If an AdapterView is backed by this Data, notify it
-            // of the change.  For instance, if you have a ListView of available
-            // peers, trigger an update.
-
-            if (mPeers.size() == 0) {
-                Log.d(TAG, "No devices found");
-            }
-        });
-    }
-
     public void requestConnectionInfo(WifiP2pManager.ConnectionInfoListener listener) {
         mManager.requestConnectionInfo(mChannel, listener);
     }
@@ -270,6 +241,22 @@ public class SyncService extends Service {
 
     public void setDeviceLocation(DeviceLocation dl) {
         mDeviceLocation = dl;
+    }
+
+    public WebSocketeer getWebSocket() {
+        return mWebSocket;
+    }
+
+    public WebSocketeer getWifiP2pSocket() {
+        return mWifiP2pSocket;
+    }
+
+    public WebSocketeerServer getWebSocketeerServer() {
+        return mWebSocketeerServer;
+    }
+
+    public boolean isHostingWifiP2p() {
+        return mWebSocketeerServer != null;
     }
     //endregion
 }

@@ -23,6 +23,7 @@ import dk.aau.sw805f18.ar.models.FindCourseItem;
 
 public class FindCourseFragment extends Fragment {
     public static final String TAG_FIND = "findcourse";
+    public static final String LOBBY_ID = "lobbyId";
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -59,13 +60,19 @@ public class FindCourseFragment extends Fragment {
         typeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         type.setAdapter(typeAdapter);
 
-
         ListView lv = getView().findViewById(R.id.find_course_listview);
         FindCourseListItemAdapter lvAdapter = new FindCourseListItemAdapter(getContext(), getCourseItems());
         lv.setAdapter(lvAdapter);
 
+        String lobbyId = "test";
+
+        Bundle lobbyBundle = new Bundle();
+        lobbyBundle.putString(LOBBY_ID, lobbyId);
         Button sendBtn = getView().findViewById(R.id.find_course_join_by_code_button);
-        sendBtn.setOnClickListener(v -> FragmentOpener.getInstance().open(new LobbyFragment(), TAG_FIND));
+
+        LobbyFragment lobbyFragment = new LobbyFragment();
+        lobbyFragment.setArguments(lobbyBundle);
+        sendBtn.setOnClickListener(v -> FragmentOpener.getInstance().open(lobbyFragment, TAG_FIND));
     }
 
     @Override
