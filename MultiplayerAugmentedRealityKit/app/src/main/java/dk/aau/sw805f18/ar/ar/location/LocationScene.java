@@ -16,6 +16,7 @@ import dk.aau.sw805f18.ar.ar.ArActivity;
 import dk.aau.sw805f18.ar.ar.location.sensor.DeviceLocation;
 import dk.aau.sw805f18.ar.ar.location.sensor.DeviceOrientation;
 import dk.aau.sw805f18.ar.ar.location.utils.LocationUtils;
+import dk.aau.sw805f18.ar.common.rendering.AnnotationRenderer;
 
 
 public class LocationScene {
@@ -224,7 +225,13 @@ public class LocationScene {
                     .stream()
                     .mapToDouble(a -> a)
                     .average();
-            float y = average.isPresent() ? (float) average.getAsDouble() : frame.getCamera().getDisplayOrientedPose().ty();
+
+            float y;
+            if (marker.getRenderer() instanceof AnnotationRenderer) {
+                y = (float) (frame.getCamera().getDisplayOrientedPose().ty() + heightAdjustment);
+            } else {
+                y = average.isPresent() ? (float) average.getAsDouble() : frame.getCamera().getDisplayOrientedPose().ty();
+            }
 
             Pose newPose = frame.getCamera().getPose()
                     .compose(Pose.makeTranslation(xRotated, y, zRotated));
