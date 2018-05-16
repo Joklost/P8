@@ -65,4 +65,11 @@ public class WebSocketeer {
         Log.i(TAG, "SEND: " + s);
         mWebSocket.send(s);
     }
+
+    /**
+     * Closes the underlying websocket connection
+     */
+    public void close() {
+        mWebSocket.close();
+    }
 }

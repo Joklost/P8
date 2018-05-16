@@ -1,6 +1,7 @@
 package dk.aau.sw805f18.ar.fragments;
 
 import android.app.FragmentManager;
+import android.net.wifi.p2p.WifiP2pDevice;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -11,12 +12,10 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import java.util.concurrent.Future;
-
 import dk.aau.sw805f18.ar.R;
 import dk.aau.sw805f18.ar.common.adapters.LobbyGroupAdapter;
 import dk.aau.sw805f18.ar.common.helpers.SyncServiceHelper;
-import dk.aau.sw805f18.ar.common.helpers.Task;
+import dk.aau.sw805f18.ar.common.websocket.Packet;
 import dk.aau.sw805f18.ar.main.MainActivity;
 import dk.aau.sw805f18.ar.services.SyncService;
 
@@ -56,28 +55,21 @@ public class LobbyFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        Bundle bundle = getArguments();
+        boolean leader = bundle.containsKey("type") && bundle.get("type") == "leader";
+
+        if (leader) {
+            // Show leader layout here i guess
+
+        }
+
         gameOptionsBundle = getArguments();
         syncService = SyncServiceHelper.getInstance();
 
         rvGrid = getView().findViewById(R.id.lobby_group_recyclerview);
         LobbyGroupAdapter adapter = new LobbyGroupAdapter();
-        String[] data = {"mBoi", "bitte", "øøøh"};
 
         lobbyLayout = getView().findViewById(R.id.lobby_layout);
-        switch (gameOptionsBundle.getString(CreateCourseFragment.GROUPING)) {
-            case "Troop leader":
-                break;
-            case "Self selection":
-                break;
-            case "Auto grouping":
-                // Start sending GPS coordinates to server
-
-                syncService.mWebSocketeer.attachHandler("newgroup", packet -> {
-                    int newGroup = parseInt(packet.Data);
-                    lobbyLayout.setBackgroundColor(GROUP_COLOURS[newGroup]);
-                });
-                break;
-        }
 
         adapter.setOnItemClickListener((position, v) -> {
             LobbyDialogFragment dialog = new LobbyDialogFragment();
@@ -98,21 +90,31 @@ public class LobbyFragment extends Fragment {
         super.onResume();
         MainActivity.CURRENT_FRAGMENT = TAG_LOBBY;
 
-        syncService.mWebSocketeer.attachHandler("autogroup", packet -> {
+        syncService.mWebSocket.attachHandler(Packet.AUTO_GROUP, packet -> {
             boolean enabled = packet.Data.equals("true");
-            // start or stop autogroup gps loop on syncService
+            if (enabled) {
+                syncService.startAutoGrouping();
+            }
+            else {
+                syncService.stopAutoGrouping();
+            }
         });
 
-        syncService.mWebSocketeer.attachHandler("newgroup", packet -> {
+        syncService.mWebSocket.attachHandler(Packet.NEW_GROUP_TYPE, packet -> {
             int newGroup = parseInt(packet.Data);
             lobbyLayout.setBackgroundColor(GROUP_COLOURS[newGroup]);
+        });
+
+        syncService.mWebSocket.attachHandler(Packet.MAC_TYPE, packet -> {
+            String mac = packet.Data;
+            syncService.connect(mac);
         });
     }
 
     @Override
     public void onPause() {
         super.onPause();
-        syncService.mWebSocketeer.removeHandler("autogroup");
-        syncService.mWebSocketeer.removeHandler("newgroup");
+        syncService.mWebSocket.removeHandler(Packet.AUTO_GROUP);
+        syncService.mWebSocket.removeHandler(Packet.NEW_GROUP_TYPE);
     }
 }

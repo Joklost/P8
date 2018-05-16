@@ -39,8 +39,6 @@ public class GroupFragment extends Fragment {
             SyncService.LocalBinder binder = (SyncService.LocalBinder) service;
             mSyncService = binder.getService();
             mSyncService.init();
-
-            mSyncService.discoverPeers();
         }
 
         @Override
@@ -92,8 +90,5 @@ public class GroupFragment extends Fragment {
 
         });
 
-        mDone.setOnClickListener(v -> {
-            mPortMap = mSyncService.serverSocketSetup();
-        });
     }
 }

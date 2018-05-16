@@ -65,6 +65,7 @@ import dk.aau.sw805f18.ar.common.rendering.PointCloudRenderer;
 import dk.aau.sw805f18.ar.common.websocket.Packet;
 import dk.aau.sw805f18.ar.fragments.ModelDialogFragment;
 import dk.aau.sw805f18.ar.models.Marker;
+import dk.aau.sw805f18.ar.services.SyncService;
 
 public class ArActivity extends AppCompatActivity implements GLSurfaceView.Renderer {
     private static final String TAG = ArActivity.class.getSimpleName();
@@ -186,9 +187,9 @@ public class ArActivity extends AppCompatActivity implements GLSurfaceView.Rende
 
     public void fetchTreasureHuntModels() {
 
-        SyncServiceHelper.getInstance().init();
+        SyncService syncService = SyncServiceHelper.getInstance();
 
-        SyncServiceHelper.getInstance().attachHandler(Packet.OBJECTS_TYPE, packet -> Task.run(() -> {
+        syncService.getWebSocket().attachHandler(Packet.OBJECTS_TYPE, packet -> Task.run(() -> {
             Gson gson = new Gson();
             List<Marker> markers = gson.fromJson(packet.Data, new TypeToken<ArrayList<Marker>>() {
             }.getType());
@@ -213,7 +214,7 @@ public class ArActivity extends AppCompatActivity implements GLSurfaceView.Rende
             }
         }));
 
-        SyncServiceHelper.getInstance().send(new Packet(Packet.OBJECTS_TYPE, ""));
+        syncService.getWebSocket().send(new Packet(Packet.OBJECTS_TYPE, ""));
     }
 
     @Override

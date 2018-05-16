@@ -37,9 +37,6 @@ public class HomeFragment extends Fragment {
 
         createBtn.setOnClickListener(v -> FragmentOpener.getInstance().open(new CreateCourseFragment(), CreateCourseFragment.TAG_CREATE));
 
-        getView().findViewById(R.id.home_test_button).setOnClickListener(v -> {
-            SyncServiceHelper.getInstance().wifitest();
-        });
     }
 
     @Override

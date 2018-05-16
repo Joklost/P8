@@ -2,6 +2,9 @@ package dk.aau.sw805f18.ar.models;
 
 import android.location.Location;
 
+import java.util.function.Consumer;
+
+import de.javagl.obj.Obj;
 import dk.aau.sw805f18.ar.ar.location.sensor.DeviceLocation;
 import dk.aau.sw805f18.ar.common.helpers.Task;
 import dk.aau.sw805f18.ar.common.websocket.Packet;
@@ -12,6 +15,7 @@ public class AutoGrouping {
     private WebSocketeer mWebSocket;
     private boolean mTrigger = true;
     private int mCurrentGroup = 0;
+    private final Object mWaiter = new Object();
 
     public AutoGrouping(DeviceLocation dl, WebSocketeer socket) {
         mDeviceLocation = dl;
@@ -19,6 +23,7 @@ public class AutoGrouping {
     }
 
     public void start() {
+
         // Thread for sending position, when auto grouping
         Task.run(() -> {
             while (mTrigger) {
@@ -30,25 +35,20 @@ public class AutoGrouping {
                                 location.getLatitude(), location.getLongitude())));
 
                 try {
-                    Thread.sleep(1000);
+                    mWaiter.wait(1000);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
             }
         });
 
-        // Thread for receiving group data, when auto grouping
-        mWebSocket.attachHandler(Packet.NEW_GROUP_TYPE, packet -> {
-            mCurrentGroup = Integer.parseInt(packet.Data);
-        });
     }
 
     public void stop() {
         mTrigger = false;
-        mWebSocket.removeHandler(Packet.NEW_GROUP_TYPE);
     }
 
-    public int getcurrentGroup() {
+    public int getCurrentGroup() {
         return mCurrentGroup;
     }
 }

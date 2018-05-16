@@ -20,6 +20,7 @@ public class Packet {
 
     public static final String POSITION_TYPE = "position";
     public static final String NEW_GROUP_TYPE = "newgroup";
+    public static final String AUTO_GROUP = "autogroup";
 
     public String Type;
     public String Data;

@@ -31,8 +31,6 @@ public class WifiP2pActivity extends AppCompatActivity {
             SyncService.LocalBinder binder = (SyncService.LocalBinder) service;
             mSyncService = binder.getService();
             mSyncService.init();
-
-            mSyncService.discoverPeers();
         }
 
         @Override
@@ -70,10 +68,6 @@ public class WifiP2pActivity extends AppCompatActivity {
 
         unbindService(mConnection);
         mBound = false;
-    }
-
-    public void scanPeers(View v) {
-        mSyncService.discoverPeers();
     }
 
     public void joinGroup(View v) {
