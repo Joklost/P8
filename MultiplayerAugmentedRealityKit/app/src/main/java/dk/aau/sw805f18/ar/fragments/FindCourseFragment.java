@@ -13,7 +13,6 @@ import android.widget.ListView;
 import android.widget.Spinner;
 
 import java.util.ArrayList;
-import java.util.concurrent.ExecutionException;
 
 import dk.aau.sw805f18.ar.R;
 import dk.aau.sw805f18.ar.common.adapters.FindCourseListItemAdapter;
@@ -27,6 +26,7 @@ import dk.aau.sw805f18.ar.services.SyncService;
 public class FindCourseFragment extends Fragment {
     public static final String TAG_FIND = "findcourse";
     public static final String LOBBY_ID = "lobbyId";
+    public static final String TAG_ROLE = "scout";
     private SyncService syncService;
 
     @Override
@@ -71,7 +71,9 @@ public class FindCourseFragment extends Fragment {
         String lobbyId = "test";
         Bundle lobbyBundle = new Bundle();
         lobbyBundle.putString(LOBBY_ID, lobbyId);
+        lobbyBundle.putString("type", TAG_ROLE);
         syncService = SyncServiceHelper.getInstance();
+
 
         Button sendBtn = getView().findViewById(R.id.find_course_join_by_code_button);
         LobbyFragment lobbyFragment = new LobbyFragment();
@@ -107,6 +109,6 @@ public class FindCourseFragment extends Fragment {
         courseArray.add(new FindCourseItem("Horror map", 7, 14, 3.14));
         courseArray.add(new FindCourseItem("Christmas map", 32, 18, 13.14));
         courseArray.add(new FindCourseItem("ALL YEAR LONG! map", 102, 5, 12.08));
-        return  courseArray;
+        return courseArray;
     }
 }

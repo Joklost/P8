@@ -63,9 +63,9 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
             googleMap.setMyLocationEnabled(true);
         }
 
-        SyncServiceHelper.getInstance().send(new Packet(Packet.OBJECTS_TYPE, ""));
+        SyncServiceHelper.getInstance().getWebSocket().send(new Packet(Packet.OBJECTS_TYPE, ""));
 
-        SyncServiceHelper.getInstance().attachHandler(Packet.OBJECTS_TYPE, packet -> {
+        SyncServiceHelper.getInstance().getWebSocket().attachHandler(Packet.OBJECTS_TYPE, packet -> {
             Gson gson = new Gson();
             List<Marker> markers = gson.fromJson(packet.Data, new TypeToken<ArrayList<Marker>>() {
             }.getType());
@@ -92,7 +92,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                 });
             }
 
-            SyncServiceHelper.getInstance().mWebSocketeer.removeHandler(Packet.OBJECTS_TYPE);
+            SyncServiceHelper.getInstance().getWebSocket().removeHandler(Packet.OBJECTS_TYPE);
         });
     }
 }

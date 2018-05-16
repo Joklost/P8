@@ -1,7 +1,6 @@
 package dk.aau.sw805f18.ar.fragments;
 
 import android.app.FragmentManager;
-import android.net.wifi.p2p.WifiP2pDevice;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -99,8 +98,7 @@ public class LobbyFragment extends Fragment {
             boolean enabled = packet.Data.equals("true");
             if (enabled) {
                 syncService.startAutoGrouping();
-            }
-            else {
+            } else {
                 syncService.stopAutoGrouping();
             }
         });

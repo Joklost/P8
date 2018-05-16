@@ -22,6 +22,7 @@ import dk.aau.sw805f18.ar.services.SyncService;
 
 public class CreateCourseFragment extends Fragment {
     public static final String TAG_CREATE = "createcourse";
+    public static final String TAG_ROLE = "leader";
 
     public static final String GROUPING = "grouping";
     public static final String GROUPS = "groups";
@@ -57,6 +58,7 @@ public class CreateCourseFragment extends Fragment {
 
             Bundle gameOptionBundle = new Bundle();
             gameOptionBundle.putString(GROUPING, selectedGroupingMethod);
+            gameOptionBundle.putString("type", TAG_ROLE);
             gameOptionBundle.putInt(GROUPS, numberOfTeams);
             gameOptionBundle.putInt(MAX_PLAYERS, maxPlayers);
             gameOptionBundle.putString(LOBBY_ID, lobbyId);
