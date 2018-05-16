@@ -1,6 +1,8 @@
 package dk.aau.sw805f18.ar.fragments;
 
 import android.Manifest;
+import android.app.AlertDialog;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -26,6 +28,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import dk.aau.sw805f18.ar.R;
+import dk.aau.sw805f18.ar.ar.ArActivity;
 import dk.aau.sw805f18.ar.common.helpers.SyncServiceHelper;
 import dk.aau.sw805f18.ar.common.websocket.Packet;
 import dk.aau.sw805f18.ar.models.Marker;
@@ -34,7 +37,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     public static final String TAG = MapFragment.class.getSimpleName();
     public static final String TAG_MAP = "map";
     MapView mMapView;
-    private GoogleMap googleMap;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -47,7 +49,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
             e.printStackTrace();
         }
 
-        mMapView = rootView.findViewById(R.id.mapView);
+        mMapView = rootView.findViewById(R.id.map_map_widget);
         mMapView.onCreate(savedInstanceState);
         mMapView.onResume();
         mMapView.getMapAsync(this);
@@ -75,6 +77,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                 LatLng location = new LatLng(marker.Location.Lat, marker.Location.Lon);
 
                 if (firstEl) {
+                    // Lock the map, with the first marker as the center
                     CameraPosition cameraPosition = new CameraPosition.Builder().target(location).zoom(17).build();
                     getActivity().runOnUiThread(() -> {
                         googleMap.moveCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
@@ -87,12 +90,33 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                     firstEl = false;
                 }
 
+                // Add a marker to the map
                 getActivity().runOnUiThread(() -> {
                     googleMap.addMarker(new MarkerOptions().position(location));
                 });
             }
 
             SyncServiceHelper.getInstance().getWebSocket().removeHandler(Packet.OBJECTS_TYPE);
+        });
+
+        //TODO: Call when within a control post's range
+//        gameFoundPopup();
+
+    }
+
+    private void gameFoundPopup() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+
+        getActivity().runOnUiThread(() -> {
+            builder.setMessage("Do you want to start?")
+                    .setPositiveButton("Start", ((dialog, which) -> {
+                        startActivity(new Intent(getContext(), ArActivity.class));
+
+                    }))
+                    .setNegativeButton("Cancel", ((dialog, which) -> {
+
+                    }))
+                    .show();
         });
     }
 }
