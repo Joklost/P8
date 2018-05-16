@@ -16,6 +16,8 @@ import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
+import com.google.gson.Gson;
+
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -28,6 +30,7 @@ import dk.aau.sw805f18.ar.common.websocket.Packet;
 import dk.aau.sw805f18.ar.common.websocket.WebSocketeer;
 import dk.aau.sw805f18.ar.common.wifip2p.WifiP2pReceiver;
 import dk.aau.sw805f18.ar.models.AutoGrouping;
+import dk.aau.sw805f18.ar.models.PacketSetupGroup;
 
 public class SyncService extends Service {
     private static final String TAG = SyncService.class.getSimpleName();
@@ -49,6 +52,8 @@ public class SyncService extends Service {
     private final int PORT = 5000;
 
 //    private boolean mIsWifiP2pEnabled;
+
+    private Gson mJson = new Gson();
 
     public WebSocketeer mWebSocketeer;
     private AutoGrouping mAutoGrouping;
@@ -280,6 +285,7 @@ public class SyncService extends Service {
 
     /**
      * Setup sockets to each peer, for master device
+     *
      * @return Device address to port mapping
      */
     public HashMap<String, Integer> serverSocketSetup() {
@@ -328,7 +334,11 @@ public class SyncService extends Service {
 
     public void wifitest() {
 //        Name: displayname, Team: #number
-        send(new Packet(Packet.SET_GROUP_TYPE, String.format("{Name: %s, Team: 0}", mDeviceName)));
+
+        PacketSetupGroup data = new PacketSetupGroup(mDeviceName, 0);
+        send(new Packet(Packet.SET_GROUP_TYPE,
+                mJson.toJson(data, PacketSetupGroup.class)));
+//        send(new Packet(Packet.SET_GROUP_TYPE, String.format("{Name: %s, Team: 0}", mDeviceName)));
         send(new Packet(Packet.START_TYPE, ""));
 
         attachHandler(Packet.OWNER_TYPE, packet -> {
