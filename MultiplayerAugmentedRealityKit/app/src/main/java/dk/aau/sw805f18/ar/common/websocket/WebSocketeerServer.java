@@ -70,4 +70,7 @@ public class WebSocketeerServer {
         Log.i(TAG, "REMOVED HANDLER: " + type);
     }
 
+    public int getConnectedDevices() {
+        return mSockets.size();
+    }
 }

@@ -13,17 +13,21 @@ import android.widget.ListView;
 import android.widget.Spinner;
 
 import java.util.ArrayList;
+import java.util.concurrent.ExecutionException;
 
 import dk.aau.sw805f18.ar.R;
 import dk.aau.sw805f18.ar.common.adapters.FindCourseListItemAdapter;
+import dk.aau.sw805f18.ar.common.helpers.SyncServiceHelper;
 import dk.aau.sw805f18.ar.main.FragmentOpener;
 import dk.aau.sw805f18.ar.main.MainActivity;
 import dk.aau.sw805f18.ar.models.FindCourseItem;
+import dk.aau.sw805f18.ar.services.SyncService;
 
 
 public class FindCourseFragment extends Fragment {
     public static final String TAG_FIND = "findcourse";
     public static final String LOBBY_ID = "lobbyId";
+    private SyncService syncService;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -65,14 +69,21 @@ public class FindCourseFragment extends Fragment {
         lv.setAdapter(lvAdapter);
 
         String lobbyId = "test";
-
         Bundle lobbyBundle = new Bundle();
         lobbyBundle.putString(LOBBY_ID, lobbyId);
-        Button sendBtn = getView().findViewById(R.id.find_course_join_by_code_button);
+        syncService = SyncServiceHelper.getInstance();
 
+        Button sendBtn = getView().findViewById(R.id.find_course_join_by_code_button);
         LobbyFragment lobbyFragment = new LobbyFragment();
         lobbyFragment.setArguments(lobbyBundle);
-        sendBtn.setOnClickListener(v -> FragmentOpener.getInstance().open(lobbyFragment, TAG_FIND));
+        sendBtn.setOnClickListener(v -> {
+            try {
+                syncService.joinLobby(lobbyId);
+                FragmentOpener.getInstance().open(lobbyFragment, TAG_FIND);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
     }
 
     @Override

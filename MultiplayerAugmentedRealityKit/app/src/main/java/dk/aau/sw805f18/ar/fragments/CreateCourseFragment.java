@@ -12,9 +12,13 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.Spinner;
 
+import java.util.concurrent.ExecutionException;
+
 import dk.aau.sw805f18.ar.R;
+import dk.aau.sw805f18.ar.common.helpers.SyncServiceHelper;
 import dk.aau.sw805f18.ar.main.FragmentOpener;
 import dk.aau.sw805f18.ar.main.MainActivity;
+import dk.aau.sw805f18.ar.services.SyncService;
 
 public class CreateCourseFragment extends Fragment {
     public static final String TAG_CREATE = "createcourse";
@@ -23,6 +27,7 @@ public class CreateCourseFragment extends Fragment {
     public static final String GROUPS = "groups";
     public static final String MAX_PLAYERS = "maxPlayers";
     public static final String LOBBY_ID = "lobbyId";
+    private SyncService syncService;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -55,10 +60,16 @@ public class CreateCourseFragment extends Fragment {
             gameOptionBundle.putInt(GROUPS, numberOfTeams);
             gameOptionBundle.putInt(MAX_PLAYERS, maxPlayers);
             gameOptionBundle.putString(LOBBY_ID, lobbyId);
+            syncService = SyncServiceHelper.getInstance();
 
             LobbyFragment lobbyFragment = new LobbyFragment();
             lobbyFragment.setArguments(gameOptionBundle);
-            FragmentOpener.getInstance().open(lobbyFragment, TAG_CREATE);
+            try {
+                syncService.joinLobby(lobbyId);
+                FragmentOpener.getInstance().open(lobbyFragment, TAG_CREATE);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         });
     }
 
