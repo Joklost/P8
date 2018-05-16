@@ -38,16 +38,10 @@ public class SyncService extends Service {
     private boolean mDiscoverInitiated;
     private boolean mGroupCreated;
     private String mToken;
-    private SocketService mSocketService;
-    private HashMap<Integer, ServerSocketService> mServerSocketServices;
-
-    private final int PORT = 5000;
 
 //    private boolean mIsWifiP2pEnabled;
 
     private Gson mJson = new Gson();
-
-
 
     private WebSocketeer mWebSocket;
     private WebSocketeer mWifiP2pSocket;

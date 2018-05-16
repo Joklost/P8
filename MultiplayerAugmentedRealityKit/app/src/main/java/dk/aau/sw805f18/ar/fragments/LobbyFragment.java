@@ -10,6 +10,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 
 import dk.aau.sw805f18.ar.R;
 import dk.aau.sw805f18.ar.common.adapters.LobbyGroupAdapter;
@@ -58,10 +59,7 @@ public class LobbyFragment extends Fragment {
         Bundle bundle = getArguments();
         boolean leader = bundle.containsKey("type") && bundle.get("type") == "leader";
 
-        if (leader) {
-            // Show leader layout here i guess
 
-        }
 
         gameOptionsBundle = getArguments();
         syncService = SyncServiceHelper.getInstance();
@@ -70,6 +68,17 @@ public class LobbyFragment extends Fragment {
         LobbyGroupAdapter adapter = new LobbyGroupAdapter();
 
         lobbyLayout = getView().findViewById(R.id.lobby_layout);
+
+        if (leader) {
+            View leaderLayout = getView().findViewById(R.id.leader_layout);
+            leaderLayout.setVisibility(View.VISIBLE);
+
+            Button startButton = getView().findViewById(R.id.lobby_start_button);
+            startButton.setOnClickListener(v -> {
+                startButton.setText(R.string.game_starting);
+                FragmentOpener.getInstance().open(new MapFragment(), MapFragment.TAG);
+            });
+        }
 
         adapter.setOnItemClickListener((position, v) -> {
             LobbyDialogFragment dialog = new LobbyDialogFragment();
@@ -80,13 +89,6 @@ public class LobbyFragment extends Fragment {
 
         rvGrid.setAdapter(adapter);
         rvGrid.setLayoutManager(new GridLayoutManager(getContext(), 2));
-
-        // set up handlers for
-
-
-        getView().findViewById(R.id.lobby_start_button).setOnClickListener(v -> {
-            FragmentOpener.getInstance().open(new MapFragment(), MapFragment.TAG);
-        });
     }
 
     @Override
