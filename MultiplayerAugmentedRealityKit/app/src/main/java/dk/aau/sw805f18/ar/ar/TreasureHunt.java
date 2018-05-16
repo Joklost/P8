@@ -57,31 +57,42 @@ public class TreasureHunt {
                 AlertDialog.Builder alert = new AlertDialog.Builder(mArActivity);
                 if(mGameState == GameState.ONECHEST) {
                     mGameState = GameState.FINISHED;
+                    alert.setTitle("Victory");
+                    alert.setMessage("You won the game!");
+                    alert.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int whichButton) {
+                            mArActivity.finish();
+                        }
+                    });
                 }
                 if(mGameState == GameState.STARTED) {
                     mGameState = GameState.ONECHEST;
+                    List<LocationMarker> threeNearest = getThreeNearestChest();
+                    AssignRandomChest(threeNearest);
+                    alert.setTitle("Right Chest");
+                    alert.setMessage("You found the correct chest!" + "\n" + "You must now find the next chest!");
+                    alert.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int whichButton) {
+
+                        }
+                    });
                 }
 
 
-                List<LocationMarker> threeNearest = getThreeNearestChest();
-                AssignRandomChest(threeNearest);
-                alert.setTitle("Right Chest");
-                alert.setMessage("You found the correct chest!");
 
-                alert.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int whichButton) {
 
-                    }
-                });
+
 
                 alert.show();
             }else {
                 AlertDialog.Builder alert = new AlertDialog.Builder(mArActivity);
-                if(mGameState == GameState.ONECHEST) {
-                    mGameState = GameState.STARTED;
-                }
                 alert.setTitle("Wrong Chest");
                 alert.setMessage("You found the wrong chest!");
+
+                if(mGameState == GameState.ONECHEST) {
+                    mGameState = GameState.STARTED;
+                    alert.setMessage("You selected the wrong chest!" + "\n" + "The game will now reset");
+                }
 
                 alert.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int whichButton) {
