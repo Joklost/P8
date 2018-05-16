@@ -56,9 +56,9 @@ dependencies {
 
 apply plugin: 'com.google.ar.sceneform.plugin'
 
-sceneform.asset('sampledata/models/andy.obj',
+sceneform.asset('sampledata/models/andy/andy.obj',
         'default',
-        'sampledata/models/andy.sfa',
+        'sampledata/models/andy/andy.sfa',
         'src/main/assets/raw/andy')
 
 sceneform.asset('sampledata/models/chest/chest.obj',
