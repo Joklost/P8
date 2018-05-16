@@ -33,7 +33,7 @@
          "TexCoord",
          "Orientation",
       ],
-      file: "sampledata/models/andy.obj",
+      file: "sampledata/models/andy/andy.obj",
       name: "andy",
       suggested_collision: {
          center: {
@@ -51,7 +51,7 @@
    },
    samplers: [
       {
-         file: "sampledata/models/andy.png",
+         file: "sampledata/models/andy\\andy.png",
          name: "andy",
          pipeline_name: "andy.png",
       },
