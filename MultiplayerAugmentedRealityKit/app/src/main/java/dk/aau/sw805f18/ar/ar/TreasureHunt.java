@@ -11,21 +11,25 @@ import android.widget.TextView;
 
 import com.google.ar.core.Frame;
 import com.google.ar.core.Pose;
+import com.google.gson.Gson;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
-import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toList;
 
 import dk.aau.sw805f18.ar.R;
 import dk.aau.sw805f18.ar.ar.location.LocationMarker;
 import dk.aau.sw805f18.ar.ar.location.LocationScene;
+import dk.aau.sw805f18.ar.common.helpers.SyncServiceHelper;
 import dk.aau.sw805f18.ar.common.rendering.AnnotationRenderer;
-import dk.aau.sw805f18.ar.models.MarkerLocation;
+import dk.aau.sw805f18.ar.common.websocket.Packet;
+import dk.aau.sw805f18.ar.services.SyncService;
 
 public class TreasureHunt {
 
@@ -34,7 +38,9 @@ public class TreasureHunt {
     private LocationScene mScene;
     private LocationMarker randomChest;
     private LocationMarker chosenChest;
-    private double mClosestChest;
+    private List<LocationMarker> mChosenChests;
+    private SyncService mSyncService;
+    private Boolean awaitingResponse = false;
 
     public TreasureHunt(ArActivity activity, LocationScene scene) {
         mGameState = GameState.STARTED;
@@ -42,68 +48,86 @@ public class TreasureHunt {
         mScene = scene;
     }
 
+
     public void StartGame() {
         //need to make sure the activity has started;
         //mArActivity.fetchTreasureHuntModels();
-        AssignRandomChest(mScene.getLocationMarkers());
+        mChosenChests = new ArrayList<>();
+        Gson gson = new Gson();
+        mSyncService = SyncServiceHelper.getInstance();
 
+        if (SyncServiceHelper.getInstance().isHostingWifiP2p()) {
+            AssignRandomChestMaster(mScene.getLocationMarkers());
 
+            mSyncService.getWebSocketeerServer().sendToAll(new Packet(Packet.RANDOM_CHEST, gson.toJson(randomChest)));
 
-        Button firstChestBtn = mArActivity.findViewById(R.id.Chest_Found_Btn);
-
-
-        firstChestBtn.setOnClickListener(v -> {
-            if (chosenChest.equals(randomChest)) {
-                AlertDialog.Builder alert = new AlertDialog.Builder(mArActivity);
-                if(mGameState == GameState.ONECHEST) {
-                    mGameState = GameState.FINISHED;
-                    alert.setTitle("Victory");
-                    alert.setMessage("You won the game!");
-                    alert.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int whichButton) {
-                            mArActivity.finish();
-                        }
-                    });
+            mSyncService.getWebSocketeerServer().attachHandler(Packet.CHOSEN_CHEST, (ws, packet) -> {
+                mChosenChests.add(gson.fromJson(packet.Data, LocationMarker.class));
+                if (mChosenChests.size() == mSyncService.getWebSocketeerServer().getConnectedDevices()) {
+                    mSyncService.getWebSocketeerServer().sendToAll(new Packet(Packet.RANDOM_CHEST, gson.toJson(mostCommon(mChosenChests))));
                 }
-                if(mGameState == GameState.STARTED) {
-                    mGameState = GameState.ONECHEST;
-                    List<LocationMarker> threeNearest = getThreeNearestChest();
-                    AssignRandomChest(threeNearest);
-                    alert.setTitle("Right Chest");
-                    alert.setMessage("You found the correct chest!" + "\n" + "You must now find the next chest!");
-                    alert.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int whichButton) {
+            });
 
-                        }
-                    });
-                }
-
-
-
-
-
-
-                alert.show();
-            }else {
-                AlertDialog.Builder alert = new AlertDialog.Builder(mArActivity);
-                alert.setTitle("Wrong Chest");
-                alert.setMessage("You found the wrong chest!");
-
-                if(mGameState == GameState.ONECHEST) {
-                    mGameState = GameState.STARTED;
-                    alert.setMessage("You selected the wrong chest!" + "\n" + "The game will now reset");
-                }
-
-                alert.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int whichButton) {
-
+        } else {
+            mSyncService.getWebSocket().attachHandler(Packet.CHOSEN_CHEST, packet -> {
+                chosenChest = gson.fromJson(packet.Data, LocationMarker.class);
+                if (chosenChest.equals(randomChest)) {
+                    AlertDialog.Builder alert = new AlertDialog.Builder(mArActivity);
+                    if (mGameState == GameState.ONECHEST) {
+                        mGameState = GameState.FINISHED;
+                        alert.setTitle("Victory");
+                        alert.setMessage("You won the game!");
+                        alert.setPositiveButton("Ok", (dialog, whichButton) -> mArActivity.finish());
                     }
-                });
-                alert.show();
-            }
-        });
+                    if (mGameState == GameState.STARTED) {
+                        mGameState = GameState.ONECHEST;
 
+                        List<LocationMarker> threeNearest = getThreeNearestChest();
+                        AssignRandomChestMaster(threeNearest);
+                        alert.setTitle("Right Chest");
+                        alert.setMessage("You found the correct chest!" + "\n" + "You must now find the next chest!");
+                        alert.setPositiveButton("Ok", (dialog, whichButton) -> {
+
+                        });
+                    }
+
+                    alert.show();
+                } else {
+                    AlertDialog.Builder alert = new AlertDialog.Builder(mArActivity);
+                    alert.setTitle("Wrong Chest");
+                    alert.setMessage("You found the wrong chest!");
+
+                    if (mGameState == GameState.ONECHEST) {
+                        mGameState = GameState.STARTED;
+                        alert.setMessage("You selected the wrong chest!" + "\n" + "The game will now reset");
+                    }
+
+                    alert.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int whichButton) {
+
+                        }
+                    });
+                    alert.show();
+                }
+
+
+            });
+            mSyncService.getWebSocket().attachHandler(Packet.RANDOM_CHEST, packet -> {
+                randomChest = gson.fromJson(packet.Data, LocationMarker.class);
+            });
+
+
+            Button firstChestBtn = mArActivity.findViewById(R.id.Chest_Found_Btn);
+
+
+            firstChestBtn.setOnClickListener(v -> {
+                mSyncService.getWebSocket().send(new Packet(Packet.CHOSEN_CHEST, gson.toJson(chosenChest)));
+                firstChestBtn.setClickable(false);
+                firstChestBtn.setText("Waiting...");
+            });
+        }
     }
+
 
     private List<LocationMarker> getThreeNearestChest() {
         List<Pair<LocationMarker, Double>> markers = mScene.getLocationMarkers().stream().map((marker) -> {
@@ -116,10 +140,10 @@ public class TreasureHunt {
 
         List<LocationMarker> threeNearest = new ArrayList<>();
         threeNearest.add(markers.get(1).first);
-        if (markers.size() > 2){
+        if (markers.size() > 2) {
             threeNearest.add(markers.get(2).first);
         }
-        if (markers.size() > 3){
+        if (markers.size() > 3) {
             threeNearest.add(markers.get(3).first);
         }
         return threeNearest;
@@ -173,8 +197,25 @@ public class TreasureHunt {
         }
     }
 
+    public static <T> T mostCommon(List<T> list) {
+        Map<T, Integer> map = new HashMap<>();
 
-    private void AssignRandomChest(List<LocationMarker> markers) {
+        for (T t : list) {
+            Integer val = map.get(t);
+            map.put(t, val == null ? 1 : val + 1);
+        }
+
+        Map.Entry<T, Integer> max = null;
+
+        for (Map.Entry<T, Integer> e : map.entrySet()) {
+            if (max == null || e.getValue() > max.getValue())
+                max = e;
+        }
+
+        return max.getKey();
+    }
+
+    private void AssignRandomChestMaster(List<LocationMarker> markers) {
         randomChest = markers.get(new Random().nextInt(markers.size()));
     }
 }
