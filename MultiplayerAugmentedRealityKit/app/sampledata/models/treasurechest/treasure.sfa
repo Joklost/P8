@@ -139,7 +139,7 @@
       ],
       file: "sampledata/models/treasurechest/treasure.obj",
       name: "treasure",
-      scale: 0.82790399999999997,
+      scale: 0.4,
       suggested_collision: {
          center: {
             x: 0,

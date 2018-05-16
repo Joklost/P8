@@ -2,10 +2,7 @@ package dk.aau.sw805f18.ar.models;
 
 import android.location.Location;
 
-import java.util.function.Consumer;
-
-import de.javagl.obj.Obj;
-import dk.aau.sw805f18.ar.ar.location.sensor.DeviceLocation;
+import dk.aau.sw805f18.ar.common.sensor.DeviceLocation;
 import dk.aau.sw805f18.ar.common.helpers.Task;
 import dk.aau.sw805f18.ar.common.websocket.Packet;
 import dk.aau.sw805f18.ar.common.websocket.WebSocketeer;

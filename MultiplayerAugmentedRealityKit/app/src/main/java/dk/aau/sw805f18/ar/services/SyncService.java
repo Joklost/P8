@@ -15,10 +15,9 @@ import android.util.Log;
 
 import com.google.gson.Gson;
 
-import java.util.HashMap;
 import java.util.concurrent.ExecutionException;
 
-import dk.aau.sw805f18.ar.ar.location.sensor.DeviceLocation;
+import dk.aau.sw805f18.ar.common.sensor.DeviceLocation;
 import dk.aau.sw805f18.ar.common.websocket.WebSocketeer;
 import dk.aau.sw805f18.ar.common.websocket.WebSocketeerServer;
 import dk.aau.sw805f18.ar.common.wifip2p.WifiP2pReceiver;

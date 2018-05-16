@@ -46,7 +46,7 @@ import javax.microedition.khronos.opengles.GL10;
 import dk.aau.sw805f18.ar.R;
 import dk.aau.sw805f18.ar.ar.location.LocationMarker;
 import dk.aau.sw805f18.ar.ar.location.LocationScene;
-import dk.aau.sw805f18.ar.ar.location.sensor.DeviceLocation;
+import dk.aau.sw805f18.ar.common.sensor.DeviceLocation;
 import dk.aau.sw805f18.ar.common.helpers.Task;
 import dk.aau.sw805f18.ar.common.rendering.AnnotationRenderer;
 import dk.aau.sw805f18.ar.common.helpers.ArLocationPermissionHelper;
@@ -467,8 +467,8 @@ public class ArActivity extends AppCompatActivity implements GLSurfaceView.Rende
 
             // give the dialog the hit result, so such that we can pass it on to the
             // spawnObject method
-            modelDialogFragment.setHitResult(hit);
-            runOnUiThread(() -> modelDialogFragment.show(getSupportFragmentManager(), "modelDialog", ASSETS_TO_LOAD));
+//            modelDialogFragment.setHitResult(hit);
+//            runOnUiThread(() -> modelDialogFragment.show(getSupportFragmentManager(), "modelDialog", ASSETS_TO_LOAD));
 
             return;
         }

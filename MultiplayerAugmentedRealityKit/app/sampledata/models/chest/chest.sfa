@@ -113,6 +113,7 @@
       ],
       file: "sampledata/models/chest/chest.obj",
       name: "chest",
+      scale: 0.4,
       suggested_collision: {
          center: {
             x: 0,

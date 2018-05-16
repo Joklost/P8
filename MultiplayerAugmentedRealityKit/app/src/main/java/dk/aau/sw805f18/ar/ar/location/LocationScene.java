@@ -13,9 +13,9 @@ import java.util.List;
 import java.util.OptionalDouble;
 
 import dk.aau.sw805f18.ar.ar.ArActivity;
-import dk.aau.sw805f18.ar.ar.location.sensor.DeviceLocation;
-import dk.aau.sw805f18.ar.ar.location.sensor.DeviceOrientation;
-import dk.aau.sw805f18.ar.ar.location.utils.LocationUtils;
+import dk.aau.sw805f18.ar.common.sensor.DeviceLocation;
+import dk.aau.sw805f18.ar.common.sensor.DeviceOrientation;
+import dk.aau.sw805f18.ar.common.utils.LocationUtils;
 import dk.aau.sw805f18.ar.common.rendering.AnnotationRenderer;
 
 
@@ -46,7 +46,7 @@ public class LocationScene {
     public LocationScene(ArActivity activity) {
         mActivity = activity;
         mDeviceLocation = DeviceLocation.getInstance(activity);
-        mDeviceOrientation = new DeviceOrientation(activity);
+        mDeviceOrientation = DeviceOrientation.getInstance(activity);
     }
 
     public void draw(Session session, Frame frame) {
@@ -171,7 +171,7 @@ public class LocationScene {
                             0)
             );
 
-            float markerBearing = mDeviceOrientation.currentDegree + (float) LocationUtils.bearing(
+            float markerBearing = mDeviceOrientation.getCurrentDegree() + (float) LocationUtils.bearing(
                     mDeviceLocation.getCurrentBestLocation().getLatitude(),
                     mDeviceLocation.getCurrentBestLocation().getLongitude(),
                     marker.getLocation().getLatitude(),
@@ -187,7 +187,7 @@ public class LocationScene {
             // When pointing device upwards (camera towards sky)
             // the compass bearing can flip.
             // In experiments this seems to happen at pitch~=-25
-            if (mDeviceOrientation.pitch > -25)
+            if (mDeviceOrientation.getPitch() > -25)
                 rotation = rotation * Math.PI / 180;
 
             int renderDistance = markerDistance;
@@ -199,7 +199,7 @@ public class LocationScene {
             }
 
             // Adjustment to add markers on horizon, instead of just directly in front of camera
-            double heightAdjustment = Math.round(renderDistance * (Math.tan(Math.toRadians(mDeviceOrientation.pitch))));
+            double heightAdjustment = Math.round(renderDistance * (Math.tan(Math.toRadians(mDeviceOrientation.getPitch()))));
             // Raise distant markers for better illusion of distance
             // Hacky - but it works as a temporary measure
             int cappedRealDistance = markerDistance > 500 ? 500 : markerDistance;

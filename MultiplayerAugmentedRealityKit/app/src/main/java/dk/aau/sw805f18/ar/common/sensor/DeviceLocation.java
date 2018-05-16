@@ -1,4 +1,4 @@
-package dk.aau.sw805f18.ar.ar.location.sensor;
+package dk.aau.sw805f18.ar.common.sensor;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;

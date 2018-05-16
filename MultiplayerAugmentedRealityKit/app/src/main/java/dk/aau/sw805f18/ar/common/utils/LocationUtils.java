@@ -1,4 +1,4 @@
-package dk.aau.sw805f18.ar.ar.location.utils;
+package dk.aau.sw805f18.ar.common.utils;
 
 /**
  * Created by John on 02/03/2018.

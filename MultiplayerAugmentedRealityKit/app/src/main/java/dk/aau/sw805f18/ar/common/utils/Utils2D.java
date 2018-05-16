@@ -1,16 +1,4 @@
-package dk.aau.sw805f18.ar.ar.location.utils;
-
-import android.app.Activity;
-import android.opengl.Matrix;
-import android.util.DisplayMetrics;
-import android.util.Log;
-import android.view.MotionEvent;
-
-import com.google.ar.core.Frame;
-import com.google.ar.core.Pose;
-
-import dk.aau.sw805f18.ar.ar.location.LocationMarker;
-import dk.aau.sw805f18.ar.ar.location.LocationScene;
+package dk.aau.sw805f18.ar.common.utils;
 
 
 public class Utils2D {

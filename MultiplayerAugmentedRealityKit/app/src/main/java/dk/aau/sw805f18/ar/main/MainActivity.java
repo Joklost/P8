@@ -17,8 +17,7 @@ import android.widget.Toast;
 import java.util.Date;
 
 import dk.aau.sw805f18.ar.R;
-import dk.aau.sw805f18.ar.ar.ArActivity;
-import dk.aau.sw805f18.ar.ar.location.sensor.DeviceLocation;
+import dk.aau.sw805f18.ar.common.sensor.DeviceLocation;
 import dk.aau.sw805f18.ar.argame.ArGameActivity;
 import dk.aau.sw805f18.ar.fragments.AboutFragment;
 import dk.aau.sw805f18.ar.common.helpers.SyncServiceHelper;
