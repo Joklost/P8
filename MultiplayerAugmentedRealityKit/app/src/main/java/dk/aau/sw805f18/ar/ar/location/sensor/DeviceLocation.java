@@ -37,8 +37,6 @@ public class DeviceLocation {
                 return;
             }
 
-            Log.i(TAG, "Found location: " + location.toString());
-
             if (isBetterLocation(location)) {
                 mCurrentBestLocation = location;
             }
