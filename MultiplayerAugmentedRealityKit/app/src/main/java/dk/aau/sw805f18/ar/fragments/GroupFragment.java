@@ -78,7 +78,7 @@ public class GroupFragment extends Fragment {
         mDone = getView().findViewById(R.id.group_done);
 
         mMake.setOnClickListener(v -> {
-            mSyncService.createGroup();
+            mSyncService.createWifiP2pGroup();
             if ((mToken = mSyncService.getToken()) == null) {
                 Toast.makeText(getContext(), "Something went wrong, please try again", Toast.LENGTH_LONG).show();
             }

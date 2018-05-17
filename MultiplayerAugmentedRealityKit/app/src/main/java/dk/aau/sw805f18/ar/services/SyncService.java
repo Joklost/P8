@@ -14,10 +14,12 @@ import android.support.annotation.Nullable;
 import android.util.Log;
 
 import com.google.gson.Gson;
+import com.koushikdutta.async.http.AsyncHttpClient;
 
 import java.util.concurrent.ExecutionException;
 
 import dk.aau.sw805f18.ar.common.sensor.DeviceLocation;
+import dk.aau.sw805f18.ar.common.websocket.Packet;
 import dk.aau.sw805f18.ar.common.websocket.WebSocketeer;
 import dk.aau.sw805f18.ar.common.websocket.WebSocketeerServer;
 import dk.aau.sw805f18.ar.common.wifip2p.WifiP2pReceiver;
@@ -37,9 +39,6 @@ public class SyncService extends Service {
     private boolean mDiscoverInitiated;
     private boolean mGroupCreated;
     private String mToken;
-
-//    private boolean mIsWifiP2pEnabled;
-
     private Gson mJson = new Gson();
 
     private WebSocketeer mWebSocket;
@@ -64,7 +63,7 @@ public class SyncService extends Service {
         mWebSocket = new WebSocketeer("http://warpapp.xyz/connect/" + lobbyId);
     }
 
-    /**
+     /**
      * Initialises the service by starting WifiP2pReceiver, WifiP2pManager and AutoGrouping.
      */
     public void init() {
@@ -94,7 +93,7 @@ public class SyncService extends Service {
         mAutoGrouping = new AutoGrouping(mDeviceLocation, mWebSocket);
 
         // Remove any existing group, so a new one can be created.
-        removeGroup();
+        removeWifiP2pGroup();
     }
 
     public void deinit() {
@@ -125,9 +124,9 @@ public class SyncService extends Service {
     /**
      * Connects to a device using WifiP2P.
      *
-     * @param deviceAddress The address of the device to connect to.
+     * @param deviceAddress The address of the device to connectWifiP2p to.
      */
-    public void connect(String deviceAddress) {
+    public void connectWifiP2p(String deviceAddress) {
         if (deviceAddress == null) {
             Log.e(TAG, "DEVICE IS NULL");
             return;
@@ -145,7 +144,7 @@ public class SyncService extends Service {
 
             @Override
             public void onFailure(int reason) {
-                Log.i(TAG, "Failed to connect to: " + config.deviceAddress);
+                Log.i(TAG, "Failed to connectWifiP2p to: " + config.deviceAddress);
             }
         });
     }
@@ -161,7 +160,7 @@ public class SyncService extends Service {
     /**
      * Creates a Wifi P2P group, if one doesn't exist already.
      */
-    public void createGroup() {
+    public void createWifiP2pGroup() {
         if (mGroupCreated) return;
 
         mManager.createGroup(mChannel, new WifiP2pManager.ActionListener() {
@@ -169,6 +168,18 @@ public class SyncService extends Service {
             public void onSuccess() {
                 Log.i(TAG, "Successfully created group.");
                 mGroupCreated = true;
+
+                if (mWifiP2pSocket != null) {
+                    mWifiP2pSocket.close();
+                    mWifiP2pSocket = null;
+                }
+                mWebSocketeerServer = new WebSocketeerServer();
+                // Her skal der være nogle handlers for gruppe ws connectivity
+                mWebSocketeerServer.attachHandler("mark", (ws, packet) -> {
+                    ws.send("NEJ MARK!!!!");
+                });
+                mWebSocket.send(new Packet("mac", mDeviceAddress));
+                Log.i(TAG, "MAC PACKET SENT: " + mDeviceAddress);
             }
 
             @Override
@@ -182,7 +193,7 @@ public class SyncService extends Service {
     /**
      * Removes an existing Wifi P2P group.
      */
-    public void removeGroup() {
+    public void removeWifiP2pGroup() {
         mManager.removeGroup(mChannel, new WifiP2pManager.ActionListener() {
             @Override
             public void onSuccess() {

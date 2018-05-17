@@ -4,19 +4,13 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.net.wifi.p2p.WifiP2pDevice;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.View;
-import android.widget.TextView;
 
 import dk.aau.sw805f18.ar.R;
-import dk.aau.sw805f18.ar.common.adapters.PeerListAdapter;
 import dk.aau.sw805f18.ar.services.SyncService;
 
 public class WifiP2pActivity extends AppCompatActivity {
@@ -75,7 +69,7 @@ public class WifiP2pActivity extends AppCompatActivity {
     }
 
     public void createGroup(View v) {
-        mSyncService.createGroup();
+        mSyncService.createWifiP2pGroup();
     }
 
     public void testWifiP2p(View v) {

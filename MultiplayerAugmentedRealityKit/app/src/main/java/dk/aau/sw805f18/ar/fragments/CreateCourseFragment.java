@@ -49,8 +49,8 @@ public class CreateCourseFragment extends Fragment {
         groupSelectAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         groupSpinner.setAdapter(groupSelectAdapter);
 
-        Button creatBtn = getView().findViewById(R.id.create_course_create_button);
-        creatBtn.setOnClickListener(v -> {
+        Button createBtn = getView().findViewById(R.id.create_course_create_button);
+        createBtn.setOnClickListener(v -> {
             String selectedGroupingMethod = (String) groupSpinner.getSelectedItem();
             int numberOfTeams = 3;
             int maxPlayers = 16;

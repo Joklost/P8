@@ -112,7 +112,7 @@ public class LobbyFragment extends Fragment {
 
         syncService.getWebSocket().attachHandler(Packet.MAC_TYPE, packet -> {
             String mac = packet.Data;
-            syncService.connect(mac);
+            syncService.connectWifiP2p(mac);
         });
     }
 
