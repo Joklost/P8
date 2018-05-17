@@ -14,21 +14,14 @@ import java.util.function.Consumer;
 public class WebSocketeer {
     private static final String TAG = WebSocketeer.class.getSimpleName();
 
-    private final WebSocket mWebSocket;
+    private WebSocket mWebSocket;
     private final Gson mJson = new Gson();
     private final HashMap<String, Consumer<Packet>> _handlers = new HashMap<>();
 
+    private String mUrl;
+
     public WebSocketeer(String url) throws ExecutionException, InterruptedException {
-        Future<WebSocket> webSocketFuture = AsyncHttpClient
-                .getDefaultInstance()
-                .websocket(url, null, (ex, webSocket) -> {
-                    if (ex != null) {
-                        ex.printStackTrace();
-                        return;
-                    }
-                    webSocket.setStringCallback(this::onMessage);
-                });
-        mWebSocket = webSocketFuture.get();
+        mUrl = url;
     }
 
     private void onMessage(String s) {
@@ -64,6 +57,25 @@ public class WebSocketeer {
         String s = mJson.toJson(packet, Packet.class);
         Log.i(TAG, "SEND: " + s);
         mWebSocket.send(s);
+    }
+
+    public void connect() {
+        Future<WebSocket> webSocketFuture = AsyncHttpClient
+                .getDefaultInstance()
+                .websocket(mUrl, null, (ex, webSocket) -> {
+                    if (ex != null) {
+                        ex.printStackTrace();
+                        return;
+                    }
+                    webSocket.setStringCallback(this::onMessage);
+                });
+        try {
+            mWebSocket = webSocketFuture.get();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        }
     }
 
     /**

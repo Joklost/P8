@@ -31,13 +31,13 @@ public class LobbyFragment extends Fragment {
 
     private static final String[] GROUP_COLOURS = new String[]{
             "#EF5350",
-            "#EC407A",
             "#AB47BC",
-            "#5C6BC0",
             "#29B6F6",
             "#26C6DA",
+            "#EC407A",
             "#26A69A",
             "#9CCC65",
+            "#5C6BC0",
             "#FFEE58",
             "#FFA726",
             "#8D6E63",
@@ -66,52 +66,10 @@ public class LobbyFragment extends Fragment {
 
         gameOptionsBundle = getArguments();
         syncService = SyncServiceHelper.getInstance();
-        syncService.getWebSocket().send(new Packet(Packet.NAME_TYPE, syncService.getDeviceName()));
 
-        rvGrid = getView().findViewById(R.id.lobby_group_recyclerview);
-        LobbyGroupAdapter adapter = new LobbyGroupAdapter();
-
-        if (leader) {
-            View leaderLayout = getView().findViewById(R.id.leader_layout);
-            leaderLayout.setVisibility(View.VISIBLE);
-
-            Button autoGroupButton = getView().findViewById(R.id.lobby_autogrouping_button);
-            autoGroupButton.setOnClickListener(v -> {
-                String data = mAutogrouping ? "false" : "true";
-                syncService.getWebSocket().send(new Packet(Packet.AUTO_GROUP, data));
-                autoGroupButton.setText(mAutogrouping ? R.string.lobby_autogroup_start : R.string.lobby_autogroup_stop);
-                mAutogrouping = !mAutogrouping;
-            });
-
-            Button startButton = getView().findViewById(R.id.lobby_start_button);
-            startButton.setVisibility(View.VISIBLE);
-            startButton.setOnClickListener(v -> {
-                startButton.setText(R.string.lobby_game_starting);
-                syncService.getWebSocket().send(new Packet(Packet.START_TYPE,""));
-
-            });
-        }
-
-//        adapter.setOnItemClickListener((position, v) -> {
-//            try {
-//                LobbyDialogFragment dialog = new LobbyDialogFragment();
-//                dialog.show(getActivity().getFragmentManager(), "dialog");
-//            } catch (Exception e) {
-//                Log.e("DialogFragment", e.toString());
-//            }
-
-//        });
-
-        rvGrid.setAdapter(adapter);
-        rvGrid.setLayoutManager(new GridLayoutManager(getContext(), 2));
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        MainActivity.CURRENT_FRAGMENT = TAG_LOBBY;
-
+        //region Setup websocket handlers
         syncService.getWebSocket().attachHandler(Packet.AUTO_GROUP, packet -> {
+            Log.i(TAG_LOBBY, "autogrouping started");
             boolean enabled = packet.Data.equals("true");
             if (enabled) {
                 syncService.startAutoGrouping();
@@ -136,6 +94,55 @@ public class LobbyFragment extends Fragment {
         syncService.getWebSocket().attachHandler(Packet.READY_TYPE, packet -> {
             FragmentOpener.getInstance().open(new MapFragment(), MapFragment.TAG);
         });
+        //endregion
+
+        syncService.getWebSocket().connect();
+        syncService.getWebSocket().send(new Packet(Packet.NAME_TYPE, syncService.getDeviceName()));
+
+        rvGrid = getView().findViewById(R.id.lobby_group_recyclerview);
+        LobbyGroupAdapter adapter = new LobbyGroupAdapter();
+
+        if (leader) {
+            View leaderLayout = getView().findViewById(R.id.leader_layout);
+            leaderLayout.setVisibility(View.VISIBLE);
+
+            Button autoGroupButton = getView().findViewById(R.id.lobby_autogrouping_button);
+            autoGroupButton.setOnClickListener(v -> {
+                String data = mAutogrouping ? "false" : "true";
+                syncService.getWebSocket().send(new Packet(Packet.AUTO_GROUP, data));
+                autoGroupButton.setText(mAutogrouping ? R.string.lobby_autogroup_start : R.string.lobby_autogroup_stop);
+                mAutogrouping = !mAutogrouping;
+            });
+
+            Button startButton = getView().findViewById(R.id.lobby_start_button);
+            startButton.setVisibility(View.VISIBLE);
+            startButton.setOnClickListener(v -> {
+                startButton.setText(R.string.lobby_game_starting);
+                syncService.getWebSocket().send(new Packet(Packet.START_TYPE,""));
+                startButton.setEnabled(false);
+            });
+        }
+
+//        adapter.setOnItemClickListener((position, v) -> {
+//            try {
+//                LobbyDialogFragment dialog = new LobbyDialogFragment();
+//                dialog.show(getActivity().getFragmentManager(), "dialog");
+//            } catch (Exception e) {
+//                Log.e("DialogFragment", e.toString());
+//            }
+
+//        });
+
+        rvGrid.setAdapter(adapter);
+        rvGrid.setLayoutManager(new GridLayoutManager(getContext(), 2));
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        MainActivity.CURRENT_FRAGMENT = TAG_LOBBY;
+
+
     }
 
     @Override

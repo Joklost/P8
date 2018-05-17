@@ -42,8 +42,8 @@ public class SyncServiceHelper {
         public void onServiceConnected(ComponentName name, IBinder service) {
             SyncService.LocalBinder binder = (SyncService.LocalBinder) service;
             sInstance = binder.getService();
-            sInstance.init();
             sOnBound.accept(sInstance);
+            sInstance.init();
 
         }
 

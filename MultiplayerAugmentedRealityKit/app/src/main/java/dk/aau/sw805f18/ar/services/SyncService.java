@@ -97,11 +97,10 @@ public class SyncService extends Service {
 //                Log.i(TAG, info.toString());
 //            }
 //        });
-
-        mAutoGrouping = new AutoGrouping(mDeviceLocation, mWebSocket);
+        mAutoGrouping = new AutoGrouping(mDeviceLocation);
 
         // Remove any existing group, so a new one can be created.
-        if (mGroupCreated) removeWifiP2pGroup();
+        removeWifiP2pGroup();
     }
 
     public void deinit() {
@@ -147,7 +146,23 @@ public class SyncService extends Service {
             @Override
             public void onSuccess() {
                 Log.i(TAG, "Successfully connected to: " + config.deviceAddress);
+
+                if (mWifiP2pSocket != null) {
+                    mWifiP2pSocket.close();
+                    mWifiP2pSocket = null;
+                }
+
+                String ip = "192.168.49.1:80/";
+                try {
+                    mWifiP2pSocket = new WebSocketeer(ip);
+                } catch (ExecutionException e) {
+                    e.printStackTrace();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+
                 mWebSocket.send(new Packet(Packet.READY_TYPE, "true"));
+
             }
 
             @Override
@@ -170,7 +185,6 @@ public class SyncService extends Service {
      */
     public void createWifiP2pGroup() {
         if (mGroupCreated) return;
-
         mManager.createGroup(mChannel, new WifiP2pManager.ActionListener() {
             @Override
             public void onSuccess() {
@@ -186,7 +200,6 @@ public class SyncService extends Service {
 
                 mWebSocket.send(new Packet(Packet.MAC_TYPE, mDeviceAddress));
                 mWebSocket.send(new Packet(Packet.READY_TYPE, "true"));
-                Log.i(TAG, "MAC PACKET SENT: " + mDeviceAddress);
             }
 
             @Override

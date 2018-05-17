@@ -93,11 +93,9 @@ public class DeviceLocation {
     }
 
     public void pause() {
-        synchronized (DeviceLocation.class) {
-            sRefCount--;
-            if (sRefCount == 0) {
-                mLocationClient.removeLocationUpdates(mLocationCallback);
-            }
+        sRefCount--;
+        if (sRefCount == 0) {
+            mLocationClient.removeLocationUpdates(mLocationCallback);
         }
     }
 
@@ -115,13 +113,6 @@ public class DeviceLocation {
 
     public static DeviceLocation getInstance(Activity activity) {
         if (sInstance == null) {
-            // Double checked locking makes sure that
-            // the singleton is thread-safe.
-            synchronized (DeviceLocation.class) {
-                if (sInstance == null) {
-                    sInstance = new DeviceLocation(activity);
-                }
-            }
             sInstance = new DeviceLocation(activity);
         }
         return sInstance;
@@ -129,6 +120,6 @@ public class DeviceLocation {
 
     @Override
     public Object clone() throws CloneNotSupportedException{
-        throw new CloneNotSupportedException("Singleton, cannot be clonned");
+        throw new CloneNotSupportedException("Singleton, cannot be cloned");
     }
 }
