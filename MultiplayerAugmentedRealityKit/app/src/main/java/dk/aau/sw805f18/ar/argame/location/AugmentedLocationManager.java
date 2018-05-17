@@ -77,8 +77,7 @@ public class AugmentedLocationManager {
 
             // Adjustment to add markers on horizon, instead of just directly in front of camera
             double heightAdjustment = Math.round(markerDistance * (Math.tan(Math.toRadians(mDeviceOrientation.getPitch()))));
-
-            float y = (float) ((float) avg.getAsDouble() + heightAdjustment);
+            float y = (float) (avg.getAsDouble() + heightAdjustment);
 
             // Use rotation from Pose in Plane.
             Plane plane = new ArrayList<>(allPlanes).get(0);
