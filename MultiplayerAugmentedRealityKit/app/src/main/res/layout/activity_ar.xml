@@ -92,9 +92,7 @@
 
     <Button
         android:id="@+id/Chest_Found_Btn"
-        style="@android:style/Widget.DeviceDefault.Button.Borderless"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
+        style="@style/FullsizeButton"
         android:background="@color/primary"
         android:text="Open Chest"
         android:visibility="invisible"
