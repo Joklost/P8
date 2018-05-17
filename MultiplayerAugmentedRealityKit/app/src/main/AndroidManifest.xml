@@ -53,6 +53,9 @@
             android:screenOrientation="locked"/>
 
         <meta-data
+            android:name="com.google.android.ar.API_KEY"
+            android:value="AIzaSyCZPgsD5QpaifbPrFPz4ijIayyb-6lNeqA"/>
+        <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyBSNhvpyhdLo3wdkzVvQGqeaP9RnxHlcP4" />
         <meta-data

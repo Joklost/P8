@@ -6,6 +6,8 @@ import com.google.ar.core.Anchor;
 
 public class AugmentedLocation {
 
+    private final int mId;
+
     private final int mModel;
     // Location in real-world terms
     private Location mLocation;
@@ -14,7 +16,8 @@ public class AugmentedLocation {
 
     private boolean mLocked;
 
-    public AugmentedLocation(Location location, int model) {
+    public AugmentedLocation(int id, Location location, int model) {
+        mId = id;
         mLocation = location;
         mModel = model;
     }
@@ -41,6 +44,10 @@ public class AugmentedLocation {
 
     public int getModel() {
         return mModel;
+    }
+
+    public int getId() {
+        return mId;
     }
 
 }

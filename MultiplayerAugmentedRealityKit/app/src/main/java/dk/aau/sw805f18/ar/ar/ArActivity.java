@@ -46,6 +46,7 @@ import javax.microedition.khronos.opengles.GL10;
 import dk.aau.sw805f18.ar.R;
 import dk.aau.sw805f18.ar.ar.location.LocationMarker;
 import dk.aau.sw805f18.ar.ar.location.LocationScene;
+import dk.aau.sw805f18.ar.argame.TreasureHunt;
 import dk.aau.sw805f18.ar.common.sensor.DeviceLocation;
 import dk.aau.sw805f18.ar.common.helpers.Task;
 import dk.aau.sw805f18.ar.common.rendering.AnnotationRenderer;
@@ -181,7 +182,7 @@ public class ArActivity extends AppCompatActivity implements GLSurfaceView.Rende
                 new AnnotationRenderer("P-Plads3")));
 
         //TODO change so that the game only start when the user agrees to
-        mGame.StartGame();
+        mGame.startGame();
     }
 
     public void fetchTreasureHuntModels() {
@@ -556,7 +557,7 @@ public class ArActivity extends AppCompatActivity implements GLSurfaceView.Rende
 
             // Draw location markers
             mLocationScene.draw(mSession, frame);
-            mGame.gameLoop(frame);
+            mGame.update(frame);
             // Get projection matrix.
             float[] projmtx = new float[16];
             camera.getProjectionMatrix(projmtx, 0, 0.1f, 100.0f);

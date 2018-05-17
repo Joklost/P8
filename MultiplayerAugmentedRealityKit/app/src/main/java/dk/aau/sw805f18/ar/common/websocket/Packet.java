@@ -24,6 +24,8 @@ public class Packet {
     public static final String RANDOM_CHEST = "randomchest";
     public static final String CHOSEN_CHEST = "chosenchest";
 
+    public static final String ANCHOR_TYPE = "anchor";
+
     public String Type;
     public String Data;
 

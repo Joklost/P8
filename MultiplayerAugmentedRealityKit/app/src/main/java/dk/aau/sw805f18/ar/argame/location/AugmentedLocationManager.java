@@ -89,9 +89,8 @@ public class AugmentedLocationManager {
                     .getCamera().getDisplayOrientedPose()
                     .compose(Pose.makeTranslation(x, y, z))
                     .getTranslation(translations, 0);
-
-            al.setAnchor(sceneView.getSession().createAnchor(new Pose(translations, rotations)));
-            mActivity.addNode(al.getAnchor(), al.getModel());
+            Anchor anchor = mActivity.addNode(sceneView.getSession().createAnchor(new Pose(translations, rotations)), al.getId(), al.getModel());
+            al.setAnchor(anchor);
         }
     }
 
@@ -116,9 +115,9 @@ public class AugmentedLocationManager {
                 );
 
                 al.getAnchor().detach();
-                al.setAnchor(p.createAnchor(anchorPose));
+                Anchor anchor = mActivity.addNode(p.createAnchor(anchorPose), al.getId(), al.getModel());
+                al.setAnchor(anchor);
                 al.setLocked(true);
-                mActivity.addNode(al.getAnchor(), al.getModel());
                 break;
             }
         }

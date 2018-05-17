@@ -107,4 +107,6 @@
     <!--Others-->
     <string name="infinity">&#8734;</string>
     <string name="game_starting">Starting...</string>
+    <string name="waiting">Waiting...</string>
+    <string name="no_chest">No Chest Nearby</string>
 </resources>
