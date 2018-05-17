@@ -4,6 +4,7 @@ import android.Manifest;
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -25,11 +26,11 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import dk.aau.sw805f18.ar.R;
 import dk.aau.sw805f18.ar.ar.ArActivity;
 import dk.aau.sw805f18.ar.common.helpers.SyncServiceHelper;
+import dk.aau.sw805f18.ar.common.sensor.DeviceLocation;
 import dk.aau.sw805f18.ar.common.websocket.Packet;
 import dk.aau.sw805f18.ar.models.Marker;
 
@@ -37,6 +38,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     public static final String TAG = MapFragment.class.getSimpleName();
     public static final String TAG_MAP = "map";
     MapView mMapView;
+    private ArrayList<Marker> mMarkers;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -69,11 +71,11 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
 
         SyncServiceHelper.getInstance().getWebSocket().attachHandler(Packet.OBJECTS_TYPE, packet -> {
             Gson gson = new Gson();
-            List<Marker> markers = gson.fromJson(packet.Data, new TypeToken<ArrayList<Marker>>() {
+            mMarkers = gson.fromJson(packet.Data, new TypeToken<ArrayList<Marker>>() {
             }.getType());
 
             boolean firstEl = true;
-            for (Marker marker : markers) {
+            for (Marker marker : mMarkers) {
                 LatLng location = new LatLng(marker.Location.Lat, marker.Location.Lon);
 
                 if (firstEl) {
@@ -99,9 +101,19 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
             SyncServiceHelper.getInstance().getWebSocket().removeHandler(Packet.OBJECTS_TYPE);
         });
 
-        //TODO: Call when within a control post's range
-//        gameFoundPopup();
+        DeviceLocation.getInstance(getActivity()).subscribe(getContext(), location -> {
+            for (Marker marker : mMarkers) {
+                float[] results = new float[2];
+                Location.distanceBetween(
+                        location.getLatitude(), location.getLongitude(),
+                        marker.Location.Lat, marker.Location.Lon, results);
 
+                if (results[0] < 25.0) {
+                    getActivity().runOnUiThread(() -> gameFoundPopup());
+                    break;
+                }
+            }
+        });
     }
 
     private void gameFoundPopup() {

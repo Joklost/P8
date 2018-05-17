@@ -78,7 +78,7 @@ public class LobbyFragment extends Fragment {
             });
         }
 
-        adapter.setOnItemClickListener((position, v) -> {
+//        adapter.setOnItemClickListener((position, v) -> {
 //            try {
 //                LobbyDialogFragment dialog = new LobbyDialogFragment();
 //                dialog.show(getActivity().getFragmentManager(), "dialog");
@@ -86,7 +86,7 @@ public class LobbyFragment extends Fragment {
 //                Log.e("DialogFragment", e.toString());
 //            }
 
-        });
+//        });
 
         rvGrid.setAdapter(adapter);
         rvGrid.setLayoutManager(new GridLayoutManager(getContext(), 2));
