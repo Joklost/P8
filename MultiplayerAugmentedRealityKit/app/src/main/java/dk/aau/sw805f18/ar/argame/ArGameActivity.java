@@ -68,9 +68,27 @@ public class ArGameActivity extends AppCompatActivity {
         buildRenderables();
 
         mAugmentedLocationManager = new AugmentedLocationManager(this);
+//        mAugmentedLocationManager.add(
+//                new AugmentedLocation(
+//                        DeviceLocation.BuildLocation(57.014751, 9.978139),
+//                        R.raw.treasure
+//                )
+//        );
         mAugmentedLocationManager.add(
                 new AugmentedLocation(
-                        DeviceLocation.BuildLocation(57.014751, 9.978139),
+                        DeviceLocation.BuildLocation(57.013973, 9.988686),
+                        R.raw.treasure
+                )
+        );
+        mAugmentedLocationManager.add(
+                new AugmentedLocation(
+                        DeviceLocation.BuildLocation(57.013833, 9.988444),
+                        R.raw.treasure
+                )
+        );
+        mAugmentedLocationManager.add(
+                new AugmentedLocation(
+                        DeviceLocation.BuildLocation(57.014007, 9.988455),
                         R.raw.treasure
                 )
         );

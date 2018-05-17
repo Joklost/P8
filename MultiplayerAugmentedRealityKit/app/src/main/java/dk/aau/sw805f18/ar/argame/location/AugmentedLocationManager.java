@@ -11,7 +11,9 @@ import com.google.ar.sceneform.ArSceneView;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.OptionalDouble;
+import java.util.stream.Collectors;
 
+import dk.aau.sw805f18.ar.R;
 import dk.aau.sw805f18.ar.argame.ArGameActivity;
 import dk.aau.sw805f18.ar.common.sensor.DeviceLocation;
 import dk.aau.sw805f18.ar.common.sensor.DeviceOrientation;
@@ -35,7 +37,7 @@ public class AugmentedLocationManager {
 
     private void refreshAnchors(ArSceneView sceneView) {
         for (AugmentedLocation al : mAugmentedLocations) {
-            if (al.isLocked()) {
+            if (al.isLocked() || al.getAnchor() != null) {
                 continue;
             }
 
@@ -57,30 +59,6 @@ public class AugmentedLocationManager {
                 continue;
             }
 
-            double rotation = Math.floor(
-                    (mDeviceOrientation.getCurrentDegree()
-                            + (float) LocationUtils.bearing(
-                            mDeviceLocation.getCurrentBestLocation().getLatitude(),
-                            mDeviceLocation.getCurrentBestLocation().getLongitude(),
-                            al.getLocation().getLatitude(),
-                            al.getLocation().getLongitude()
-                    )) % 360
-            );
-
-            // When pointing device upwards (camera towards sky)
-            // the compass bearing can flip.
-            // In experiments this seems to happen at pitch~=-25
-            if (mDeviceOrientation.getPitch() > -25) {
-                rotation = rotation * Math.PI / 180;
-            }
-
-            float x = 0;
-            float z = -markerDistance;
-
-            // This makes no sense..
-            float zRotated = (float) (z * Math.cos(rotation) - x * Math.sin(rotation));
-            float xRotated = (float) -(z * Math.sin(rotation) + x * Math.cos(rotation));
-
             // Estimate the surface level.
             Collection<Plane> allPlanes = sceneView.getSession().getAllTrackables(Plane.class);
             OptionalDouble avg = allPlanes.stream()
@@ -94,13 +72,56 @@ public class AugmentedLocationManager {
                 continue;
             }
 
-            float y = (float) avg.getAsDouble();
-            Pose p = sceneView.getArFrame()
-                    .getCamera().getPose().compose(Pose.makeTranslation(xRotated, y, zRotated));
+            float x = 0;
+            float z = -markerDistance;
 
-            al.setAnchor(sceneView.getSession().createAnchor(p));
-            al.setLocked(true);
+            // Adjustment to add markers on horizon, instead of just directly in front of camera
+            double heightAdjustment = Math.round(markerDistance * (Math.tan(Math.toRadians(mDeviceOrientation.getPitch()))));
+
+            float y = (float) ((float) avg.getAsDouble() + heightAdjustment);
+
+            // Use rotation from Pose in Plane.
+            Plane plane = new ArrayList<>(allPlanes).get(0);
+            float rotations[] = new float[4];
+            plane.getCenterPose().getRotationQuaternion(rotations, 0);
+            float translations[] = new float[3];
+
+            sceneView.getArFrame()
+                    .getCamera().getDisplayOrientedPose()
+                    .compose(Pose.makeTranslation(x, y, z))
+                    .getTranslation(translations, 0);
+
+            al.setAnchor(sceneView.getSession().createAnchor(new Pose(translations, rotations)));
             mActivity.addNode(al.getAnchor(), al.getModel());
+        }
+    }
+
+    private void checkForPlanes(ArSceneView sceneView) {
+        for (AugmentedLocation al : mAugmentedLocations) {
+            if (al.isLocked() || al.getAnchor() == null) {
+                continue;
+            }
+
+            Pose anchorPose = al.getAnchor().getPose();
+            for (Plane p : sceneView.getSession().getAllTrackables(Plane.class)) {
+                if (!p.isPoseInPolygon(anchorPose)) {
+                    continue;
+                }
+
+                anchorPose = anchorPose.compose(
+                        Pose.makeTranslation(
+                                0,
+                                p.getCenterPose().ty() - anchorPose.ty(),
+                                0
+                        )
+                );
+
+                al.getAnchor().detach();
+                al.setAnchor(p.createAnchor(anchorPose));
+                al.setLocked(true);
+                mActivity.addNode(al.getAnchor(), al.getModel());
+                break;
+            }
         }
     }
 
@@ -139,5 +160,7 @@ public class AugmentedLocationManager {
         }
 
         refreshAnchors(sceneView);
+        checkForPlanes(sceneView);
     }
+
 }
