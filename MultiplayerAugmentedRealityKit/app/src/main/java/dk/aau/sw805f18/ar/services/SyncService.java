@@ -34,6 +34,10 @@ public class SyncService extends Service {
     private WifiP2pManager.Channel mChannel;
     private WifiP2pManager mManager;
 
+    public String getDeviceAddress() {
+        return mDeviceAddress;
+    }
+
     private String mDeviceAddress;
     private String mDeviceName;
     private boolean mDiscoverInitiated;

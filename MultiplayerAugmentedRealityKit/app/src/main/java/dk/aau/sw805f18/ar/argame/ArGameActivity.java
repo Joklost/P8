@@ -4,13 +4,12 @@ import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.Gravity;
 import android.widget.Toast;
 
 import com.google.ar.core.Anchor;
 import com.google.ar.core.Plane;
-import com.google.ar.core.exceptions.CameraNotAvailableException;
+import com.google.ar.core.Pose;
 import com.google.ar.sceneform.AnchorNode;
 import com.google.ar.sceneform.rendering.ModelRenderable;
 import com.google.ar.sceneform.ux.ArFragment;
@@ -19,10 +18,10 @@ import com.google.ar.sceneform.ux.TransformableNode;
 import java.util.HashMap;
 
 import dk.aau.sw805f18.ar.R;
+import dk.aau.sw805f18.ar.ar.TreasureHunt;
 import dk.aau.sw805f18.ar.argame.location.AugmentedLocation;
 import dk.aau.sw805f18.ar.argame.location.AugmentedLocationManager;
 import dk.aau.sw805f18.ar.common.sensor.DeviceLocation;
-import dk.aau.sw805f18.ar.common.sensor.DeviceOrientation;
 import dk.aau.sw805f18.ar.fragments.ModelDialogFragment;
 
 public class ArGameActivity extends AppCompatActivity {
@@ -117,12 +116,25 @@ public class ArGameActivity extends AppCompatActivity {
 
                 }
         );
-
+        TreasureHunt game = new TreasureHunt(this, mAugmentedLocationManager);
+        game.StartGame();
         // The onUpdate method is called before each frame.
         mArFragment.getArSceneView().getScene().setOnUpdateListener(frameTime -> {
             mArFragment.onUpdate(frameTime);
             mAugmentedLocationManager.update(mArFragment.getArSceneView());
+            //if check for spil
+
+            game.gameLoop(mArFragment.getArSceneView().getArFrame());
+
         });
+    }
+    public float calcPoseDistance(Pose start, Pose end) {
+        float dx = start.tx() - end.tx();
+        float dy = start.ty() - end.ty();
+        float dz = start.tz() - end.tz();
+
+        // Compute the straight-line distance.
+        return (float) Math.sqrt(dx * dx + dy * dy + dz * dz);
     }
 
     public void addNode(Anchor anchor, int model) {

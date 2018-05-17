@@ -180,7 +180,6 @@ public class ArActivity extends AppCompatActivity implements GLSurfaceView.Rende
                 DeviceLocation.BuildLocation(57.014007, 9.988455),
                 new AnnotationRenderer("P-Plads3")));
 
-        mGame = new TreasureHunt(this, mLocationScene);
         //TODO change so that the game only start when the user agrees to
         mGame.StartGame();
     }
