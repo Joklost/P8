@@ -118,6 +118,7 @@ public class MainActivity extends AppCompatActivity {
             switch (item.getItemId()) {
                 case R.id.nav_home:
                     drawerItemIndex = 0;
+                    CURRENT_TAG = HomeFragment.TAG_HOME;
                     break;
                 case R.id.nav_profile:
                     drawerItemIndex = 1;
