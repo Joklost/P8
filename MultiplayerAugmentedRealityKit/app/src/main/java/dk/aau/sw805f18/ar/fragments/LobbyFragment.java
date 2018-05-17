@@ -7,6 +7,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -60,7 +61,6 @@ public class LobbyFragment extends Fragment {
         boolean leader = bundle.containsKey("type") && bundle.get("type") == "leader";
 
 
-
         gameOptionsBundle = getArguments();
         syncService = SyncServiceHelper.getInstance();
 
@@ -70,10 +70,8 @@ public class LobbyFragment extends Fragment {
         lobbyLayout = getView().findViewById(R.id.lobby_layout);
 
         if (leader) {
-            View leaderLayout = getView().findViewById(R.id.leader_layout);
-            leaderLayout.setVisibility(View.VISIBLE);
-
             Button startButton = getView().findViewById(R.id.lobby_start_button);
+            startButton.setVisibility(View.VISIBLE);
             startButton.setOnClickListener(v -> {
                 startButton.setText(R.string.game_starting);
                 FragmentOpener.getInstance().open(new MapFragment(), MapFragment.TAG);
@@ -81,10 +79,13 @@ public class LobbyFragment extends Fragment {
         }
 
         adapter.setOnItemClickListener((position, v) -> {
-            LobbyDialogFragment dialog = new LobbyDialogFragment();
+//            try {
+//                LobbyDialogFragment dialog = new LobbyDialogFragment();
+//                dialog.show(getActivity().getFragmentManager(), "dialog");
+//            } catch (Exception e) {
+//                Log.e("DialogFragment", e.toString());
+//            }
 
-            FragmentManager fragmentManager = getActivity().getFragmentManager();
-            dialog.show(fragmentManager, "dialog");
         });
 
         rvGrid.setAdapter(adapter);

@@ -1,38 +1,51 @@
 package dk.aau.sw805f18.ar.fragments;
 
-import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.DialogFragment;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+
+import java.util.ArrayList;
 
 import dk.aau.sw805f18.ar.R;
-import dk.aau.sw805f18.ar.common.adapters.DialogLobbyAssignedAdapter;
+import dk.aau.sw805f18.ar.common.adapters.SimpleRowAdapter;
 
 public class LobbyDialogFragment extends DialogFragment {
 
     @Override
-    public Dialog onCreateDialog(Bundle savedInstanceState) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-        LayoutInflater inflater = getActivity().getLayoutInflater();
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setStyle(DialogFragment.STYLE_NORMAL, R.style.MyDialogFragmentStyle);
+    }
 
-        builder.setView(inflater.inflate(R.layout.dialog_lobby_content, null))
-                .setTitle("Gruppe navn")
-                .setPositiveButton("Add", (dialog, id) -> {
+    @Nullable
+    @Override
+    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, Bundle savedInstanceState) {
+        Dialog dialog = getDialog();
 
-                })
-                .setNegativeButton("Cancel", (dialog, id) -> {
+        dialog.setTitle("Gruppe navn");
+        View layout = inflater.inflate(R.layout.dialog_lobby_content, container, false);
 
-                });
+        return layout;
+    }
 
-        RecyclerView rcAssigned = getView().findViewById(R.id.dialog_lobby_assigned);
-        RecyclerView rcUnassigned = getView().findViewById(R.id.dialog_lobby_unassigned);
+    @Override
+    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
 
-        rcAssigned.setAdapter(new DialogLobbyAssignedAdapter());
+        RecyclerView rcAssigned = view.findViewById(R.id.dialog_lobby_assigned);
+        RecyclerView rcUnassigned = view.findViewById(R.id.dialog_lobby_unassigned);
+
+        ArrayList<String> test_data = new ArrayList<>();
+        for (int i = 0; i < 5; i++) {
+            test_data.add("TROLOLOLOLOL");
+        }
+        rcAssigned.setAdapter(new SimpleRowAdapter(test_data));
         rcAssigned.setLayoutManager(new LinearLayoutManager(getContext()));
-
-        return builder.create();
     }
 }
