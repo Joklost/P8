@@ -40,6 +40,7 @@ public class SyncService extends Service {
 
     private String mDeviceAddress;
     private String mDeviceName;
+    private String mPlayerId;
     private boolean mDiscoverInitiated;
     private boolean mGroupCreated;
     private String mToken;
@@ -65,6 +66,9 @@ public class SyncService extends Service {
             mWebSocket.close();
         }
         mWebSocket = new WebSocketeer("http://warpapp.xyz/connect/" + lobbyId);
+        mWebSocket.attachHandler(Packet.ID_TYPE, packet -> {
+            mPlayerId = packet.Data;
+        });
     }
 
      /**
@@ -87,17 +91,17 @@ public class SyncService extends Service {
         }
         mChannel = mManager.initialize(this, getMainLooper(), null);
 
-        requestConnectionInfo(info -> {
-            if (info != null) {
-                Log.i(TAG, "Connection already exists?");
-                Log.i(TAG, info.toString());
-            }
-        });
+//        requestConnectionInfo(info -> {
+//            if (info != null) {
+//                Log.i(TAG, "Connection already exists?");
+//                Log.i(TAG, info.toString());
+//            }
+//        });
 
         mAutoGrouping = new AutoGrouping(mDeviceLocation, mWebSocket);
 
         // Remove any existing group, so a new one can be created.
-        removeWifiP2pGroup();
+        if (mGroupCreated) removeWifiP2pGroup();
     }
 
     public void deinit() {
@@ -114,7 +118,6 @@ public class SyncService extends Service {
             }
         }
     }
-
 
     /**
      * Binder implementation for SyncService.
@@ -144,6 +147,7 @@ public class SyncService extends Service {
             @Override
             public void onSuccess() {
                 Log.i(TAG, "Successfully connected to: " + config.deviceAddress);
+                mWebSocket.send(new Packet(Packet.READY_TYPE, "true"));
             }
 
             @Override
@@ -179,10 +183,9 @@ public class SyncService extends Service {
                 }
                 mWebSocketeerServer = new WebSocketeerServer();
                 // Her skal der være nogle handlers for gruppe ws connectivity
-                mWebSocketeerServer.attachHandler("mark", (ws, packet) -> {
-                    ws.send("NEJ MARK!!!!");
-                });
-                mWebSocket.send(new Packet("mac", mDeviceAddress));
+
+                mWebSocket.send(new Packet(Packet.MAC_TYPE, mDeviceAddress));
+                mWebSocket.send(new Packet(Packet.READY_TYPE, "true"));
                 Log.i(TAG, "MAC PACKET SENT: " + mDeviceAddress);
             }
 
@@ -237,6 +240,10 @@ public class SyncService extends Service {
     //region getters and setters
     public void setDeviceAddress(String deviceAddress) {
         this.mDeviceAddress = deviceAddress;
+    }
+
+    public String getDeviceName() {
+        return mDeviceName;
     }
 
     public void setDeviceName(String deviceName) {

@@ -32,11 +32,13 @@ import dk.aau.sw805f18.ar.ar.ArActivity;
 import dk.aau.sw805f18.ar.common.helpers.SyncServiceHelper;
 import dk.aau.sw805f18.ar.common.sensor.DeviceLocation;
 import dk.aau.sw805f18.ar.common.websocket.Packet;
+import dk.aau.sw805f18.ar.main.MainActivity;
 import dk.aau.sw805f18.ar.models.Marker;
 
 public class MapFragment extends Fragment implements OnMapReadyCallback {
     public static final String TAG = MapFragment.class.getSimpleName();
     public static final String TAG_MAP = "map";
+    public static String courseTitle = "Course:";
     MapView mMapView;
     private ArrayList<Marker> mMarkers;
 
@@ -56,6 +58,12 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         mMapView.onResume();
         mMapView.getMapAsync(this);
         return rootView;
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        MainActivity.CURRENT_FRAGMENT = TAG_MAP;
     }
 
     @Override

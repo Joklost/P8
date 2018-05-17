@@ -28,9 +28,8 @@ public class AutoGrouping {
                 Location location = mDeviceLocation.getCurrentBestLocation();
                 mWebSocket.send(new Packet(
                         Packet.POSITION_TYPE,
-                        String.format("{lat: %s, lon: %s}",
+                        String.format("{\"Lat\": %s, \"Lon\": %s}",
                                 location.getLatitude(), location.getLongitude())));
-
                 try {
                     mWaiter.wait(1000);
                 } catch (InterruptedException e) {

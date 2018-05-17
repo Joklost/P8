@@ -10,7 +10,7 @@ public class Packet {
     public static final String CREATE_TYPE = "start";            // Send when creating a group. DATA: device MAC address
     public static final String OWNER_TYPE = "owner";            // Response to START. DATA: group ID string
     public static final String GROUP_COMPLETED_TYPE = "group";  // Send when all group members have joined, to finalize communications. DATA: n/a
-    public static final String SET_GROUP_TYPE = "setgroup";
+    public static final String SETGROUP_TYPE = "setgroup";
     public static final String READY_TYPE = "ready";
 
     public static final String JOIN_TYPE = "setgroup";              // Send when joining group. DATA: group ID string
@@ -19,12 +19,13 @@ public class Packet {
     public static final String ERROR_TYPE = "error";            // Some error occurred serverside (fx. input group ID not found). DATA: error message
 
     public static final String POSITION_TYPE = "position";
-    public static final String NEW_GROUP_TYPE = "newgroup";
+    public static final String NEWGROUP_TYPE = "newgroup";
     public static final String AUTO_GROUP = "autogroup";
     public static final String RANDOM_CHEST = "randomchest";
     public static final String CHOSEN_CHEST = "chosenchest";
 
     public static final String ANCHOR_TYPE = "anchor";
+    public static final String ID_TYPE = "id";
 
     public String Type;
     public String Data;

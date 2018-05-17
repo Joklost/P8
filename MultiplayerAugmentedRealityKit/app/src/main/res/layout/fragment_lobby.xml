@@ -3,6 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/white"
     android:id="@+id/lobby_layout">
 
     <TextView
@@ -65,15 +66,22 @@
         >
 
         <Button
+            android:id="@+id/lobby_autogrouping_button"
+            style="@style/FullsizeButton"
+            android:text="@string/lobby_autogroup_start"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toTopOf="@id/lobby_start_button"/>
+
+        <Button
             android:id="@+id/lobby_start_button"
             style="@style/FullsizeButton"
             android:text="@string/lobby_start_button_text"
-            android:visibility="invisible"
+            android:layout_marginTop="5dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="parent" />
+            app:layout_constraintTop_toBottomOf="@id/lobby_autogrouping_button" />
     </android.support.constraint.ConstraintLayout>
-
-
 </android.support.constraint.ConstraintLayout>

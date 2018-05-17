@@ -12,6 +12,7 @@ import dk.aau.sw805f18.ar.fragments.CreateCourseFragment;
 import dk.aau.sw805f18.ar.fragments.FindCourseFragment;
 import dk.aau.sw805f18.ar.fragments.HomeFragment;
 import dk.aau.sw805f18.ar.fragments.LobbyFragment;
+import dk.aau.sw805f18.ar.fragments.MapFragment;
 import dk.aau.sw805f18.ar.fragments.ProfileFragment;
 import dk.aau.sw805f18.ar.fragments.SettingsFragment;
 import dk.aau.sw805f18.ar.fragments.StatsFragment;
@@ -88,6 +89,9 @@ public class FragmentOpener {
                     break;
                 case StatsFragment.TAG_STATS:
                     title = r.getString(R.string.stats_title);
+                    break;
+                case MapFragment.TAG_MAP:
+                    title = MapFragment.courseTitle;
                     break;
                 default:
                     break;
