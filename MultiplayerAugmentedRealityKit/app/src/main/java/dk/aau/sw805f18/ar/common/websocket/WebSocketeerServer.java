@@ -20,17 +20,22 @@ public class WebSocketeerServer {
     private final HashMap<String, BiConsumer<WebSocket, Packet>> _handlers = new HashMap<>();
 
     public WebSocketeerServer() {
-        mServer = new AsyncHttpServer();
-        mSockets = new ArrayList<>();
+        try {
+            mServer = new AsyncHttpServer();
+            mSockets = new ArrayList<>();
 
-        mServer.websocket("/", (webSocket, request) -> {
-            mSockets.add(webSocket);
+            mServer.websocket("/", (webSocket, request) -> {
+                mSockets.add(webSocket);
 
-            webSocket.setClosedCallback(ex -> mSockets.remove(webSocket));
+                webSocket.setClosedCallback(ex -> mSockets.remove(webSocket));
 
-            webSocket.setStringCallback(msg -> onMessage(webSocket, msg));
+                webSocket.setStringCallback(msg -> onMessage(webSocket, msg));
 
-        });
+            });
+        }
+        catch (Exception e) {
+            Log.i("ERRORzz", e.getMessage());
+        }
     }
 
     private void onMessage(WebSocket socket, String s) {
