@@ -109,11 +109,8 @@
 
     <!--Others-->
     <string name="infinity">&#8734;</string>
-<<<<<<< HEAD
-    <string name="game_starting">Starting...</string>
-    <string name="waiting">Waiting...</string>
+    <string name="game_starting">Starting…</string>
+    <string name="waiting">Waiting…</string>
     <string name="no_chest">No Chest Nearby</string>
-=======
     <string name="map_title">Map</string>
->>>>>>> Mark approved commit. Adds autogrouping and wifip2p stuff
 </resources>
