@@ -26,10 +26,14 @@ import java.util.HashMap;
 import dk.aau.sw805f18.ar.R;
 import dk.aau.sw805f18.ar.argame.location.AugmentedLocation;
 import dk.aau.sw805f18.ar.argame.location.AugmentedLocationManager;
+import dk.aau.sw805f18.ar.common.helpers.CloudAnchorServiceHelper;
 import dk.aau.sw805f18.ar.common.helpers.SyncServiceHelper;
+import dk.aau.sw805f18.ar.common.helpers.Task;
 import dk.aau.sw805f18.ar.common.sensor.DeviceLocation;
 import dk.aau.sw805f18.ar.common.websocket.Packet;
 import dk.aau.sw805f18.ar.fragments.ModelDialogFragment;
+import dk.aau.sw805f18.ar.services.CloudAnchorService;
+import dk.aau.sw805f18.ar.services.SyncService;
 
 public class ArGameActivity extends AppCompatActivity {
     private static final String TAG = ArGameActivity.class.getSimpleName();
@@ -57,9 +61,11 @@ public class ArGameActivity extends AppCompatActivity {
     private ArFragment mArFragment;
     private AugmentedLocationManager mAugmentedLocationManager;
     private TreasureHunt mGame;
-    private CloudAnchorManager mCloudAnchorManager;
     private HashMap<Integer, Anchor> mAnchors;
     private Gson mGson;
+
+    private CloudAnchorService mCloudAnchorService;
+    private SyncService mSyncService;
 
     @SuppressLint("UseSparseArrays")
     private void buildRenderables() {
@@ -89,23 +95,14 @@ public class ArGameActivity extends AppCompatActivity {
 
         buildRenderables();
 
+        mGson = new Gson();
         mAnchors = new HashMap<>();
-        mCloudAnchorManager = new CloudAnchorManager();
-        mCurrentHostResolveMode = HostResolveMode.NONE;
         mAugmentedLocationManager = new AugmentedLocationManager(this);
+        mCurrentHostResolveMode = HostResolveMode.NONE;
+        mSyncService = SyncServiceHelper.getInstance();
+
         mGame = new TreasureHunt(this, mAugmentedLocationManager);
 //        mGame.startGame();
-        mGson = new Gson();
-
-        if (SyncServiceHelper.getInstance().isHostingWifiP2p()) {
-            mCurrentHostResolveMode = HostResolveMode.HOSTING;
-        } else {
-            mCurrentHostResolveMode = HostResolveMode.RESOLVING;
-            SyncServiceHelper.getInstance().getWifiP2pSocket().attachHandler(Packet.ANCHOR_TYPE, packet -> {
-                CloudAnchorInfo cloudAnchorInfo = mGson.fromJson(packet.Data, CloudAnchorInfo.class);
-                resolveNode(cloudAnchorInfo.CloudAnchorId, cloudAnchorInfo.Id, cloudAnchorInfo.ModelId);
-            });
-        }
 
         // region augmentadd
         mAugmentedLocationManager.add(
@@ -159,22 +156,17 @@ public class ArGameActivity extends AppCompatActivity {
         // The onUpdate method is called before each frame.
         mArFragment.getArSceneView().getScene().setOnUpdateListener(frameTime -> {
             mArFragment.onUpdate(frameTime);
-            mAugmentedLocationManager.update(mArFragment.getArSceneView());
 //            mGame.update(mArFragment.getArSceneView().getArFrame());
 
-            Collection<Anchor> updatedAnchors = mArFragment.getArSceneView().getArFrame().getUpdatedAnchors();
-            mCloudAnchorManager.onUpdate(updatedAnchors);
+            if (mCloudAnchorService != null) {
+                Collection<Anchor> updatedAnchors = mArFragment.getArSceneView().getArFrame().getUpdatedAnchors();
+                mCloudAnchorService.onUpdate(updatedAnchors);
+            }
 
-            if (mCurrentHostResolveMode == HostResolveMode.HOSTING) {
-                mAugmentedLocationManager.update(mArFragment.getArSceneView());
+            if (mCurrentHostResolveMode == HostResolveMode.HOSTING && mArFragment.getArSceneView().getSession() != null) {
+                mAugmentedLocationManager.onUpdate(mArFragment.getArSceneView());
             }
         });
-
-        Session session = mArFragment.getArSceneView().getSession();
-        Config config = new Config(session);
-        config.setCloudAnchorMode(Config.CloudAnchorMode.ENABLED); // Add this line.
-        session.configure(config);
-        mCloudAnchorManager.setSession(session);
     }
 
     public float calcPoseDistance(Pose start, Pose end) {
@@ -197,19 +189,21 @@ public class ArGameActivity extends AppCompatActivity {
         AnchorNode anchorNode = new AnchorNode(newAnchor);
         anchorNode.setParent(mArFragment.getArSceneView().getScene());
 
-        mCloudAnchorManager.hostCloudAnchor(newAnchor, cloudAnchor -> {
+        mCloudAnchorService.hostCloudAnchor(newAnchor, cloudAnchor -> {
             Anchor.CloudAnchorState state = cloudAnchor.getCloudAnchorState();
             if (state.isError()) {
                 Log.e(TAG, "Error hosting a cloud anchor. State: " + state);
                 return;
             }
 
-            SyncServiceHelper.getInstance().getWebSocketeerServer().sendToAll(
-                    new Packet(
-                            Packet.ANCHOR_TYPE,
-                            mGson.toJson(new CloudAnchorInfo(id, cloudAnchor.getCloudAnchorId(), model))
-                    )
-            );
+            if (mSyncService.getWebSocketeerServer() != null) {
+                mSyncService.getWebSocketeerServer().sendToAll(
+                        new Packet(
+                                Packet.ANCHOR_TYPE,
+                                mGson.toJson(new CloudAnchorInfo(id, cloudAnchor.getCloudAnchorId(), model))
+                        )
+                );
+            }
         });
 
         addTransformableNode(anchorNode, model);
@@ -222,7 +216,7 @@ public class ArGameActivity extends AppCompatActivity {
             return;
         }
 
-        mCloudAnchorManager.resolveCloudAnchor(cloudAnchorId, anchor -> {
+        mCloudAnchorService.resolveCloudAnchor(cloudAnchorId, anchor -> {
             mAnchors.put(id, anchor);
             AnchorNode anchorNode = new AnchorNode(anchor);
             anchorNode.setParent(mArFragment.getArSceneView().getScene());
@@ -242,11 +236,52 @@ public class ArGameActivity extends AppCompatActivity {
     protected void onPause() {
         super.onPause();
         mAugmentedLocationManager.pause();
+        mCloudAnchorService = null;
+        CloudAnchorServiceHelper.deinit(this);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        mAugmentedLocationManager.resume();
+        CloudAnchorServiceHelper.init(this, cloudAnchorService -> {
+            mCloudAnchorService = cloudAnchorService;
+
+            if (mSyncService.getWifiP2pSocket() != null) {
+                if (mSyncService.isHostingWifiP2p()) {
+                    mCurrentHostResolveMode = HostResolveMode.HOSTING;
+                } else {
+                    mCurrentHostResolveMode = HostResolveMode.RESOLVING;
+                    mSyncService.getWifiP2pSocket().attachHandler(Packet.ANCHOR_TYPE, packet -> {
+                        CloudAnchorInfo cloudAnchorInfo = mGson.fromJson(packet.Data, CloudAnchorInfo.class);
+                        resolveNode(cloudAnchorInfo.CloudAnchorId, cloudAnchorInfo.Id, cloudAnchorInfo.ModelId);
+                    });
+                    mSyncService.getWifiP2pSocket().connect();
+                }
+            } else {
+                mCurrentHostResolveMode = HostResolveMode.HOSTING;
+            }
+
+            mAugmentedLocationManager.resume();
+
+            Task.run(() -> {
+                Session session = null;
+                while (session == null) {
+                    if (mArFragment.getArSceneView().getSession() == null) {
+                        try {
+                            Thread.sleep(1000);
+                        } catch (InterruptedException ignored) {
+                            Log.e(TAG, "Interrupted while waiting for Session!");
+                        }
+                        continue;
+                    }
+
+                    session = mArFragment.getArSceneView().getSession();
+                    Config config = new Config(session);
+                    config.setCloudAnchorMode(Config.CloudAnchorMode.ENABLED); // Add this line.
+                    session.configure(config);
+                    mCloudAnchorService.setSession(session);
+                }
+            });
+        });
     }
 }

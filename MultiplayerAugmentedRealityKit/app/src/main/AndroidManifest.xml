@@ -69,14 +69,11 @@
             </intent-filter>
         </activity>
 
-        <activity
-            android:name=".main.WifiP2pActivity"
-            android:parentActivityName=".main.MainActivity" />
-
         <service
             android:name=".services.SyncService"
             android:exported="false" />
-        <service android:name=".services.SocketService" />
+
+        <service android:name=".services.CloudAnchorService" />
     </application>
 
 </manifest>

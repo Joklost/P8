@@ -159,12 +159,8 @@ public class SyncService extends Service {
                 Log.i(TAG, "Attempting to connect to " + ip);
                 try {
                     mWifiP2pSocket = new WebSocketeer(ip);
-                    // TODO: setup handlers here
-                    mWifiP2pSocket.connect();
                     mWebSocket.send(new Packet(Packet.READY_TYPE, "true"));
-                } catch (ExecutionException e) {
-                    e.printStackTrace();
-                } catch (InterruptedException e) {
+                } catch (ExecutionException | InterruptedException e) {
                     e.printStackTrace();
                 }
 

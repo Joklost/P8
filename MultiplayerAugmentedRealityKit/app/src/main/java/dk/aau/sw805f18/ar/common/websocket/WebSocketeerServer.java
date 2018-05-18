@@ -53,6 +53,7 @@ public class WebSocketeerServer {
      */
     public void sendToAll(Packet packet) {
         String msg = mJson.toJson(packet);
+        Log.i(TAG, "SEND_ALL: " + msg);
         for (WebSocket socket : mSockets) {
             socket.send(msg);
         }

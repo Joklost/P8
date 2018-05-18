@@ -33,7 +33,10 @@ public class SyncServiceHelper {
         }
     }
 
-    public static void stop() {
+    public static void deinit() {
+        if (sInstance == null) {
+            return;
+        }
         sInstance.stopSelf();
     }
 

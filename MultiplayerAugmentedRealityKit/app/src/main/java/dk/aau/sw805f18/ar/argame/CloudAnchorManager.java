@@ -22,11 +22,11 @@ public class CloudAnchorManager {
     @Nullable private Session mSession = null;
     private final HashMap<Anchor, CloudAnchorListener> mPendingAnchors = new HashMap<>();
 
-    synchronized void setSession(Session session) {
+    void setSession(Session session) {
         mSession = session;
     }
 
-    synchronized void hostCloudAnchor(Anchor anchor, CloudAnchorListener listener) {
+    void hostCloudAnchor(Anchor anchor, CloudAnchorListener listener) {
         if (mSession == null) {
             Log.e(TAG, "Session was null, please set Session!");
             return;
@@ -36,7 +36,7 @@ public class CloudAnchorManager {
         mPendingAnchors.put(newAnchor, listener);
     }
 
-    synchronized void resolveCloudAnchor(String anchorId, CloudAnchorListener listener) {
+    void resolveCloudAnchor(String anchorId, CloudAnchorListener listener) {
         if (mSession == null) {
             Log.e(TAG, "Session was null, please set Session!");
             return;
@@ -46,7 +46,7 @@ public class CloudAnchorManager {
         mPendingAnchors.put(newAnchor, listener);
     }
 
-    synchronized void onUpdate(Collection<Anchor> updatedAnchors) {
+    void onUpdate(Collection<Anchor> updatedAnchors) {
         if (mSession == null) {
             Log.e(TAG, "Session was null, please set Session!");
             return;
@@ -65,7 +65,7 @@ public class CloudAnchorManager {
         }
     }
 
-    synchronized void clearListeners() {
+    void clearListeners() {
         mPendingAnchors.clear();
     }
 
