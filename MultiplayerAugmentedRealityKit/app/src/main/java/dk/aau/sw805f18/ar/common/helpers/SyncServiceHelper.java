@@ -43,8 +43,6 @@ public class SyncServiceHelper {
             SyncService.LocalBinder binder = (SyncService.LocalBinder) service;
             sInstance = binder.getService();
             sOnBound.accept(sInstance);
-            sInstance.init();
-
         }
 
         @Override

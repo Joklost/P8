@@ -7,7 +7,6 @@ public class Packet {
     public static final String START_TYPE = "start";
     public static final String PLAYERS_TYPE = "players";
     public static final String OBJECTS_TYPE = "objects";
-    public static final String CREATE_TYPE = "start";            // Send when creating a group. DATA: device MAC address
     public static final String OWNER_TYPE = "owner";            // Response to START. DATA: group ID string
     public static final String GROUP_COMPLETED_TYPE = "group";  // Send when all group members have joined, to finalize communications. DATA: n/a
     public static final String SETGROUP_TYPE = "setgroup";

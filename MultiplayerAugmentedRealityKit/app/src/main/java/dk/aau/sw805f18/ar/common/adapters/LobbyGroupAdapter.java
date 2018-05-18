@@ -35,7 +35,7 @@ public class LobbyGroupAdapter extends RecyclerView.Adapter<LobbyGroupAdapter.Vi
 
         @Override
         public void onClick(View v) {
-            clickListener.onItemClick(getAdapterPosition(), v);
+            //clickListener.onItemClick(getAdapterPosition(), v);
         }
     }
 

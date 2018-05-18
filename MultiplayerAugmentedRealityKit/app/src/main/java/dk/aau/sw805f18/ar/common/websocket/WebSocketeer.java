@@ -56,7 +56,8 @@ public class WebSocketeer {
     public void send(Packet packet) {
         String s = mJson.toJson(packet, Packet.class);
         Log.i(TAG, "SEND: " + s);
-        mWebSocket.send(s);
+        if (mWebSocket.isOpen())
+            mWebSocket.send(s);
     }
 
     public void connect() {

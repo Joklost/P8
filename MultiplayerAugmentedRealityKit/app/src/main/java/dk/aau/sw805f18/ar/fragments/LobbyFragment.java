@@ -1,6 +1,5 @@
 package dk.aau.sw805f18.ar.fragments;
 
-import android.app.FragmentManager;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -13,11 +12,13 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.Toast;
 
 import dk.aau.sw805f18.ar.R;
 import dk.aau.sw805f18.ar.common.adapters.LobbyGroupAdapter;
 import dk.aau.sw805f18.ar.common.helpers.SyncServiceHelper;
 import dk.aau.sw805f18.ar.common.websocket.Packet;
+import dk.aau.sw805f18.ar.common.websocket.WebSocketeer;
 import dk.aau.sw805f18.ar.main.FragmentOpener;
 import dk.aau.sw805f18.ar.main.MainActivity;
 import dk.aau.sw805f18.ar.services.SyncService;
@@ -48,6 +49,7 @@ public class LobbyFragment extends Fragment {
     private SyncService syncService;
     private Bundle gameOptionsBundle;
     private View lobbyLayout;
+    private boolean mOwner = false;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -66,10 +68,10 @@ public class LobbyFragment extends Fragment {
 
         gameOptionsBundle = getArguments();
         syncService = SyncServiceHelper.getInstance();
+        WebSocketeer ws = syncService.getWebSocket();
 
         //region Setup websocket handlers
-        syncService.getWebSocket().attachHandler(Packet.AUTO_GROUP, packet -> {
-            Log.i(TAG_LOBBY, "autogrouping started");
+        ws.attachHandler(Packet.AUTO_GROUP, packet -> {
             boolean enabled = packet.Data.equals("true");
             if (enabled) {
                 syncService.startAutoGrouping();
@@ -78,29 +80,34 @@ public class LobbyFragment extends Fragment {
             }
         });
 
-        syncService.getWebSocket().attachHandler(Packet.NEWGROUP_TYPE, packet -> {
+        ws.attachHandler(Packet.NEWGROUP_TYPE, packet -> {
             int newGroup = parseInt(packet.Data);
             getActivity().runOnUiThread(() -> {
                 lobbyLayout.setBackgroundColor(Color.parseColor(GROUP_COLOURS[newGroup]));
             });
-            Log.i(TAG_LOBBY, "background color should be set to: " + GROUP_COLOURS[newGroup]);
         });
-        syncService.getWebSocket().attachHandler(Packet.OWNER_TYPE, packet -> {
-            if (packet.Data.equals("true")) syncService.createWifiP2pGroup();
+        ws.attachHandler(Packet.OWNER_TYPE, packet -> {
+            if (packet.Data.equals("true"))
+                mOwner = true;
+                syncService.createWifiP2pGroup();
         });
-        syncService.getWebSocket().attachHandler(Packet.MAC_TYPE, packet -> {
-            syncService.connectWifiP2p(packet.Data);
+        ws.attachHandler(Packet.MAC_TYPE, packet -> {
+            syncService.connectWifiP2p(packet.Data, mOwner);
         });
-        syncService.getWebSocket().attachHandler(Packet.READY_TYPE, packet -> {
+        ws.attachHandler(Packet.READY_TYPE, packet -> {
+            getActivity().runOnUiThread(() -> {
+                Toast.makeText(getContext(), R.string.lobby_game_start_toast, Toast.LENGTH_LONG).show();
+            });
             FragmentOpener.getInstance().open(new MapFragment(), MapFragment.TAG);
         });
         //endregion
 
-        syncService.getWebSocket().connect();
-        syncService.getWebSocket().send(new Packet(Packet.NAME_TYPE, syncService.getDeviceName()));
+        ws.connect();
+        ws.send(new Packet(Packet.NAME_TYPE, syncService.getDeviceName()));
 
         rvGrid = getView().findViewById(R.id.lobby_group_recyclerview);
         LobbyGroupAdapter adapter = new LobbyGroupAdapter();
+
 
         if (leader) {
             View leaderLayout = getView().findViewById(R.id.leader_layout);
@@ -109,17 +116,25 @@ public class LobbyFragment extends Fragment {
             Button autoGroupButton = getView().findViewById(R.id.lobby_autogrouping_button);
             autoGroupButton.setOnClickListener(v -> {
                 String data = mAutogrouping ? "false" : "true";
-                syncService.getWebSocket().send(new Packet(Packet.AUTO_GROUP, data));
-                autoGroupButton.setText(mAutogrouping ? R.string.lobby_autogroup_start : R.string.lobby_autogroup_stop);
+                ws.send(new Packet(Packet.AUTO_GROUP, data));
+                getActivity().runOnUiThread(() -> {
+                    autoGroupButton.setText(mAutogrouping ? R.string.lobby_autogroup_start : R.string.lobby_autogroup_stop);
+                });
                 mAutogrouping = !mAutogrouping;
             });
 
             Button startButton = getView().findViewById(R.id.lobby_start_button);
-            startButton.setVisibility(View.VISIBLE);
             startButton.setOnClickListener(v -> {
-                startButton.setText(R.string.lobby_game_starting);
-                syncService.getWebSocket().send(new Packet(Packet.START_TYPE,""));
-                startButton.setEnabled(false);
+                try {
+
+                    getActivity().runOnUiThread(() -> {
+                        ws.send(new Packet(Packet.START_TYPE, "start"));
+                        startButton.setText(R.string.lobby_game_starting);
+                        startButton.setEnabled(false);
+                    });
+                } catch (Exception e) {
+                    Log.e(TAG_LOBBY, e.getMessage());
+                }
             });
         }
 
@@ -141,8 +156,6 @@ public class LobbyFragment extends Fragment {
     public void onResume() {
         super.onResume();
         MainActivity.CURRENT_FRAGMENT = TAG_LOBBY;
-
-
     }
 
     @Override

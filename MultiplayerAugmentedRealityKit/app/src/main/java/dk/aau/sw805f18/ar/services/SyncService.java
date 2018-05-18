@@ -1,5 +1,6 @@
 package dk.aau.sw805f18.ar.services;
 
+import android.app.Activity;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
@@ -14,7 +15,6 @@ import android.support.annotation.Nullable;
 import android.util.Log;
 
 import com.google.gson.Gson;
-import com.koushikdutta.async.http.AsyncHttpClient;
 
 import java.util.concurrent.ExecutionException;
 
@@ -71,10 +71,11 @@ public class SyncService extends Service {
         });
     }
 
-     /**
+    /**
      * Initialises the service by starting WifiP2pReceiver, WifiP2pManager and AutoGrouping.
+     * @param activity
      */
-    public void init() {
+    public void init(Activity activity) {
         if (mReceiver != null) {
             return;
         }
@@ -89,7 +90,7 @@ public class SyncService extends Service {
         if (mChannel != null) {
             return;
         }
-        mChannel = mManager.initialize(this, getMainLooper(), null);
+        mChannel = mManager.initialize(activity, getMainLooper(), null);
 
 //        requestConnectionInfo(info -> {
 //            if (info != null) {
@@ -101,6 +102,7 @@ public class SyncService extends Service {
 
         // Remove any existing group, so a new one can be created.
         removeWifiP2pGroup();
+        discoverPeers();
     }
 
     public void deinit() {
@@ -132,7 +134,7 @@ public class SyncService extends Service {
      *
      * @param deviceAddress The address of the device to connectWifiP2p to.
      */
-    public void connectWifiP2p(String deviceAddress) {
+    public void connectWifiP2p(String deviceAddress, boolean ownerIntent) {
         if (deviceAddress == null) {
             Log.e(TAG, "DEVICE IS NULL");
             return;
@@ -141,6 +143,7 @@ public class SyncService extends Service {
         WifiP2pConfig config = new WifiP2pConfig();
         config.deviceAddress = deviceAddress;
         config.wps.setup = WpsInfo.PBC;
+        config.groupOwnerIntent = ownerIntent ? 15 : 0;
 
         mManager.connect(mChannel, config, new WifiP2pManager.ActionListener() {
             @Override
@@ -153,21 +156,24 @@ public class SyncService extends Service {
                 }
 
                 String ip = "192.168.49.1:80/";
+                Log.i(TAG, "Attempting to connect to " + ip);
                 try {
                     mWifiP2pSocket = new WebSocketeer(ip);
+                    // TODO: setup handlers here
+                    mWifiP2pSocket.connect();
+                    mWebSocket.send(new Packet(Packet.READY_TYPE, "true"));
                 } catch (ExecutionException e) {
                     e.printStackTrace();
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
 
-                mWebSocket.send(new Packet(Packet.READY_TYPE, "true"));
 
             }
 
             @Override
             public void onFailure(int reason) {
-                Log.i(TAG, "Failed to connectWifiP2p to: " + config.deviceAddress);
+                Log.i(TAG, "Failed to connectWifiP2p to: " + config.deviceAddress + ", REASON=" + reason);
             }
         });
     }
@@ -178,6 +184,26 @@ public class SyncService extends Service {
 
     public void requestGroupInfo(WifiP2pManager.GroupInfoListener listener) {
         mManager.requestGroupInfo(mChannel, listener);
+    }
+
+    public void discoverPeers() {
+        if (mDiscoverInitiated) {
+            return;
+        }
+
+        mManager.discoverPeers(mChannel, new WifiP2pManager.ActionListener() {
+            @Override
+            public void onSuccess() {
+                mDiscoverInitiated = true;
+                Log.i(TAG, "Successfully initiated peer discovery.");
+            }
+
+            @Override
+            public void onFailure(int reason) {
+                mDiscoverInitiated = false;
+                Log.e(TAG, "Failed to initiate peer discovery.");
+            }
+        });
     }
 
     /**
@@ -191,12 +217,12 @@ public class SyncService extends Service {
                 Log.i(TAG, "Successfully created group.");
                 mGroupCreated = true;
 
-                if (mWifiP2pSocket != null) {
-                    mWifiP2pSocket.close();
-                    mWifiP2pSocket = null;
-                }
-                mWebSocketeerServer = new WebSocketeerServer();
-                // Her skal der være nogle handlers for gruppe ws connectivity
+                 if (mWifiP2pSocket != null) {
+                     mWifiP2pSocket.close();
+                     mWifiP2pSocket = null;
+                 }
+                 mWebSocketeerServer = new WebSocketeerServer();
+                 // TODO: Her skal der være nogle handlers for gruppe ws connectivity
 
                 mWebSocket.send(new Packet(Packet.MAC_TYPE, mDeviceAddress));
                 mWebSocket.send(new Packet(Packet.READY_TYPE, "true"));

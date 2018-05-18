@@ -38,6 +38,7 @@ public class WifiP2pReceiver extends BroadcastReceiver {
                 break;
             case WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION:
                 // The peer list has changed!
+                mSyncService.discoverPeers();
                 Log.i(TAG, WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION);
                 break;
             case WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION:
@@ -57,7 +58,6 @@ public class WifiP2pReceiver extends BroadcastReceiver {
                 // Respond to this device's wifi state changing
                 Log.i(TAG, WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION);
                 WifiP2pDevice device = intent.getParcelableExtra(WifiP2pManager.EXTRA_WIFI_P2P_DEVICE);
-
                 mSyncService.setDeviceAddress(device.deviceAddress);
                 mSyncService.setDeviceName(device.deviceName);
                 break;
