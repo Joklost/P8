@@ -22,6 +22,9 @@ namespace ServerBackend
             get => _autoGroupingMode;
             set
             {
+                if (_autoGroupingMode == value)
+                    return;
+                Players.Relay(new Packet{Type = "autogroup", Data = value.ToString()});
                 _autoGroupingMode = value;
                 if (value)
                 {
@@ -81,6 +84,10 @@ namespace ServerBackend
         
         public Player AddPlayer(string id, WebSocketDialog wsd)
         {
+            if (!Players.Any())
+            {
+                Owner = id;
+            }
             var p = new Player(id, wsd);
             _players.Add(id, p);
             Ext.SendPacket(p, new Packet{ Type = "id", Data = id });

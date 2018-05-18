@@ -21,7 +21,7 @@ namespace ServerBackend
             var rooms = new ConcurrentDictionary<string, Room>();
             rooms["test"] = new Room
             {
-                Owner = "[Phone] Jonas' S7E",
+                Owner = "Marius Samsung Galaxy S7E",
                 Id = "test",
                 ArObjects =
                 {
@@ -100,9 +100,8 @@ namespace ServerBackend
                             }
                             break;
                         case "autogroup":
-                            if (player.DisplayName == room.Owner)
+                            if (player.Id == room.Owner)
                             {
-                                room.Players.Relay(msg);
                                 room.AutoGroupingMode = msg.Data == "true";
                             }
                             break;
@@ -144,21 +143,22 @@ namespace ServerBackend
                         case "name":
                             player.DisplayName = msg.Data;
                             
-                            room.Players.Where(p => p.Id != player.Id).Relay(new Packet
+                            room.Players.Where(p => p != player).Relay(new Packet
                                 {
                                     Type = "player",
                                     Data = room.Players.ToJSON()
                                 });
                             break;
                         case "start":
-                            if (player.DisplayName == room.Owner)
+                            if (player.Id == room.Owner)
                             {
+                                room.AutoGroupingMode = false;
                                 int i = 0;
                                 foreach (var group in room.Groups)
                                 {
                                     var leader = group.Players.FirstOrDefault();
-                                    group.LeaderId = leader.Id;
                                     if (leader == null) continue;
+                                    group.LeaderId = leader.Id;
                                     Ext.Log("GROUP", $"Leader for group {i++}: {leader.DisplayName}");
                                     Ext.SendPacket(leader, new Packet
                                     {
