@@ -4,6 +4,8 @@ import android.Manifest;
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -19,6 +21,8 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.BitmapDescriptor;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -83,6 +87,12 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
             }.getType());
 
             boolean firstEl = true;
+
+            BitmapFactory.Options options = new BitmapFactory.Options();
+            options.inScaled = false;
+            Bitmap img = BitmapFactory.decodeResource(getResources(), R.drawable.warp_map_marker_100dp, options);
+            BitmapDescriptor bitmapDescriptor = BitmapDescriptorFactory.fromBitmap(img);
+
             for (Marker marker : mMarkers) {
                 LatLng location = new LatLng(marker.Location.Lat, marker.Location.Lon);
 
@@ -102,7 +112,9 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
 
                 // Add a marker to the map
                 getActivity().runOnUiThread(() -> {
-                    googleMap.addMarker(new MarkerOptions().position(location));
+                    googleMap.addMarker(new MarkerOptions()
+                            .icon(bitmapDescriptor)
+                            .position(location));
                 });
             }
 
