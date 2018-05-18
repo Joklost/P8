@@ -28,7 +28,8 @@ namespace ServerBackend
                     new ArObject("andy", new Location(57.013810, 9.988546)),
                     new ArObject("rabbit", new Location(57.014057, 9.988319)),
                     new ArObject("andy", new Location(57.013810, 9.987975), scale: 2)
-                }
+                },
+                MaxGroups = 2
             };
 
 
@@ -82,8 +83,8 @@ namespace ServerBackend
 
                 void ParseWsMsg(WebSocketDialog.TextMessageEventArgs textEvent)
                 {
-                    var msg = textEvent.Text.FromJSON<WsMsg>();
-                    Console.WriteLine($"{player.DisplayName}: {msg.Type} - {msg.Data}");
+                    var msg = textEvent.Text.FromJSON<Packet>();
+                    Ext.Log("RECV", $"{player.DisplayName}: {msg.Type} - {msg.Data}");
                     switch (msg.Type)
                     {
                         case "position":
@@ -106,7 +107,7 @@ namespace ServerBackend
                             }
                             break;
                         case "objects":
-                            room.Players.Relay(new WsMsg
+                            room.Players.Relay(new Packet
                             {
                                 Type = "objects",
                                 Data = room.ArObjects.ToJSON()
@@ -121,9 +122,9 @@ namespace ServerBackend
                             break;
                         case "setgroup":
                             var teamChangeEvent = msg.Data.FromJSON<GroupChangeMsg>();
-                            if (player.Id == teamChangeEvent.Name || player.Id == room.Owner)
+                            if (player.Id == teamChangeEvent.Id || player.Id == room.Owner)
                             {
-                                if (room.SetPlayerTeam(teamChangeEvent.Name, teamChangeEvent.Team))
+                                if (room.SetPlayerTeam(teamChangeEvent.Id, teamChangeEvent.Team))
                                 {
                                     room.Players.Relay(msg);
                                 }
@@ -137,17 +138,13 @@ namespace ServerBackend
                             if (g.LeaderId == player.Id)
                             {
                                 g.LeaderMac = msg.Data;
-                                g.Players.Where(p => p != player).Relay(new WsMsg
-                                {
-                                    Type = "mac",
-                                    Data = g.LeaderMac
-                                });
+                                g.Players.Where(p => p != player).Relay(msg);
                             }
                             break;
                         case "name":
                             player.DisplayName = msg.Data;
                             
-                            room.Players.Where(p => p.Id != player.Id).Relay(new WsMsg
+                            room.Players.Where(p => p.Id != player.Id).Relay(new Packet
                                 {
                                     Type = "player",
                                     Data = room.Players.ToJSON()
@@ -156,14 +153,18 @@ namespace ServerBackend
                         case "start":
                             if (player.DisplayName == room.Owner)
                             {
+                                int i = 0;
                                 foreach (var group in room.Groups)
                                 {
-                                    var leader = group.Players.First();
-                                    leader.Wsd.SendText(new WsMsg
+                                    var leader = group.Players.FirstOrDefault();
+                                    group.LeaderId = leader.Id;
+                                    if (leader == null) continue;
+                                    Ext.Log("GROUP", $"Leader for group {i++}: {leader.DisplayName}");
+                                    Ext.SendPacket(leader, new Packet
                                     {
                                         Type = "owner",
                                         Data = "true"
-                                    }.ToJSON());
+                                    });
                                 }
                             }
                             break;
@@ -184,6 +185,7 @@ namespace ServerBackend
             server.Start();
             Console.ReadLine();
         }
+
 
         private static List<Group> CreateGroups(Room room)
         {

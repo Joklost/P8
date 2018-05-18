@@ -14,7 +14,9 @@ namespace ServerBackend
 
         public string Id { get; set; }
         public string DisplayName { get; set; } = "[Unnamed]";
-        public int Team { get; set; } = -1;
+        public int Team { get; set; } = 0;
+        
+        [JsonIgnore]
         public GeoCoordinate Location { get; set; } = GeoCoordinate.Unknown;
 
         public bool Ready { get; set; } = false;

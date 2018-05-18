@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Device.Location;
 using System.Linq;
 using System.Threading.Tasks;
@@ -42,13 +43,16 @@ namespace ServerBackend
 
         public Room()
         {
-            Groups = new List<Group>(Enumerable.Repeat(new Group(), MaxGroups));
+            Groups = new List<Group>();
+            for (int i = 0; i < MaxGroups; i++)
+            {
+                Groups.Add(new Group());
+            }
             
         }
 
         public bool SetPlayerTeam(string id, int newTeam)
         {
-
             if (newTeam >= 0 && newTeam < MaxGroups && _players.TryGetValue(id, out var player))
             {
                 if (Groups.Count - 1 < newTeam)
@@ -79,7 +83,12 @@ namespace ServerBackend
         {
             var p = new Player(id, wsd);
             _players.Add(id, p);
-            var data = new WsMsg
+            Ext.SendPacket(p, new Packet{ Type = "id", Data = id });
+            if (_autoGroupingMode)
+            {
+                Ext.SendPacket(p, new Packet{Type = "autogroup", Data = "true"});
+            }
+            var data = new Packet
             {
                 Type = "players",
                 Data = Players.ToJSON()
@@ -90,15 +99,19 @@ namespace ServerBackend
 
         public bool RemovePlayer(string id)
         {
+            _players.TryGetValue(id, out var player);
             if (_players.Remove(id))
             {
+                
+                Ext.Log("ROOM", $"Removed {player.DisplayName}");
                 var group = Groups.First(g => g.Players.Any(p => p.Id == id));
+                group.Players.Remove(player);
                 if (id == group.LeaderId)
                 {   // select new leader
                     
                     
                 }
-                var data = new WsMsg
+                var data = new Packet
                 {
                     Type = "players",
                     Data = Players.ToJSON()
@@ -114,25 +127,42 @@ namespace ServerBackend
         {
             while (AutoGroupingMode)
             {
-                var players = Players.Where(p => p.Location == GeoCoordinate.Unknown).ToList();
-                
-                var kmeans = new KMeans(MinGroups);
-                var observations = players.Select(p => new[] {p.Location.Latitude, p.Location.Longitude}).ToArray();
-                var clusters = kmeans.Learn(observations);
-                var labels = clusters.Decide(observations);
-                
-                for (var i = 0; i < labels.Length; i++)
+                var players = Players.Where(p => p.Location != GeoCoordinate.Unknown).ToList();
+                if (players.Count > MaxGroups)
                 {
-                    var player = players[i];
-                    player.Team = labels[i];
-                    var msg = new WsMsg
+                    var kmeans = new KMeans(MaxGroups);
+                    var observations = players.Select(p => new[] {p.Location.Latitude, p.Location.Longitude}).ToArray();
+                    var clusters = kmeans.Learn(observations);
+                    var labels = clusters.Decide(observations);
+                
+                    for (var i = 0; i < labels.Length; i++)
+                    {
+                        var player = players[i];
+                        SetPlayerTeam(player.Id, labels[i]);
+                        var packet = new Packet
+                        {
+                            Type = "newgroup",
+                            Data = player.Team.ToString()
+                        };
+                        Ext.SendPacket(player, packet);
+                    }
+                }
+                else
+                {
+                    var packet = new Packet
                     {
                         Type = "newgroup",
-                        Data = player.Team.ToString()
+                        Data = "0"
                     };
-                    player.Wsd.SendText(msg.ToJSON());
+                    foreach (var player in Players)
+                    {
+                        SetPlayerTeam(player.Id, 0);
+                    }
+                    Players.Relay(packet);
                 }
-                
+
+                if (!Players.Any()) 
+                    AutoGroupingMode = false;
                 await Task.Delay(1000);
             }
         }
