@@ -114,4 +114,5 @@
     <string name="no_chest">No Chest Nearby</string>
     <string name="map_title">Map</string>
     <string name="lobby_game_start_toast">Game starting</string>
+    <string name="auto_enabled_wifi">Enabling wifi …</string>
 </resources>

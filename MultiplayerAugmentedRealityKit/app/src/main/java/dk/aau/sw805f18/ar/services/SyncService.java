@@ -14,11 +14,13 @@ import android.os.Build;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.google.gson.Gson;
 
 import java.util.concurrent.ExecutionException;
 
+import dk.aau.sw805f18.ar.R;
 import dk.aau.sw805f18.ar.common.sensor.DeviceLocation;
 import dk.aau.sw805f18.ar.common.websocket.Packet;
 import dk.aau.sw805f18.ar.common.websocket.WebSocketeer;
@@ -74,6 +76,7 @@ public class SyncService extends Service {
 
     /**
      * Initialises the service by starting WifiP2pReceiver, WifiP2pManager and AutoGrouping.
+     *
      * @param activity
      */
     public void init(Activity activity) {
@@ -85,8 +88,9 @@ public class SyncService extends Service {
 
         // Enabling Wifi to make sure it is on
         WifiManager wifimanager = (WifiManager) getSystemService(Context.WIFI_SERVICE);
-        if (wifimanager != null) {
+        if (wifimanager != null && wifimanager.getWifiState() == WifiManager.WIFI_STATE_DISABLED) {
             wifimanager.setWifiEnabled(true);
+            activity.runOnUiThread(() -> Toast.makeText(activity, R.string.auto_enabled_wifi, Toast.LENGTH_LONG).show());
         }
 
         mManager = (WifiP2pManager) getSystemService(Context.WIFI_P2P_SERVICE);
@@ -213,12 +217,12 @@ public class SyncService extends Service {
                 Log.i(TAG, "Successfully created group.");
                 mGroupCreated = true;
 
-                 if (mWifiP2pSocket != null) {
-                     mWifiP2pSocket.close();
-                     mWifiP2pSocket = null;
-                 }
-                 mWebSocketeerServer = new WebSocketeerServer();
-                 // TODO: Her skal der være nogle handlers for gruppe ws connectivity
+                if (mWifiP2pSocket != null) {
+                    mWifiP2pSocket.close();
+                    mWifiP2pSocket = null;
+                }
+                mWebSocketeerServer = new WebSocketeerServer();
+                // TODO: Her skal der være nogle handlers for gruppe ws connectivity
 
                 mWebSocket.send(new Packet(Packet.MAC_TYPE, mDeviceAddress));
                 mWebSocket.send(new Packet(Packet.READY_TYPE, "true"));
