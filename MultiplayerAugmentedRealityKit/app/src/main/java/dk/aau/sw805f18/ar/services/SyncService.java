@@ -5,6 +5,7 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.net.wifi.WifiManager;
 import android.net.wifi.WpsInfo;
 import android.net.wifi.p2p.WifiP2pConfig;
 import android.net.wifi.p2p.WifiP2pManager;
@@ -82,14 +83,13 @@ public class SyncService extends Service {
         mReceiver = new WifiP2pReceiver(this);
         registerReceiver(mReceiver, mIntentFilter);
 
-        if (mManager != null) {
-            return;
+        // Enabling Wifi to make sure it is on
+        WifiManager wifimanager = (WifiManager) getSystemService(Context.WIFI_SERVICE);
+        if (wifimanager != null) {
+            wifimanager.setWifiEnabled(true);
         }
-        mManager = (WifiP2pManager) getSystemService(Context.WIFI_P2P_SERVICE);
 
-        if (mChannel != null) {
-            return;
-        }
+        mManager = (WifiP2pManager) getSystemService(Context.WIFI_P2P_SERVICE);
         mChannel = mManager.initialize(activity, getMainLooper(), null);
 
 //        requestConnectionInfo(info -> {
