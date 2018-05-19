@@ -222,7 +222,9 @@ public class SyncService extends Service {
                     mWifiP2pSocket = null;
                 }
                 mWebSocketeerServer = new WebSocketeerServer();
+                mWebSocketeerServer.start();
                 // TODO: Her skal der være nogle handlers for gruppe ws connectivity
+
 
                 mWebSocket.send(new Packet(Packet.MAC_TYPE, mDeviceAddress));
                 mWebSocket.send(new Packet(Packet.READY_TYPE, "true"));

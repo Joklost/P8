@@ -24,7 +24,7 @@ namespace ServerBackend
             {
                 if (_autoGroupingMode == value)
                     return;
-                Players.Relay(new Packet{Type = "autogroup", Data = value.ToString()});
+                Players.Relay(new Packet{Type = "autogroup", Data = value ? "true" : "false"});
                 _autoGroupingMode = value;
                 if (value)
                 {
