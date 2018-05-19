@@ -72,9 +72,7 @@ public class WebSocketeer {
                 });
         try {
             mWebSocket = webSocketFuture.get();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (ExecutionException e) {
+        } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();
         }
     }

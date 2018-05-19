@@ -30,9 +30,11 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
 import java.util.ArrayList;
+import java.util.Objects;
 
 import dk.aau.sw805f18.ar.R;
 import dk.aau.sw805f18.ar.ar.ArActivity;
+import dk.aau.sw805f18.ar.argame.ArGameActivity;
 import dk.aau.sw805f18.ar.common.helpers.SyncServiceHelper;
 import dk.aau.sw805f18.ar.common.sensor.DeviceLocation;
 import dk.aau.sw805f18.ar.common.websocket.Packet;
@@ -42,7 +44,7 @@ import dk.aau.sw805f18.ar.models.Marker;
 public class MapFragment extends Fragment implements OnMapReadyCallback {
     public static final String TAG = MapFragment.class.getSimpleName();
     public static final String TAG_MAP = "map";
-    public static String courseTitle = "Course:";
+    public static String courseTitle = "Course";
     MapView mMapView;
     private ArrayList<Marker> mMarkers;
 
@@ -68,6 +70,12 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     public void onResume() {
         super.onResume();
         MainActivity.CURRENT_FRAGMENT = TAG_MAP;
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        DeviceLocation.getInstance(getActivity()).unsubscribe(getContext());
     }
 
     @Override
@@ -119,31 +127,42 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
             }
 
             SyncServiceHelper.getInstance().getWebSocket().removeHandler(Packet.OBJECTS_TYPE);
-        });
 
-        DeviceLocation.getInstance(getActivity()).subscribe(getContext(), location -> {
-            for (Marker marker : mMarkers) {
-                float[] results = new float[2];
-                Location.distanceBetween(
-                        location.getLatitude(), location.getLongitude(),
-                        marker.Location.Lat, marker.Location.Lon, results);
-
-                if (results[0] < 25.0) {
-                    getActivity().runOnUiThread(() -> gameFoundPopup());
-                    break;
-                }
+            if (DeviceLocation.getInstance(getActivity()).getCurrentBestLocation() != null) {
+                checkLocation(DeviceLocation.getInstance(getActivity()).getCurrentBestLocation());
             }
+
+            DeviceLocation.getInstance(getActivity()).subscribe(getContext(), this::checkLocation);
         });
     }
 
-    private void gameFoundPopup() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+    private void checkLocation(Location location) {
+        for (Marker marker : mMarkers) {
+            float[] results = new float[2];
+            Location.distanceBetween(
+                    location.getLatitude(), location.getLongitude(),
+                    marker.Location.Lat, marker.Location.Lon, results);
 
-        getActivity().runOnUiThread(() -> {
+            if (results[0] < 25.0) {
+                Objects.requireNonNull(getActivity()).runOnUiThread(this::gameFoundPopup);
+                break;
+            }
+        }
+    }
+
+    private boolean mGameFoundAlerted = false;
+
+    private void gameFoundPopup() {
+        if (mGameFoundAlerted) {
+            return;
+        }
+
+        mGameFoundAlerted = true;
+        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        Objects.requireNonNull(getActivity()).runOnUiThread(() -> {
             builder.setMessage("Do you want to start?")
                     .setPositiveButton("Start", ((dialog, which) -> {
-                        startActivity(new Intent(getContext(), ArActivity.class));
-
+                        startActivity(new Intent(getContext(), ArGameActivity.class));
                     }))
                     .setNegativeButton("Cancel", ((dialog, which) -> {
 

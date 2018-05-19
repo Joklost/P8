@@ -44,9 +44,7 @@ public class TreasureHunt {
     private Gson mGson;
 
     TreasureHunt(ArGameActivity activity, AugmentedLocationManager manager) {
-        mGameState = GameState.STARTED;
         mSyncService = SyncServiceHelper.getInstance();
-
 
         mActivity = activity;
         mManager = manager;
@@ -116,6 +114,7 @@ public class TreasureHunt {
 
 
     public void startGame() {
+        mGameState = GameState.STARTED;
         mChosenChests = new ArrayList<>();
 
         if (mSyncService.isHostingWifiP2p()) {

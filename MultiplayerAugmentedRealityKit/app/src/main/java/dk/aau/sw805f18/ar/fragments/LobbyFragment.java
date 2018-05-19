@@ -1,5 +1,6 @@
 package dk.aau.sw805f18.ar.fragments;
 
+import android.app.Activity;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -14,6 +15,8 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.Toast;
 
+import java.util.Objects;
+
 import dk.aau.sw805f18.ar.R;
 import dk.aau.sw805f18.ar.common.adapters.LobbyGroupAdapter;
 import dk.aau.sw805f18.ar.common.helpers.SyncServiceHelper;
@@ -27,6 +30,7 @@ import static java.lang.Integer.parseInt;
 
 
 public class LobbyFragment extends Fragment {
+    public static final String TAG = LobbyFragment.class.getSimpleName();
     public static final String TAG_LOBBY = "lobby";
     private boolean mAutogrouping = false;
 
@@ -50,6 +54,8 @@ public class LobbyFragment extends Fragment {
     private Bundle gameOptionsBundle;
     private View lobbyLayout;
     private boolean mOwner = false;
+    private Activity mActivity;
+    private View mView;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -60,11 +66,18 @@ public class LobbyFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        mActivity = getActivity();
+        mView = getView();
+
+        if (mActivity == null || mView == null) {
+            Log.e(TAG, "Activity or View was null");
+            return;
+        }
 
         Bundle bundle = getArguments();
-        boolean leader = bundle.containsKey("type") && bundle.get("type") == "leader";
+        boolean leader = Objects.requireNonNull(bundle).containsKey("type") && bundle.get("type") == "leader";
 
-        lobbyLayout = getView().findViewById(R.id.lobby_layout);
+        lobbyLayout = mView.findViewById(R.id.lobby_layout);
 
         gameOptionsBundle = getArguments();
         syncService = SyncServiceHelper.getInstance();
@@ -82,7 +95,7 @@ public class LobbyFragment extends Fragment {
 
         ws.attachHandler(Packet.NEWGROUP_TYPE, packet -> {
             int newGroup = parseInt(packet.Data);
-            getActivity().runOnUiThread(() -> {
+            mActivity.runOnUiThread(() -> {
                 lobbyLayout.setBackgroundColor(Color.parseColor(GROUP_COLOURS[newGroup]));
             });
         });
@@ -95,7 +108,7 @@ public class LobbyFragment extends Fragment {
             syncService.connectWifiP2p(packet.Data, mOwner);
         });
         ws.attachHandler(Packet.READY_TYPE, packet -> {
-            getActivity().runOnUiThread(() -> {
+            mActivity.runOnUiThread(() -> {
                 Toast.makeText(getContext(), R.string.lobby_game_start_toast, Toast.LENGTH_LONG).show();
             });
             FragmentOpener.getInstance().open(new MapFragment(), MapFragment.TAG);
@@ -105,35 +118,35 @@ public class LobbyFragment extends Fragment {
         ws.connect();
         ws.send(new Packet(Packet.NAME_TYPE, syncService.getDeviceName()));
 
-        rvGrid = getView().findViewById(R.id.lobby_group_recyclerview);
+        rvGrid = mView.findViewById(R.id.lobby_group_recyclerview);
         LobbyGroupAdapter adapter = new LobbyGroupAdapter();
 
 
         if (leader) {
-            View leaderLayout = getView().findViewById(R.id.leader_layout);
+            View leaderLayout = mView.findViewById(R.id.leader_layout);
             leaderLayout.setVisibility(View.VISIBLE);
 
-            Button autoGroupButton = getView().findViewById(R.id.lobby_autogrouping_button);
+            Button autoGroupButton = mView.findViewById(R.id.lobby_autogrouping_button);
             autoGroupButton.setOnClickListener(v -> {
                 String data = mAutogrouping ? "false" : "true";
                 ws.send(new Packet(Packet.AUTO_GROUP, data));
-                getActivity().runOnUiThread(() -> {
+                mActivity.runOnUiThread(() -> {
                     autoGroupButton.setText(mAutogrouping ? R.string.lobby_autogroup_start : R.string.lobby_autogroup_stop);
                 });
                 mAutogrouping = !mAutogrouping;
             });
 
-            Button startButton = getView().findViewById(R.id.lobby_start_button);
+            Button startButton = mView.findViewById(R.id.lobby_start_button);
             startButton.setOnClickListener(v -> {
                 try {
 
-                    getActivity().runOnUiThread(() -> {
+                    mActivity.runOnUiThread(() -> {
                         ws.send(new Packet(Packet.START_TYPE, "start"));
                         startButton.setText(R.string.lobby_game_starting);
                         startButton.setEnabled(false);
                     });
                 } catch (Exception e) {
-                    Log.e(TAG_LOBBY, e.getMessage());
+                    Log.e(TAG, e.getMessage());
                 }
             });
         }
@@ -141,7 +154,7 @@ public class LobbyFragment extends Fragment {
 //        adapter.setOnItemClickListener((position, v) -> {
 //            try {
 //                LobbyDialogFragment dialog = new LobbyDialogFragment();
-//                dialog.show(getActivity().getFragmentManager(), "dialog");
+//                dialog.show(mActivity.getFragmentManager(), "dialog");
 //            } catch (Exception e) {
 //                Log.e("DialogFragment", e.toString());
 //            }

@@ -29,6 +29,8 @@ public class AugmentedLocationManager {
     private final DeviceLocation mDeviceLocation;
     private final DeviceOrientation mDeviceOrientation;
 
+    private boolean mPaused;
+
     public AugmentedLocationManager(ArGameActivity activity) {
         mActivity = activity;
         mDeviceLocation = DeviceLocation.getInstance(activity);
@@ -52,8 +54,6 @@ public class AugmentedLocationManager {
                     )
             );
 
-            Log.i(TAG, "Distance to marker: " + markerDistance);
-
             // Don't create an anchor if we are not within 25 meters.
             if (markerDistance > DISTANCE_LIMIT) {
                 continue;
@@ -71,6 +71,8 @@ public class AugmentedLocationManager {
                 Log.e(TAG, "Unable to estimate surface level!");
                 continue;
             }
+
+            Log.i(TAG, "Distance to marker: " + markerDistance);
 
             float x = 0;
             float z = -markerDistance;
@@ -136,16 +138,22 @@ public class AugmentedLocationManager {
     }
 
     public void pause() {
+        mPaused = true;
         mDeviceLocation.pause();
         mDeviceOrientation.pause();
     }
 
     public void resume() {
+        mPaused = false;
         mDeviceLocation.resume();
         mDeviceOrientation.resume();
     }
 
-    public void update(ArSceneView sceneView) {
+    public void onUpdate(ArSceneView sceneView) {
+        if (mPaused) {
+            return;
+        }
+
         // No need to add an anchor if we haven't found our location yet.
         if (mDeviceLocation.getCurrentBestLocation() == null) {
             return;
