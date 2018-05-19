@@ -278,6 +278,7 @@ public class ArGameActivity extends AppCompatActivity {
                     session = mArFragment.getArSceneView().getSession();
                     Config config = new Config(session);
                     config.setCloudAnchorMode(Config.CloudAnchorMode.ENABLED); // Add this line.
+                    config.setUpdateMode(Config.UpdateMode.LATEST_CAMERA_IMAGE);
                     session.configure(config);
                     mCloudAnchorService.setSession(session);
                 }
