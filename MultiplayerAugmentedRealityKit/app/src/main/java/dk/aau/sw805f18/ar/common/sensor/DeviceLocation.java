@@ -3,7 +3,11 @@ package dk.aau.sw805f18.ar.common.sensor;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.location.Location;
+import android.location.LocationManager;
+import android.provider.Settings;
+import android.support.v7.app.AlertDialog;
 import android.util.Log;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -12,9 +16,7 @@ import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
@@ -26,6 +28,7 @@ public class DeviceLocation {
 
     private static DeviceLocation sInstance;
     private static int sRefCount = 0;
+    private final Activity mActivity;
 
     private Location mCurrentBestLocation;
     private FusedLocationProviderClient mLocationClient;
@@ -59,8 +62,16 @@ public class DeviceLocation {
     // the Permission Helper.
     @SuppressLint("MissingPermission")
     private DeviceLocation(Activity activity) {
+        mActivity = activity;
+
+        LocationManager lm = (LocationManager)mActivity.getSystemService(Context.LOCATION_SERVICE);
+        if (lm != null && !lm.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+            promptUserToEnableGps();
+        }
+
         mSubscribers = new HashMap<>();
         mLocationClient = LocationServices.getFusedLocationProviderClient(activity);
+        mLocationClient.
         mLocationRequest = new LocationRequest();
         mLocationRequest.setInterval(10000);
         mLocationRequest.setFastestInterval(5000);
@@ -72,6 +83,16 @@ public class DeviceLocation {
             return;
         }
         resume();
+    }
+
+    private void promptUserToEnableGps() {
+        final AlertDialog.Builder builder = new AlertDialog.Builder(mActivity);
+        builder.setMessage("Please enable location services")
+                .setCancelable(false)
+                .setPositiveButton("Yes", (dialog, id) -> mActivity.startActivity(new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)))
+                .setNegativeButton("No", (dialog, id) -> dialog.cancel());
+        final AlertDialog alert = builder.create();
+        alert.show();
     }
 
     public Location getCurrentBestLocation() {
@@ -119,7 +140,7 @@ public class DeviceLocation {
     }
 
     @Override
-    public Object clone() throws CloneNotSupportedException{
+    public Object clone() throws CloneNotSupportedException {
         throw new CloneNotSupportedException("Singleton, cannot be cloned");
     }
 }
