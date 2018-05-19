@@ -40,11 +40,15 @@ public class ArGameActivity extends AppCompatActivity {
 
     @SuppressLint("UseSparseArrays")
     private static final HashMap<Integer, String> MODELS = new HashMap<>();
+    private static final HashMap<String, Integer> MODEL_NAMES = new HashMap<>();
 
     static {
         MODELS.put(R.raw.andy, "Andy");
         MODELS.put(R.raw.chest, "Chest");
         MODELS.put(R.raw.treasure, "Treasure");
+        MODEL_NAMES.put("Andy", R.raw.andy);
+        MODEL_NAMES.put("Chest", R.raw.chest);
+        MODEL_NAMES.put("Treasure", R.raw.treasure);
     }
 
     private enum HostResolveMode {
@@ -146,7 +150,7 @@ public class ArGameActivity extends AppCompatActivity {
 
                             // Create the Anchor.
                             Anchor anchor = hitResult.createAnchor();
-                            addNode(anchor, -1, choice);
+                            addNode(anchor, 1, choice);
                         });
                     });
 
@@ -196,14 +200,16 @@ public class ArGameActivity extends AppCompatActivity {
                 return;
             }
 
-            if (mSyncService.getWebSocketeerServer() != null) {
-                mSyncService.getWebSocketeerServer().sendToAll(
-                        new Packet(
-                                Packet.ANCHOR_TYPE,
-                                mGson.toJson(new CloudAnchorInfo(id, cloudAnchor.getCloudAnchorId(), model))
-                        )
-                );
-            }
+
+            mSyncService.getWebSocket().send(
+                    new Packet(
+                            Packet.ANCHOR_TYPE,
+                            mGson.toJson(new CloudAnchorInfo(id, cloudAnchor.getCloudAnchorId(), MODELS.get(model)))
+                    )
+
+            );
+            Log.i(TAG, "send new anchor");
+
         });
 
         addTransformableNode(anchorNode, model);
@@ -243,24 +249,20 @@ public class ArGameActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+
+        if (mSyncService.IsOwner()) {
+            mCurrentHostResolveMode = HostResolveMode.HOSTING;
+        } else {
+            mCurrentHostResolveMode = HostResolveMode.RESOLVING;
+            mSyncService.getWebSocket().attachHandler(Packet.ANCHOR_TYPE, packet -> {
+                CloudAnchorInfo cloudAnchorInfo = mGson.fromJson(packet.Data, CloudAnchorInfo.class);
+                resolveNode(cloudAnchorInfo.CloudAnchorId, cloudAnchorInfo.Id, MODEL_NAMES.get(cloudAnchorInfo.ModelId));
+                Log.i(TAG, "received anchor");
+            });
+        }
+
         CloudAnchorServiceHelper.init(this, cloudAnchorService -> {
             mCloudAnchorService = cloudAnchorService;
-
-            if (mSyncService.getWifiP2pSocket() != null) {
-                if (mSyncService.isHostingWifiP2p()) {
-                    mCurrentHostResolveMode = HostResolveMode.HOSTING;
-                } else {
-                    mCurrentHostResolveMode = HostResolveMode.RESOLVING;
-                    mSyncService.getWifiP2pSocket().attachHandler(Packet.ANCHOR_TYPE, packet -> {
-                        CloudAnchorInfo cloudAnchorInfo = mGson.fromJson(packet.Data, CloudAnchorInfo.class);
-                        resolveNode(cloudAnchorInfo.CloudAnchorId, cloudAnchorInfo.Id, cloudAnchorInfo.ModelId);
-                    });
-                    mSyncService.getWifiP2pSocket().connect();
-                }
-            } else {
-                mCurrentHostResolveMode = HostResolveMode.HOSTING;
-            }
-
             mAugmentedLocationManager.resume();
 
             Task.run(() -> {
