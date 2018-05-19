@@ -71,7 +71,6 @@ public class DeviceLocation {
 
         mSubscribers = new HashMap<>();
         mLocationClient = LocationServices.getFusedLocationProviderClient(activity);
-        mLocationClient.
         mLocationRequest = new LocationRequest();
         mLocationRequest.setInterval(10000);
         mLocationRequest.setFastestInterval(5000);
