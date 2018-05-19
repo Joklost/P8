@@ -49,6 +49,7 @@ public class CloudAnchorServiceHelper {
 
         @Override
         public void onServiceDisconnected(ComponentName name) {
+            sBound = false;
         }
     };
 
