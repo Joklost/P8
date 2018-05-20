@@ -11,6 +11,8 @@ import java.util.HashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
 
+import javax.security.auth.login.LoginException;
+
 public class WebSocketeer {
     private static final String TAG = WebSocketeer.class.getSimpleName();
 
@@ -72,6 +74,7 @@ public class WebSocketeer {
                 });
         try {
             mWebSocket = webSocketFuture.get();
+            Log.i(TAG, "Connected to: " + mUrl);
         } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();
         }

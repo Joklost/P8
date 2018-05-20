@@ -24,7 +24,7 @@ public class WebSocketeerServer {
             mServer = new AsyncHttpServer();
             mSockets = new ArrayList<>();
 
-            mServer.websocket("/", (webSocket, request) -> {
+            mServer.websocket("/connect", (webSocket, request) -> {
                 mSockets.add(webSocket);
 
                 webSocket.setClosedCallback(ex -> mSockets.remove(webSocket));
@@ -81,7 +81,7 @@ public class WebSocketeerServer {
      * starts the server listening
      */
     public void start() {
-        mServer.listen(5000);
+        mServer.listen(5676);
     }
 
     public int getConnectedDevices() {

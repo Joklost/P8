@@ -47,6 +47,9 @@ public class WifiP2pReceiver extends BroadcastReceiver {
                 NetworkInfo networkInfo = intent.getParcelableExtra(WifiP2pManager.EXTRA_NETWORK_INFO);
                 Log.i(TAG, "networkInfo: " + networkInfo.toString());
                 if (networkInfo.isConnected()) {
+
+
+
                     mSyncService.requestGroupInfo(group -> {
                         if (group != null) {
                             Log.i(TAG, String.valueOf(group.getOwner().deviceAddress));

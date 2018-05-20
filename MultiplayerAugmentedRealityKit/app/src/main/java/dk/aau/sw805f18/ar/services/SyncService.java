@@ -8,6 +8,7 @@ import android.content.IntentFilter;
 import android.net.wifi.WifiManager;
 import android.net.wifi.WpsInfo;
 import android.net.wifi.p2p.WifiP2pConfig;
+import android.net.wifi.p2p.WifiP2pInfo;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.os.Binder;
 import android.os.Build;
@@ -56,6 +57,17 @@ public class SyncService extends Service {
 
     private WifiP2pReceiver mReceiver;
     private DeviceLocation mDeviceLocation;
+    private boolean mOwner;
+
+
+    public boolean IsOwner() {
+        return mOwner;
+    }
+
+    public void setOwner(boolean owner) {
+        mOwner = owner;
+    }
+
 
     public SyncService() {
         mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION); // Whether Wifi P2P is enabled or not
@@ -144,6 +156,7 @@ public class SyncService extends Service {
             return;
         }
 
+        removeWifiP2pGroup();
         WifiP2pConfig config = new WifiP2pConfig();
         config.deviceAddress = deviceAddress;
         config.wps.setup = WpsInfo.PBC;
@@ -159,14 +172,19 @@ public class SyncService extends Service {
                     mWifiP2pSocket = null;
                 }
 
-                String ip = "192.168.49.1:80/";
-                Log.i(TAG, "Attempting to connect to " + ip);
-                try {
-                    mWifiP2pSocket = new WebSocketeer(ip);
-                    mWebSocket.send(new Packet(Packet.READY_TYPE, "true"));
-                } catch (ExecutionException | InterruptedException e) {
-                    e.printStackTrace();
-                }
+                mManager.requestConnectionInfo(mChannel , info -> {
+                    Log.i(TAG, " isGroupFormed: " + info.groupFormed);
+                    Log.i(TAG, info.groupOwnerAddress.getHostAddress());
+                    String ip = "http://" + info.groupOwnerAddress.getHostAddress() + ":5676/connect";
+                    Log.i(TAG, "Attempting to connect to " + ip);
+                    try {
+                        mWifiP2pSocket = new WebSocketeer(ip);
+                        mWifiP2pSocket.connect();
+                        mWebSocket.send(new Packet(Packet.READY_TYPE, "true"));
+                    } catch (ExecutionException | InterruptedException e) {
+                        Log.e(TAG, e.getMessage());
+                    }
+                });
 
 
             }
@@ -211,6 +229,25 @@ public class SyncService extends Service {
      */
     public void createWifiP2pGroup() {
         if (mGroupCreated) return;
+
+
+        mManager.removeGroup(mChannel, new WifiP2pManager.ActionListener() {
+            @Override
+            public void onSuccess() {
+                mGroupCreated = false;
+                createWifiP2pGroupHelper();
+            }
+
+            @Override
+            public void onFailure(int reason) {
+                createWifiP2pGroupHelper();
+            }
+        });
+
+
+    }
+
+    private void createWifiP2pGroupHelper() {
         mManager.createGroup(mChannel, new WifiP2pManager.ActionListener() {
             @Override
             public void onSuccess() {

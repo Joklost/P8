@@ -100,12 +100,15 @@ public class LobbyFragment extends Fragment {
             });
         });
         ws.attachHandler(Packet.OWNER_TYPE, packet -> {
-            if (packet.Data.equals("true"))
-                mOwner = true;
-                syncService.createWifiP2pGroup();
+            if (packet.Data.equals("true")){
+                syncService.setOwner(true);
+                ws.send(new Packet(Packet.MAC_TYPE, ""));
+                ws.send(new Packet(Packet.READY_TYPE, "true"));
+            }
         });
         ws.attachHandler(Packet.MAC_TYPE, packet -> {
-            syncService.connectWifiP2p(packet.Data, mOwner);
+//            syncService.connectWifiP2p(packet.Data, mOwner);
+            ws.send(new Packet(Packet.READY_TYPE, "true"));
         });
         ws.attachHandler(Packet.READY_TYPE, packet -> {
             mActivity.runOnUiThread(() -> {

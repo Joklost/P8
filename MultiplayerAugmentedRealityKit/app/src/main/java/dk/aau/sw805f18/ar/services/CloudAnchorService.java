@@ -49,9 +49,15 @@ public class CloudAnchorService extends Service {
             Log.e(TAG, "Session was null, please set Session!");
             return;
         }
-
-        Anchor newAnchor = mSession.hostCloudAnchor(anchor);
-        mPendingAnchors.put(newAnchor, listener);
+        Task.run(() -> {
+            try {
+                Thread.sleep(5000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            Anchor newAnchor = mSession.hostCloudAnchor(anchor);
+            mPendingAnchors.put(newAnchor, listener);
+        });
     }
 
     public void resolveCloudAnchor(String anchorId, CloudAnchorListener listener) {
