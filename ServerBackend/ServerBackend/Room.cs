@@ -58,6 +58,8 @@ namespace ServerBackend
         {
             if (newTeam >= 0 && newTeam < MaxGroups && _players.TryGetValue(id, out var player))
             {
+                if (player.Team == newTeam)
+                    return true;
                 if (Groups.Count - 1 < newTeam)
                 {
                     if (newTeam == Groups.Count)

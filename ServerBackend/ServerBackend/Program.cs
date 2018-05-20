@@ -170,7 +170,11 @@ namespace ServerBackend
                             }
                             break;
                         default:
-                            room.Players.Where(p => p != player).Relay(msg);
+                            if (player.Team != -1)
+                            {
+                                var group = room.Groups[player.Team];
+                                group.Players.Where(p => p != player).Relay(msg);
+                            }
                             break;
                     }
                 }
