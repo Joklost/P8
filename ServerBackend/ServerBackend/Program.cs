@@ -26,7 +26,8 @@ namespace ServerBackend
                 ArObjects =
                 {
                     new ArObject("andy", new Location(57.013810, 9.988546)),
-                    new ArObject("rabbit", new Location(57.014057, 9.988319)),
+                    new ArObject("chest", new Location(57.014057, 9.988319)),
+                    new ArObject("treasure", new Location(57.014678, 9.978162)),
                     new ArObject("andy", new Location(57.013810, 9.987975), scale: 2)
                 },
                 MaxGroups = 2
@@ -167,6 +168,9 @@ namespace ServerBackend
                                     });
                                 }
                             }
+                            break;
+                        default:
+                            room.Players.Where(p => p != player).Relay(msg);
                             break;
                     }
                 }
