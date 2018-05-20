@@ -50,11 +50,6 @@ public class CloudAnchorService extends Service {
             return;
         }
         Task.run(() -> {
-            try {
-                Thread.sleep(5000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
             Anchor newAnchor = mSession.hostCloudAnchor(anchor);
             mPendingAnchors.put(newAnchor, listener);
         });
@@ -66,8 +61,10 @@ public class CloudAnchorService extends Service {
             return;
         }
 
-        Anchor newAnchor = mSession.resolveCloudAnchor(anchorId);
-        mPendingAnchors.put(newAnchor, listener);
+        Task.run(() -> {
+            Anchor newAnchor = mSession.resolveCloudAnchor(anchorId);
+            mPendingAnchors.put(newAnchor, listener);
+        });
     }
 
     public void onUpdate(Collection<Anchor> updatedAnchors) {

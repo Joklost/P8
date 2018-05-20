@@ -7,6 +7,7 @@ import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Gravity;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.ar.core.Anchor;
@@ -20,8 +21,11 @@ import com.google.ar.sceneform.ux.ArFragment;
 import com.google.ar.sceneform.ux.TransformableNode;
 import com.google.gson.Gson;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ArrayBlockingQueue;
 
 import dk.aau.sw805f18.ar.R;
 import dk.aau.sw805f18.ar.argame.location.AugmentedLocation;
@@ -39,16 +43,12 @@ public class ArGameActivity extends AppCompatActivity {
     private static final String TAG = ArGameActivity.class.getSimpleName();
 
     @SuppressLint("UseSparseArrays")
-    private static final HashMap<Integer, String> MODELS = new HashMap<>();
-    private static final HashMap<String, Integer> MODEL_NAMES = new HashMap<>();
+    private static final HashMap<String, Integer> MODELS = new HashMap<>();
 
     static {
-        MODELS.put(R.raw.andy, "Andy");
-        MODELS.put(R.raw.chest, "Chest");
-        MODELS.put(R.raw.treasure, "Treasure");
-        MODEL_NAMES.put("Andy", R.raw.andy);
-        MODEL_NAMES.put("Chest", R.raw.chest);
-        MODEL_NAMES.put("Treasure", R.raw.treasure);
+        MODELS.put("Andy", R.raw.andy);
+        MODELS.put("Chest", R.raw.chest);
+        MODELS.put("Treasure", R.raw.treasure);
     }
 
     private enum HostResolveMode {
@@ -61,26 +61,31 @@ public class ArGameActivity extends AppCompatActivity {
     @GuardedBy("hostResolveLock")
     private HostResolveMode mCurrentHostResolveMode;
 
-    private HashMap<Integer, Model> mModels;
+    private HashMap<String, Model> mModels;
     private ArFragment mArFragment;
     private AugmentedLocationManager mAugmentedLocationManager;
     private TreasureHunt mGame;
     private HashMap<Integer, Anchor> mAnchors;
     private Gson mGson;
 
+    private ArrayBlockingQueue<AnchorRenderable> mAnchorQueue;
+
+
     private CloudAnchorService mCloudAnchorService;
     private SyncService mSyncService;
+
+    private TextView mDebugText;
 
     @SuppressLint("UseSparseArrays")
     private void buildRenderables() {
         mModels = new HashMap<>();
-        for (int model : MODELS.keySet()) {
+        for (Map.Entry<String, Integer> entry : MODELS.entrySet()) {
             // When you build a Renderable, Sceneform loads its resources in the background while returning
             // a CompletableFuture. Call thenAccept(), handle(), or check isDone() before calling get().
             ModelRenderable.builder()
-                    .setSource(this, model)
+                    .setSource(this, entry.getValue())
                     .build()
-                    .thenAccept(modelRenderable -> mModels.put(model, new Model(model, MODELS.get(model), modelRenderable)))
+                    .thenAccept(modelRenderable -> mModels.put(entry.getKey(), new Model(entry.getValue(), entry.getKey(), modelRenderable)))
                     .exceptionally(throwable -> {
                         Toast toast = Toast.makeText(this, "Unable to load renderable", Toast.LENGTH_LONG);
                         toast.setGravity(Gravity.CENTER, 0, 0);
@@ -101,36 +106,78 @@ public class ArGameActivity extends AppCompatActivity {
 
         mGson = new Gson();
         mAnchors = new HashMap<>();
+        mAnchorQueue = new ArrayBlockingQueue<AnchorRenderable>(64);
         mAugmentedLocationManager = new AugmentedLocationManager(this);
         mCurrentHostResolveMode = HostResolveMode.NONE;
         mSyncService = SyncServiceHelper.getInstance();
+
+        mDebugText = findViewById(R.id.debugText);
 
         mGame = new TreasureHunt(this, mAugmentedLocationManager);
 //        mGame.startGame();
 
         // region augmentadd
+//        mAugmentedLocationManager.add(
+////                new AugmentedLocation(
+////                        0,
+////                        DeviceLocation.BuildLocation(57.013973, 9.988686),
+////                        R.raw.treasure
+////                )
+////        );
+////        mAugmentedLocationManager.add(
+////                new AugmentedLocation(
+////                        1,
+////                        DeviceLocation.BuildLocation(57.013833, 9.988444),
+////                        R.raw.treasure
+////                )
+////        );
+////        mAugmentedLocationManager.add(
+////                new AugmentedLocation(
+////                        2,
+////                        DeviceLocation.BuildLocation(57.014007, 9.988455),
+////                        R.raw.treasure
+////                )
+////        );
+//
+//
         mAugmentedLocationManager.add(
                 new AugmentedLocation(
                         0,
-                        DeviceLocation.BuildLocation(57.013973, 9.988686),
-                        R.raw.treasure
+                        DeviceLocation.BuildLocation(57.014737, 9.978055),
+                        "Treasure"
                 )
         );
         mAugmentedLocationManager.add(
                 new AugmentedLocation(
                         1,
-                        DeviceLocation.BuildLocation(57.013833, 9.988444),
-                        R.raw.treasure
+                        DeviceLocation.BuildLocation(57.014644, 9.978362),
+                        "Treasure"
                 )
         );
         mAugmentedLocationManager.add(
                 new AugmentedLocation(
                         2,
-                        DeviceLocation.BuildLocation(57.014007, 9.988455),
-                        R.raw.treasure
+                        DeviceLocation.BuildLocation(57.014477, 9.978343),
+                        "Treasure"
                 )
         );
         // endregion
+
+        if (mSyncService.IsOwner()) {
+            mCurrentHostResolveMode = HostResolveMode.HOSTING;
+            runOnUiThread(() -> {
+                String s = mDebugText.getText() + "\n"
+                        + getResources().getText(R.string.is_owner).toString();
+                mDebugText.setText(s);
+            });
+        } else {
+            mCurrentHostResolveMode = HostResolveMode.RESOLVING;
+            mSyncService.getWebSocket().attachHandler(Packet.ANCHOR_TYPE, packet -> {
+                CloudAnchorInfo cloudAnchorInfo = mGson.fromJson(packet.Data, CloudAnchorInfo.class);
+                resolveNode(cloudAnchorInfo.CloudAnchorId, cloudAnchorInfo.Id, cloudAnchorInfo.Model);
+                Log.i(TAG, "received anchor");
+            });
+        }
 
         mArFragment.setOnTapArPlaneListener((hitResult, plane, motionEvent) -> {
                     if (mModels == null || mModels.size() == 0) {
@@ -154,8 +201,7 @@ public class ArGameActivity extends AppCompatActivity {
                         });
                     });
 
-                }
-        );
+                });
 
         // The onUpdate method is called before each frame.
         mArFragment.getArSceneView().getScene().setOnUpdateListener(frameTime -> {
@@ -170,6 +216,12 @@ public class ArGameActivity extends AppCompatActivity {
             if (mCurrentHostResolveMode == HostResolveMode.HOSTING && mArFragment.getArSceneView().getSession() != null) {
                 mAugmentedLocationManager.onUpdate(mArFragment.getArSceneView());
             }
+
+            AnchorRenderable anchorRenderable = mAnchorQueue.poll();
+            if (anchorRenderable != null) {
+                mAnchors.put(anchorRenderable.getId(), anchorRenderable.mAnchor);
+                addTransformableNode(anchorRenderable.getAnchor(), anchorRenderable.mModel);
+            }
         });
     }
 
@@ -182,16 +234,22 @@ public class ArGameActivity extends AppCompatActivity {
         return (float) Math.sqrt(dx * dx + dy * dy + dz * dz);
     }
 
-    public Anchor addNode(Anchor anchor, int id, int model) {
+    public Anchor addNode(Anchor anchor, int id, String model) {
+
+        mAnchors.put(id, anchor);
+        Anchor newAnchor = mArFragment.getArSceneView().getSession().hostCloudAnchor(anchor);
+        addTransformableNode(newAnchor, model);
+
         if (mCurrentHostResolveMode != HostResolveMode.HOSTING) {
             Log.e(TAG, "We should only be creating an anchor in hosting mode!");
             return null;
         }
 
-        mAnchors.put(id, anchor);
-        Anchor newAnchor = mArFragment.getArSceneView().getSession().hostCloudAnchor(anchor);
-        AnchorNode anchorNode = new AnchorNode(newAnchor);
-        anchorNode.setParent(mArFragment.getArSceneView().getScene());
+        runOnUiThread(() -> {
+            String s = mDebugText.getText() + "\n" + id + "\t"
+                    + getResources().getText(R.string.hosting_anchor).toString();
+            mDebugText.setText(s);
+        });
 
         mCloudAnchorService.hostCloudAnchor(newAnchor, cloudAnchor -> {
             Anchor.CloudAnchorState state = cloudAnchor.getCloudAnchorState();
@@ -200,40 +258,89 @@ public class ArGameActivity extends AppCompatActivity {
                 return;
             }
 
-
             mSyncService.getWebSocket().send(
                     new Packet(
                             Packet.ANCHOR_TYPE,
-                            mGson.toJson(new CloudAnchorInfo(id, cloudAnchor.getCloudAnchorId(), MODELS.get(model)))
+                            mGson.toJson(new CloudAnchorInfo(id, cloudAnchor.getCloudAnchorId(), model))
                     )
 
             );
+
+            runOnUiThread(() -> {
+                String s = mDebugText.getText() + "\n" + id + "\t"
+                        + getResources().getText(R.string.anchor_hosted).toString();
+                mDebugText.setText(s);
+            });
+
             Log.i(TAG, "send new anchor");
 
         });
 
-        addTransformableNode(anchorNode, model);
         return newAnchor;
     }
 
-    private void resolveNode(String cloudAnchorId, int id, int model) {
+
+    private class AnchorRenderable {
+        private int mId;
+        private String mModel;
+        private Anchor mAnchor;
+
+        public AnchorRenderable(int id, String model, Anchor anchor) {
+            this.mId = id;
+            this.mModel = model;
+            this.mAnchor = anchor;
+        }
+
+        public int getId() {
+            return mId;
+        }
+
+        public String getModel() {
+            return mModel;
+        }
+
+        public Anchor getAnchor() {
+            return mAnchor;
+        }
+    }
+
+    private void resolveNode(String cloudAnchorId, int id, String model) {
         if (mCurrentHostResolveMode != HostResolveMode.RESOLVING) {
             Log.e(TAG, "We should only be resolving an anchor in resolving mode!");
             return;
         }
 
+        runOnUiThread(() -> {
+            String s = mDebugText.getText() + "\n" + id + "\t"
+                    + getResources().getText(R.string.resolving_anchor).toString();
+            mDebugText.setText(s);
+        });
+
         mCloudAnchorService.resolveCloudAnchor(cloudAnchorId, anchor -> {
-            mAnchors.put(id, anchor);
-            AnchorNode anchorNode = new AnchorNode(anchor);
-            anchorNode.setParent(mArFragment.getArSceneView().getScene());
-            addTransformableNode(anchorNode, model);
+            runOnUiThread(() -> {
+                String s = mDebugText.getText() + "\n" + id + "\t"
+                        + getResources().getText(R.string.anchor_resolved).toString();
+                mDebugText.setText(s);
+            });
+
+            // Fix rotation for anchors
+            float translations[] = new float[3];
+            float rotations[] = new float[4];
+            anchor.getPose().getTranslation(translations, 0);
+            ArrayList<Plane> planes = new ArrayList<>(mArFragment.getArSceneView().getSession().getAllTrackables(Plane.class));
+            planes.get(0).getCenterPose().getRotationQuaternion(rotations, 0);
+            Anchor newAnchor = mArFragment.getArSceneView().getSession().createAnchor(new Pose(translations, rotations));
+
+            mAnchorQueue.offer(new AnchorRenderable(id, model, newAnchor));
         });
     }
 
-    private void addTransformableNode(AnchorNode anchorNode, int model) {
+    private void addTransformableNode(Anchor anchor, String model) {
+        AnchorNode anchorNode = new AnchorNode(anchor);
+        anchorNode.setParent(mArFragment.getArSceneView().getScene());
+
         // Create the transformable model, and attach it to the anchor.
         TransformableNode transformableNode = new TransformableNode(mArFragment.getTransformationSystem());
-        // TODO: Disable transformation?
         transformableNode.setParent(anchorNode);
         transformableNode.setRenderable(mModels.get(model).getRenderableModel());
     }
@@ -249,17 +356,6 @@ public class ArGameActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-
-        if (mSyncService.IsOwner()) {
-            mCurrentHostResolveMode = HostResolveMode.HOSTING;
-        } else {
-            mCurrentHostResolveMode = HostResolveMode.RESOLVING;
-            mSyncService.getWebSocket().attachHandler(Packet.ANCHOR_TYPE, packet -> {
-                CloudAnchorInfo cloudAnchorInfo = mGson.fromJson(packet.Data, CloudAnchorInfo.class);
-                resolveNode(cloudAnchorInfo.CloudAnchorId, cloudAnchorInfo.Id, MODEL_NAMES.get(cloudAnchorInfo.ModelId));
-                Log.i(TAG, "received anchor");
-            });
-        }
 
         CloudAnchorServiceHelper.init(this, cloudAnchorService -> {
             mCloudAnchorService = cloudAnchorService;
@@ -279,7 +375,7 @@ public class ArGameActivity extends AppCompatActivity {
 
                     session = mArFragment.getArSceneView().getSession();
                     Config config = new Config(session);
-                    config.setCloudAnchorMode(Config.CloudAnchorMode.ENABLED); // Add this line.
+                    config.setCloudAnchorMode(Config.CloudAnchorMode.ENABLED);
                     config.setUpdateMode(Config.UpdateMode.LATEST_CAMERA_IMAGE);
                     session.configure(config);
                     mCloudAnchorService.setSession(session);
