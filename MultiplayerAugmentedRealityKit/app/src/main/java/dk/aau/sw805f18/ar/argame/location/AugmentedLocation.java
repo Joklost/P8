@@ -8,7 +8,7 @@ public class AugmentedLocation {
 
     private final int mId;
 
-    private final int mModel;
+    private final String mModel;
     // Location in real-world terms
     private Location mLocation;
     // Location in AR terms
@@ -16,7 +16,7 @@ public class AugmentedLocation {
 
     private boolean mLocked;
 
-    public AugmentedLocation(int id, Location location, int model) {
+    public AugmentedLocation(int id, Location location, String model) {
         mId = id;
         mLocation = location;
         mModel = model;
@@ -42,7 +42,7 @@ public class AugmentedLocation {
         this.mLocked = locked;
     }
 
-    public int getModel() {
+    public String getModel() {
         return mModel;
     }
 

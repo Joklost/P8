@@ -37,6 +37,22 @@ public class AugmentedLocationManager {
         mDeviceOrientation = DeviceOrientation.getInstance(activity);
     }
 
+    public static float calcPlaneLevel(Collection<Plane> planes) {
+
+        // Estimate the surface level.
+        OptionalDouble avg = planes.stream()
+                .map(Plane::getCenterPose)
+                .map(Pose::ty)
+                .mapToDouble(a -> a)
+                .average();
+
+        if (!avg.isPresent()) {
+            return Float.MIN_VALUE;
+        }
+
+        return (float) avg.getAsDouble();
+    }
+
     private void refreshAnchors(ArSceneView sceneView) {
         for (AugmentedLocation al : mAugmentedLocations) {
             if (al.isLocked() || al.getAnchor() != null) {
@@ -59,30 +75,24 @@ public class AugmentedLocationManager {
                 continue;
             }
 
-            // Estimate the surface level.
-            Collection<Plane> allPlanes = sceneView.getSession().getAllTrackables(Plane.class);
-            OptionalDouble avg = allPlanes.stream()
-                    .map(Plane::getCenterPose)
-                    .map(Pose::ty)
-                    .mapToDouble(a -> a)
-                    .average();
-
-            if (!avg.isPresent()) {
-                Log.e(TAG, "Unable to estimate surface level!");
-                continue;
-            }
-
             Log.i(TAG, "Distance to marker: " + markerDistance);
+
+            Collection<Plane> planes = sceneView.getSession().getAllTrackables(Plane.class);
 
             float x = 0;
             float z = -markerDistance;
+            float y = calcPlaneLevel(planes);
+
+            if (y == Float.MIN_VALUE) {
+                continue;
+            }
 
             // Adjustment to add markers on horizon, instead of just directly in front of camera
             double heightAdjustment = Math.round(markerDistance * (Math.tan(Math.toRadians(mDeviceOrientation.getPitch()))));
-            float y = (float) (avg.getAsDouble() + heightAdjustment);
+            y = (float) (y + heightAdjustment);
 
             // Use rotation from Pose in Plane.
-            Plane plane = new ArrayList<>(allPlanes).get(0);
+            Plane plane = new ArrayList<>(planes).get(0);
             float rotations[] = new float[4];
             plane.getCenterPose().getRotationQuaternion(rotations, 0);
             float translations[] = new float[3];

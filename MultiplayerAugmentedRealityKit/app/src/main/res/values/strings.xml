@@ -115,4 +115,11 @@
     <string name="map_title">Map</string>
     <string name="lobby_game_start_toast">Game starting</string>
     <string name="auto_enabled_wifi">Enabling wifi …</string>
+    <string name="hosting_anchor">Hosting Anchor…</string>
+    <string name="anchor_hosted">Anchor hosted!</string>
+    <string name="resolving_anchor">Resolving Anchor…</string>
+    <string name="anchor_resolved">Anchor resolved!</string>
+    <string name="transformable_node_created">Transformable Node created!</string>
+    <string name="is_owner">Owner</string>
+
 </resources>

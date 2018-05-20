@@ -20,9 +20,9 @@ import dk.aau.sw805f18.ar.argame.Model;
 public class ModelDialogFragment extends DialogFragment {
 
     private List<Model> mModels;
-    private Consumer<Integer> mOnPick;
+    private Consumer<String> mOnPick;
 
-    public void show(FragmentManager manager, String tag, HashMap<Integer, Model> models, Consumer<Integer> onPick) {
+    public void show(FragmentManager manager, String tag, HashMap<String, Model> models, Consumer<String> onPick) {
         mModels = new ArrayList<>(models.values());
         mOnPick = onPick;
         super.show(manager, tag);
@@ -33,13 +33,14 @@ public class ModelDialogFragment extends DialogFragment {
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+
         List<String> options = new ArrayList<>();
         for (Model model : mModels) {
             options.add(model.getTitle());
         }
 
         builder.setTitle(R.string.model_dialog_title).setItems(options.toArray(new String[0]), (dialog, which) -> {
-            mOnPick.accept(mModels.get(which).getId());
+            mOnPick.accept(options.get(which));
         });
 
         return builder.create();
