@@ -65,7 +65,18 @@ public class ArGameActivity extends AppCompatActivity {
     private ArFragment mArFragment;
     private AugmentedLocationManager mAugmentedLocationManager;
     private TreasureHunt mGame;
-    private HashMap<Integer, Anchor> mAnchors;
+
+    public HashMap<Anchor, Integer> getAnchors() {
+        return mAnchors;
+    }
+
+    public HashMap<Integer, Anchor> getAnchorsReverse() {
+        return mAnchorsReverse;
+    }
+
+    private HashMap<Integer, Anchor> mAnchorsReverse;
+    private HashMap<Anchor, Integer> mAnchors;
+
     private Gson mGson;
 
     private ArrayBlockingQueue<AnchorRenderable> mAnchorQueue;
@@ -106,6 +117,7 @@ public class ArGameActivity extends AppCompatActivity {
 
         mGson = new Gson();
         mAnchors = new HashMap<>();
+        mAnchorsReverse = new HashMap<>();
         mAnchorQueue = new ArrayBlockingQueue<AnchorRenderable>(64);
         mAugmentedLocationManager = new AugmentedLocationManager(this);
         mCurrentHostResolveMode = HostResolveMode.NONE;
@@ -114,7 +126,7 @@ public class ArGameActivity extends AppCompatActivity {
         mDebugText = findViewById(R.id.debugText);
 
         mGame = new TreasureHunt(this, mAugmentedLocationManager);
-//        mGame.startGame();
+
 
         // region augmentadd
 //        mAugmentedLocationManager.add(
@@ -206,7 +218,7 @@ public class ArGameActivity extends AppCompatActivity {
         // The onUpdate method is called before each frame.
         mArFragment.getArSceneView().getScene().setOnUpdateListener(frameTime -> {
             mArFragment.onUpdate(frameTime);
-//            mGame.update(mArFragment.getArSceneView().getArFrame());
+            mGame.update(mArFragment.getArSceneView().getArFrame());
 
             if (mCloudAnchorService != null) {
                 Collection<Anchor> updatedAnchors = mArFragment.getArSceneView().getArFrame().getUpdatedAnchors();
@@ -219,7 +231,7 @@ public class ArGameActivity extends AppCompatActivity {
 
             AnchorRenderable anchorRenderable = mAnchorQueue.poll();
             if (anchorRenderable != null) {
-                mAnchors.put(anchorRenderable.getId(), anchorRenderable.mAnchor);
+                mAnchors.put(anchorRenderable.mAnchor, anchorRenderable.getId());
                 addTransformableNode(anchorRenderable.getAnchor(), anchorRenderable.mModel);
             }
         });
@@ -236,7 +248,9 @@ public class ArGameActivity extends AppCompatActivity {
 
     public Anchor addNode(Anchor anchor, int id, String model) {
 
-        mAnchors.put(id, anchor);
+        mAnchors.put(anchor, id);
+        mAnchorsReverse.put(id, anchor);
+
         Anchor newAnchor = mArFragment.getArSceneView().getSession().hostCloudAnchor(anchor);
         addTransformableNode(newAnchor, model);
 

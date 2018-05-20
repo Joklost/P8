@@ -95,6 +95,7 @@ public class LobbyFragment extends Fragment {
 
         ws.attachHandler(Packet.NEWGROUP_TYPE, packet -> {
             int newGroup = parseInt(packet.Data);
+            syncService.setGroupId(newGroup);
             mActivity.runOnUiThread(() -> {
                 lobbyLayout.setBackgroundColor(Color.parseColor(GROUP_COLOURS[newGroup]));
             });

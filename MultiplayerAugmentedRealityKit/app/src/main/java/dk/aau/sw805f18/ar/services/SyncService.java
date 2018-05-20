@@ -18,7 +18,10 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 import dk.aau.sw805f18.ar.R;
@@ -28,6 +31,7 @@ import dk.aau.sw805f18.ar.common.websocket.WebSocketeer;
 import dk.aau.sw805f18.ar.common.websocket.WebSocketeerServer;
 import dk.aau.sw805f18.ar.common.wifip2p.WifiP2pReceiver;
 import dk.aau.sw805f18.ar.models.AutoGrouping;
+import dk.aau.sw805f18.ar.models.Player;
 
 public class SyncService extends Service {
     private static final String TAG = SyncService.class.getSimpleName();
@@ -45,6 +49,8 @@ public class SyncService extends Service {
     private String mDeviceAddress;
     private String mDeviceName;
     private String mPlayerId;
+
+    private int mGroupId;
     private boolean mDiscoverInitiated;
     private boolean mGroupCreated;
     private String mToken;
@@ -57,6 +63,9 @@ public class SyncService extends Service {
 
     private WifiP2pReceiver mReceiver;
     private DeviceLocation mDeviceLocation;
+
+
+    private List<Player> mPlayers;
     private boolean mOwner;
 
 
@@ -83,6 +92,9 @@ public class SyncService extends Service {
         mWebSocket = new WebSocketeer("http://warpapp.xyz/connect/" + lobbyId);
         mWebSocket.attachHandler(Packet.ID_TYPE, packet -> {
             mPlayerId = packet.Data;
+        });
+        mWebSocket.attachHandler(Packet.PLAYERS_TYPE, packet -> {
+            mPlayers = mJson.fromJson(packet.Data, new TypeToken <List<Player>>(){}.getType());
         });
     }
 
@@ -351,6 +363,25 @@ public class SyncService extends Service {
     public boolean isHostingWifiP2p() {
         return mWebSocketeerServer != null;
     }
+
+    public void setGroupId(int mGroupId) {
+        this.mGroupId = mGroupId;
+    }
+
+    public List<Player> getPlayers() {
+        return mPlayers;
+    }
+
+    public List<Player> getPlayersOnTeam() {
+        List<Player> players = new ArrayList<>();
+        for (Player player : mPlayers) {
+            if (player.Team == mGroupId) {
+                players.add(player);
+            }
+        }
+        return players;
+    }
+
     //endregion
 }
 
