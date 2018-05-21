@@ -14,6 +14,7 @@ import com.google.gson.Gson;
 import com.koushikdutta.async.http.WebSocket;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -38,9 +39,9 @@ public class TreasureHunt {
 
     private GameState mGameState;
     private ArGameActivity mActivity;
-    private Anchor mRandomChest;
-    private Anchor mChosenChest;
-    private List<Anchor> mChosenChests;
+    private int mRandomChest;
+    private int mChosenChest;
+    private List<Integer> mChosenChests;
     private SyncService mSyncService;
     private Boolean mAwaitingResponse = false;
     private AugmentedLocationManager mManager;
@@ -56,16 +57,17 @@ public class TreasureHunt {
     }
 
     private void sendPacket(Packet packet) {
-        mSyncService.getWebSocketeerServer().sendToAll(packet);
+        mSyncService.getWebSocket().send(packet);
+        //TODO slaves får pakker sendt af andre pakker
     }
 
-    private Anchor receiveChosenSlavePacket(Packet packet) {
+    private int receiveChosenSlavePacket(Packet packet) {
         mAwaitingResponse = false;
-        return mActivity.getAnchorsReverse().get(mGson.fromJson(packet.Data, int.class));
+        return Integer.parseInt(packet.Data);
     }
 
     private void actOnChosenPacket() {
-        if (mChosenChest.equals(mRandomChest)) {
+        if (mChosenChest == (mRandomChest)) {
             AlertDialog.Builder alert = new AlertDialog.Builder(mActivity);
             if (mGameState == GameState.ONECHEST) {
                 mGameState = GameState.FINISHED;
@@ -107,13 +109,13 @@ public class TreasureHunt {
         mAwaitingResponse = true;
     }
 
-    private Anchor recieveChosenMasterPack(Packet packet) {
-        mChosenChests.add(mGson.fromJson(packet.Data, Anchor.class));
+    private int recieveChosenMasterPack(Packet packet) {
+        mChosenChests.add(mGson.fromJson(packet.Data, int.class));
         if (mChosenChests.size() == mSyncService.getPlayersOnTeam().size()) {
-            mSyncService.getWebSocketeerServer().sendToAll(new Packet(Packet.RANDOM_CHEST, mGson.toJson(mostCommon(mChosenChests))));
+            mSyncService.getWebSocket().send(new Packet(Packet.RANDOM_CHEST, mGson.toJson(mostCommon(mChosenChests))));
             return mChosenChest = mostCommon(mChosenChests);
         }
-        return null;
+        return -1;
     }
 
 
@@ -123,22 +125,22 @@ public class TreasureHunt {
 
         if (mSyncService.IsOwner()) {
 
-            assignRandomChestMaster(new ArrayList<>(mActivity.getAnchors().keySet()));
+            assignRandomChestMaster(mManager.getAugmentedLocations());
             sendPacket(new Packet(Packet.RANDOM_CHEST, mGson.toJson(mActivity.getAnchors().get(mRandomChest))));
 
-            mSyncService.getWebSocketeerServer().attachHandler(Packet.CHOSEN_CHEST, (WebSocket ws, Packet packet) -> {
-                Anchor chosen = recieveChosenMasterPack(packet);
-                if (chosen != null) {
+            mSyncService.getWebSocket().attachHandler(Packet.CHOSEN_CHEST, (Packet packet) -> {
+                int chosen = recieveChosenMasterPack(packet);
+                if (chosen != -1) {
                     mChosenChest = chosen;
                 }
             });
 
         } else {
-            mSyncService.getWifiP2pSocket().attachHandler(Packet.CHOSEN_CHEST, packet -> {
+            mSyncService.getWebSocket().attachHandler(Packet.CHOSEN_CHEST, packet -> {
                 mChosenChest = receiveChosenSlavePacket(packet);
                 actOnChosenPacket();
             });
-            mSyncService.getWifiP2pSocket().attachHandler(Packet.RANDOM_CHEST, packet -> {
+            mSyncService.getWebSocket().attachHandler(Packet.RANDOM_CHEST, packet -> {
                 mRandomChest = recieveRandomPacket(packet);
             });
 
@@ -152,14 +154,14 @@ public class TreasureHunt {
         }
     }
 
-    private Anchor recieveRandomPacket(Packet packet) {
-        return mActivity.getAnchorsReverse().get(mGson.fromJson(packet.Data, int.class));
+    private int recieveRandomPacket(Packet packet) {
+        return mGson.fromJson(packet.Data, int.class);
     }
 
 
     private List<Anchor> getThreeNearestChest() {
         List<Pair<Anchor, Double>> markers = new ArrayList<>(mActivity.getAnchors().keySet()).stream().map((marker) -> {
-            Pose chosenChestPose = mChosenChest.getPose();
+            Pose chosenChestPose = mActivity.getAnchorsReverse().get(mChosenChest).getPose();
             Pose markerChestPose = marker.getPose();
             double distance = mActivity.calcPoseDistance(chosenChestPose, markerChestPose);
             return new Pair<>(marker, distance);
@@ -177,6 +179,10 @@ public class TreasureHunt {
     }
 
     public void update(Frame frame) {
+        if(mGameState == GameState.IDLE) {
+            startGame();
+            return;
+        }
         if ((mGameState != GameState.STARTED && mGameState != GameState.ONECHEST) || mAwaitingResponse) {
             return;
         }
@@ -197,24 +203,36 @@ public class TreasureHunt {
             }
         }
         if (tempChest != null) {
-            mChosenChest = tempChest;
-        }
-        else if(mGameState == GameState.IDLE) {
-            startGame();
+            mChosenChest = mActivity.getAnchors().get(tempChest);
         }
         else {
             setTestViewNone();
-            mChosenChest = null;
+            mChosenChest = -1;
         }
     }
 
     private void setTestViewNone() {
+        if(mActivity.getAnchors().get(mRandomChest) == null){
+            return;
+        }
         String correctChest = mActivity.getAnchors().get(mRandomChest).toString();
+
+        Anchor closestAnchor;
+        double distance = 9999;
+        for (Anchor anchor : new ArrayList<Anchor>(mActivity.getAnchors().keySet())) {
+            if(mActivity.calcPoseDistance(anchor.getPose(), anchor.getPose())< distance) {
+                closestAnchor = anchor;
+                distance = mActivity.calcPoseDistance(anchor.getPose(), anchor.getPose());
+            }
+        }
+
+        double finalDistance = distance;
         mActivity.runOnUiThread(() -> {
-            ((TextView) (mActivity.findViewById(R.id.testView))).setText(R.string.no_chest);
-            ((TextView) (mActivity.findViewById(R.id.testView2))).setText(
-                    String.format("Correct Chest: %s\nClosest Chest: None\n", correctChest)
-            );
+
+            String s = ((TextView) (mActivity.findViewById(R.id.debugText))).getText() + "\n"
+                    + "Distance to Anchor: " + finalDistance + "\n";
+            ((TextView) (mActivity.findViewById(R.id.debugText))).setText(s);
+
 
             (mActivity.findViewById(R.id.Chest_Found_Btn)).setVisibility(View.INVISIBLE);
         });
@@ -222,6 +240,8 @@ public class TreasureHunt {
 
     private void setTestViewClose(double closestRange, Anchor closeChest) {
         mActivity.runOnUiThread(() -> {
+
+
 
             ((TextView) (mActivity.findViewById(R.id.testView))).setText(String.format("Range to closest chest: %s", closestRange));
             String correctChest = mActivity.getAnchors().get(mRandomChest).toString();
@@ -252,8 +272,10 @@ public class TreasureHunt {
         return max != null ? max.getKey() : null;
     }
 
-    private void assignRandomChestMaster(List<Anchor> markers) {
-        mRandomChest = markers.get(new Random().nextInt(markers.size()));
+    private void assignRandomChestMaster(Collection markers) {
+        int random = new Random().nextInt(markers.size());
+        mRandomChest = random;
     }
+
 }
 
