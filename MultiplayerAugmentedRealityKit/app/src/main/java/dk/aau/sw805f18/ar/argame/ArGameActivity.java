@@ -90,8 +90,6 @@ public class ArGameActivity extends AppCompatActivity {
 
     private TextView mDebugText;
 
-    private ViewRenderable mTextViewRenderable;
-
     @SuppressLint("UseSparseArrays")
     private void buildRenderables() {
         mModels = new HashMap<>();
@@ -109,11 +107,6 @@ public class ArGameActivity extends AppCompatActivity {
                         return null;
                     });
         }
-
-        ViewRenderable.builder()
-                .setView(this, R.layout.id_view)
-                .build()
-                .thenAccept(viewRenderable -> mTextViewRenderable = viewRenderable);
     }
 
     @SuppressLint("UseSparseArrays")
@@ -245,8 +238,8 @@ public class ArGameActivity extends AppCompatActivity {
 
             AnchorRenderable anchorRenderable = mAnchorQueue.poll();
             if (anchorRenderable != null) {
-                mAnchors.put(anchorRenderable.mAnchor, anchorRenderable.getId());
-                addTransformableNode(anchorRenderable.getAnchor(), anchorRenderable.getId(), anchorRenderable.mModel);
+                mAnchors.put(anchorRenderable.getAnchor(), anchorRenderable.getId());
+                addTransformableNode(anchorRenderable.getAnchor(), anchorRenderable.getId(), anchorRenderable.getModel());
             }
         });
     }
@@ -308,29 +301,6 @@ public class ArGameActivity extends AppCompatActivity {
     }
 
 
-    private class AnchorRenderable {
-        private int mId;
-        private String mModel;
-        private Anchor mAnchor;
-
-        public AnchorRenderable(int id, String model, Anchor anchor) {
-            this.mId = id;
-            this.mModel = model;
-            this.mAnchor = anchor;
-        }
-
-        public int getId() {
-            return mId;
-        }
-
-        public String getModel() {
-            return mModel;
-        }
-
-        public Anchor getAnchor() {
-            return mAnchor;
-        }
-    }
 
     private void resolveNode(String cloudAnchorId, int id, String model) {
         if (mCurrentHostResolveMode != HostResolveMode.RESOLVING) {
@@ -366,12 +336,6 @@ public class ArGameActivity extends AppCompatActivity {
     private void addTransformableNode(Anchor anchor, int id, String model) {
         AnchorNode anchorNode = new AnchorNode(anchor);
         anchorNode.setParent(mArFragment.getArSceneView().getScene());
-
-//        AnchorNode textNode = new AnchorNode(anchor);
-//        textNode.setLocalPosition(Vector3.add(textNode.getLocalPosition(), Vector3.up()));
-//        textNode.setParent(mArFragment.getArSceneView().getScene());
-//        ((TextView) mTextViewRenderable.getView()).setText(String.valueOf(id));
-//        textNode.setRenderable(mTextViewRenderable);
 
         // Create the transformable model, and attach it to the anchor.
         TransformableNode transformableNode = new TransformableNode(mArFragment.getTransformationSystem());
