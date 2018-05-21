@@ -16,7 +16,9 @@ import com.google.ar.core.Plane;
 import com.google.ar.core.Pose;
 import com.google.ar.core.Session;
 import com.google.ar.sceneform.AnchorNode;
+import com.google.ar.sceneform.math.Vector3;
 import com.google.ar.sceneform.rendering.ModelRenderable;
+import com.google.ar.sceneform.rendering.ViewRenderable;
 import com.google.ar.sceneform.ux.ArFragment;
 import com.google.ar.sceneform.ux.TransformableNode;
 import com.google.gson.Gson;
@@ -25,6 +27,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Vector;
 import java.util.concurrent.ArrayBlockingQueue;
 
 import dk.aau.sw805f18.ar.R;
@@ -87,6 +90,8 @@ public class ArGameActivity extends AppCompatActivity {
 
     private TextView mDebugText;
 
+    private ViewRenderable mTextViewRenderable;
+
     @SuppressLint("UseSparseArrays")
     private void buildRenderables() {
         mModels = new HashMap<>();
@@ -104,6 +109,11 @@ public class ArGameActivity extends AppCompatActivity {
                         return null;
                     });
         }
+
+        ViewRenderable.builder()
+                .setView(this, R.layout.id_view)
+                .build()
+                .thenAccept(viewRenderable -> mTextViewRenderable = viewRenderable);
     }
 
     @SuppressLint("UseSparseArrays")
@@ -183,12 +193,16 @@ public class ArGameActivity extends AppCompatActivity {
                 mDebugText.setText(s);
             });
         } else {
-            mCurrentHostResolveMode = HostResolveMode.RESOLVING;
-            mSyncService.getWebSocket().attachHandler(Packet.ANCHOR_TYPE, packet -> {
-                CloudAnchorInfo cloudAnchorInfo = mGson.fromJson(packet.Data, CloudAnchorInfo.class);
-                resolveNode(cloudAnchorInfo.CloudAnchorId, cloudAnchorInfo.Id, cloudAnchorInfo.Model);
-                Log.i(TAG, "received anchor");
-            });
+            if (mSyncService.getWebSocket() == null) {
+                mCurrentHostResolveMode = HostResolveMode.HOSTING;
+            } else {
+                mCurrentHostResolveMode = HostResolveMode.RESOLVING;
+                mSyncService.getWebSocket().attachHandler(Packet.ANCHOR_TYPE, packet -> {
+                    CloudAnchorInfo cloudAnchorInfo = mGson.fromJson(packet.Data, CloudAnchorInfo.class);
+                    resolveNode(cloudAnchorInfo.CloudAnchorId, cloudAnchorInfo.Id, cloudAnchorInfo.Model);
+                    Log.i(TAG, "received anchor");
+                });
+            }
         }
 
         mArFragment.setOnTapArPlaneListener((hitResult, plane, motionEvent) -> {
@@ -232,7 +246,7 @@ public class ArGameActivity extends AppCompatActivity {
             AnchorRenderable anchorRenderable = mAnchorQueue.poll();
             if (anchorRenderable != null) {
                 mAnchors.put(anchorRenderable.mAnchor, anchorRenderable.getId());
-                addTransformableNode(anchorRenderable.getAnchor(), anchorRenderable.mModel);
+                addTransformableNode(anchorRenderable.getAnchor(), anchorRenderable.getId(), anchorRenderable.mModel);
             }
         });
     }
@@ -252,7 +266,7 @@ public class ArGameActivity extends AppCompatActivity {
         mAnchorsReverse.put(id, anchor);
 
         Anchor newAnchor = mArFragment.getArSceneView().getSession().hostCloudAnchor(anchor);
-        addTransformableNode(newAnchor, model);
+        addTransformableNode(newAnchor, id, model);
 
         if (mCurrentHostResolveMode != HostResolveMode.HOSTING) {
             Log.e(TAG, "We should only be creating an anchor in hosting mode!");
@@ -349,9 +363,15 @@ public class ArGameActivity extends AppCompatActivity {
         });
     }
 
-    private void addTransformableNode(Anchor anchor, String model) {
+    private void addTransformableNode(Anchor anchor, int id, String model) {
         AnchorNode anchorNode = new AnchorNode(anchor);
         anchorNode.setParent(mArFragment.getArSceneView().getScene());
+
+//        AnchorNode textNode = new AnchorNode(anchor);
+//        textNode.setLocalPosition(Vector3.add(textNode.getLocalPosition(), Vector3.up()));
+//        textNode.setParent(mArFragment.getArSceneView().getScene());
+//        ((TextView) mTextViewRenderable.getView()).setText(String.valueOf(id));
+//        textNode.setRenderable(mTextViewRenderable);
 
         // Create the transformable model, and attach it to the anchor.
         TransformableNode transformableNode = new TransformableNode(mArFragment.getTransformationSystem());
@@ -364,7 +384,9 @@ public class ArGameActivity extends AppCompatActivity {
         super.onPause();
         mAugmentedLocationManager.pause();
         mCloudAnchorService = null;
-        CloudAnchorServiceHelper.deinit(this);
+        if (CloudAnchorServiceHelper.isBound()) {
+            CloudAnchorServiceHelper.deinit(this);
+        }
     }
 
     @Override
