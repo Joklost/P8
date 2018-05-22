@@ -96,10 +96,11 @@ public class FindCourseFragment extends Fragment {
 
     private ArrayList<String> getTypeItems() {
         ArrayList<String> typeArray = new ArrayList<>();
-        typeArray.add("night event");
-        typeArray.add("halloween event");
-        typeArray.add("christmas event");
-        typeArray.add("sunshine event");
+        typeArray.add("");
+        typeArray.add("knowledge of nature");
+        typeArray.add("pioneering");
+        typeArray.add("creative");
+        typeArray.add("campfire skills");
 
         return typeArray;
     }

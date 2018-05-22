@@ -36,12 +36,12 @@ public class LobbyFragment extends Fragment {
 
     private static final String[] GROUP_COLOURS = new String[]{
             "#EF5350",
-            "#AB47BC",
             "#29B6F6",
+            "#9CCC65",
+            "#AB47BC",
             "#26C6DA",
             "#EC407A",
             "#26A69A",
-            "#9CCC65",
             "#5C6BC0",
             "#FFEE58",
             "#FFA726",

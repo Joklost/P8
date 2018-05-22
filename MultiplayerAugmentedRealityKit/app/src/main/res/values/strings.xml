@@ -86,11 +86,11 @@
     <string name="create_course_min_group_size_text">Min groups size:</string>
     <string name="create_course_min_group_size_hint">Enter minimum group size</string>
     <string name="create_course_group_formation_text">Group formation:</string>
-    <string name="create_course_course_name_hint">Enter room name</string>
+    <string name="create_course_course_name_hint">Enter course name</string>
     <string-array name="create_course_group_selection_array">
         <item>Troop leader</item>
-        <item>Self selection</item>
-        <item>WIFI selection</item>
+        <item>Free for all</item>
+        <item>Autogrouping</item>
     </string-array>
 
     <!--Profile fragment-->
@@ -121,5 +121,6 @@
     <string name="anchor_resolved">Anchor resolved!</string>
     <string name="transformable_node_created">Transformable Node created!</string>
     <string name="is_owner">Owner</string>
+    <string name="select_course_from_catalog">Select task(s) from catalog</string>
 
 </resources>

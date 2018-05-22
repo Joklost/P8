@@ -28,7 +28,7 @@
         android:layout_marginEnd="8dp"
         android:layout_marginStart="8dp"
         android:layout_marginTop="24dp"
-        android:text="Select course from catalog"
+        android:text="@string/select_course_from_catalog"
         android:textSize="16sp"
         app:layout_constraintEnd_toStartOf="@+id/create_course_dialog_button"
         app:layout_constraintStart_toStartOf="parent"

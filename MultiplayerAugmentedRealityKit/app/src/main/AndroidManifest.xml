@@ -37,10 +37,6 @@
         <activity
             android:name=".main.MainActivity"
             android:screenOrientation="portrait">
-            <!--<intent-filter>-->
-            <!--<action android:name="android.intent.action.MAIN" />-->
-            <!--<category android:name="android.intent.category.LAUNCHER" />-->
-            <!--</intent-filter>-->
         </activity>
         <activity
             android:name=".ar.ArActivity"
@@ -48,13 +44,23 @@
 
         <activity
             android:name=".argame.ArGameActivity"
-            android:parentActivityName=".main.MainActivity"
             android:configChanges="orientation|screenSize"
-            android:screenOrientation="locked"/>
+            android:parentActivityName=".main.MainActivity"
+            android:screenOrientation="locked" />
+
+        <activity
+            android:name=".main.LoginActivity"
+            android:noHistory="true"
+            android:screenOrientation="portrait">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
 
         <meta-data
             android:name="com.google.android.ar.API_KEY"
-            android:value="AIzaSyCZPgsD5QpaifbPrFPz4ijIayyb-6lNeqA"/>
+            android:value="AIzaSyCZPgsD5QpaifbPrFPz4ijIayyb-6lNeqA" />
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyBSNhvpyhdLo3wdkzVvQGqeaP9RnxHlcP4" />
@@ -62,12 +68,6 @@
             android:name="com.google.ar.core"
             android:value="required" />
 
-        <activity android:name=".main.LoginActivity">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
 
         <service
             android:name=".services.SyncService"
