@@ -122,5 +122,6 @@
     <string name="transformable_node_created">Transformable Node created!</string>
     <string name="is_owner">Owner</string>
     <string name="select_course_from_catalog">Select task(s) from catalog</string>
+    <string name="open_chest">Open Chest</string>
 
 </resources>

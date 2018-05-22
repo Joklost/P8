@@ -2,6 +2,7 @@ package dk.aau.sw805f18.ar.argame;
 
 
 import android.support.v7.app.AlertDialog;
+import android.util.Log;
 import android.util.Pair;
 import android.view.View;
 import android.widget.Button;
@@ -37,6 +38,7 @@ public class TreasureHunt {
         IDLE, STARTED, ONECHEST, FINISHED;
     }
 
+    private static final String TAG = TreasureHunt.class.getSimpleName();
     private GameState mGameState;
     private ArGameActivity mActivity;
     private int mRandomChest;
@@ -98,7 +100,8 @@ public class TreasureHunt {
                 alert.setMessage("You selected the wrong chest!" + "\n" + "The game will now reset");
             }
 
-            alert.setPositiveButton("Ok", (dialog, whichButton) -> {});
+            alert.setPositiveButton("Ok", (dialog, whichButton) -> {
+            });
             alert.show();
         }
     }
@@ -143,15 +146,17 @@ public class TreasureHunt {
             mSyncService.getWebSocket().attachHandler(Packet.RANDOM_CHEST, packet -> {
                 mRandomChest = recieveRandomPacket(packet);
             });
-
-            Button firstChestBtn = mActivity.findViewById(R.id.Chest_Found_Btn);
-
-            firstChestBtn.setOnClickListener(v -> {
-                sendChosenPacket(new Packet(Packet.CHOSEN_CHEST, mGson.toJson(mActivity.getAnchors().get(mChosenChest))));
-                firstChestBtn.setClickable(false);
-                firstChestBtn.setText(R.string.waiting);
-            });
         }
+        Button firstChestBtn = mActivity.findViewById(R.id.Chest_Found_Btn);
+
+        firstChestBtn.setOnClickListener(v -> {
+            Log.i(TAG, "button clicked");
+            Log.i(TAG, "Chosen chest: " + mChosenChest + " Random Chest: " + mRandomChest);
+            sendChosenPacket(new Packet(Packet.CHOSEN_CHEST, mGson.toJson(mActivity.getAnchors().get(mChosenChest))));
+            firstChestBtn.setClickable(false);
+            firstChestBtn.setText(R.string.waiting);
+            mAwaitingResponse = true;
+        });
     }
 
     private int recieveRandomPacket(Packet packet) {
@@ -179,12 +184,17 @@ public class TreasureHunt {
     }
 
     public void onUpdate(Frame frame) {
-        if(mGameState == GameState.IDLE) {
+        if (mGameState == GameState.IDLE) {
             startGame();
+            Log.i(TAG, "Game started");
+            return;
+        } else if (mAwaitingResponse) {
+            mAwaitingResponse = false;
+            actOnChosenPacket();
             return;
         }
 
-        if ((mGameState != GameState.STARTED && mGameState != GameState.ONECHEST) || mAwaitingResponse) {
+        if ((mGameState != GameState.STARTED && mGameState != GameState.ONECHEST)) {
             return;
         }
 
@@ -196,7 +206,7 @@ public class TreasureHunt {
             }
 
             double range = mActivity.calcPoseDistance(marker.getPose(), frame.getCamera().getPose());
-            if (range < 5 && range < closestRange) {
+            if (range < 10 && range < closestRange) {
                 closestRange = range;
                 tempChest = marker;
 
@@ -205,34 +215,32 @@ public class TreasureHunt {
         }
         if (tempChest != null) {
             mChosenChest = mActivity.getAnchors().get(tempChest);
-        }
-        else {
-            setTestViewNone();
+        } else {
+
+            setTestViewNone(frame);
             mChosenChest = -1;
         }
     }
 
-    private void setTestViewNone() {
-        if(mActivity.getAnchors().get(mRandomChest) == null){
+    private void setTestViewNone(Frame frame) {
+        if (mActivity.getAnchorsReverse().get(mRandomChest) == null) {
+            Log.i(TAG, "returned because no random chest is avaiable");
             return;
         }
-        String correctChest = mActivity.getAnchors().get(mRandomChest).toString();
 
-        Anchor closestAnchor;
         double distance = 9999;
         for (Anchor anchor : new ArrayList<Anchor>(mActivity.getAnchors().keySet())) {
-            if(mActivity.calcPoseDistance(anchor.getPose(), anchor.getPose())< distance) {
-                closestAnchor = anchor;
-                distance = mActivity.calcPoseDistance(anchor.getPose(), anchor.getPose());
+            if (mActivity.calcPoseDistance(frame.getCamera().getDisplayOrientedPose(), anchor.getPose()) < distance) {
+                distance = mActivity.calcPoseDistance(frame.getCamera().getDisplayOrientedPose(), anchor.getPose());
             }
         }
 
         double finalDistance = distance;
         mActivity.runOnUiThread(() -> {
 
-            String s = ((TextView) (mActivity.findViewById(R.id.debugText))).getText() + "\n"
-                    + "Distance to Anchor: " + finalDistance + "\n";
-            ((TextView) (mActivity.findViewById(R.id.debugText))).setText(s);
+            String s = "Distance to Anchor: " + finalDistance + "\n";
+            Log.i(TAG, s);
+            ((TextView) (mActivity.findViewById(R.id.debugText2))).setText(s);
 
 
             (mActivity.findViewById(R.id.Chest_Found_Btn)).setVisibility(View.INVISIBLE);
@@ -242,14 +250,8 @@ public class TreasureHunt {
     private void setTestViewClose(double closestRange, Anchor closeChest) {
         mActivity.runOnUiThread(() -> {
 
-
-
-            ((TextView) (mActivity.findViewById(R.id.testView))).setText(String.format("Range to closest chest: %s", closestRange));
-            String correctChest = mActivity.getAnchors().get(mRandomChest).toString();
-            String closestChest = mActivity.getAnchors().get(closeChest).toString();
-            ((TextView) (mActivity.findViewById(R.id.testView2))).setText(
-                    String.format("Correct Chest: %s\nClosest Chest: %s\n", correctChest, closestChest)
-            );
+            String s = "closest chest:" + closestRange;
+            ((TextView) (mActivity.findViewById(R.id.debugText2))).setText(s);
             (mActivity.findViewById(R.id.Chest_Found_Btn)).setVisibility(View.VISIBLE);
 
         });
@@ -275,6 +277,7 @@ public class TreasureHunt {
 
     private void assignRandomChestMaster(Collection markers) {
         int random = new Random().nextInt(markers.size());
+        Log.i(TAG, "Random chest assigned to: " + random);
         mRandomChest = random;
     }
 

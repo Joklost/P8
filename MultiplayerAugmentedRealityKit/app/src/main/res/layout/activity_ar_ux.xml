@@ -1,13 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".argame.ArGameActivity">
 
-    <fragment android:name="com.google.ar.sceneform.ux.ArFragment"
+    <fragment
         android:id="@+id/ux_fragment"
+        android:name="com.google.ar.sceneform.ux.ArFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
@@ -15,6 +17,35 @@
         android:id="@+id/debugText"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:textColor="@color/white"/>
+        android:textColor="@color/white" />
 
-</FrameLayout>
+    <Button
+        android:id="@+id/Chest_Found_Btn"
+        style="@style/FullsizeButton"
+        android:text="@string/open_chest"
+        android:visibility="invisible"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/gameGuideLine" />
+
+    <android.support.constraint.Guideline
+        android:id="@+id/gameGuideLine"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_percent="0.9"/>
+
+    <TextView
+        android:id="@+id/debugText2"
+        android:layout_width="150dp"
+        android:layout_height="0dp"
+        android:layout_marginBottom="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginTop="8dp"
+        android:text="TextView"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+</android.support.constraint.ConstraintLayout>

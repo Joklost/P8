@@ -44,7 +44,7 @@ public class AugmentedLocationManager {
                 .map(Plane::getCenterPose)
                 .map(Pose::ty)
                 .mapToDouble(a -> a)
-                .min();
+                .max();
 
         if (!avg.isPresent()) {
             return Float.MIN_VALUE;
@@ -116,7 +116,7 @@ public class AugmentedLocationManager {
 
             sceneView.getArFrame()
                     .getCamera().getDisplayOrientedPose()
-                    .compose(Pose.makeTranslation(x, (float) (y + heightAdjustment), z))
+                    .compose(Pose.makeTranslation(x, (float) (y), z)) //y+heighadjustment
                     .getTranslation(translations, 0);
             Anchor anchor = mActivity.addNode(sceneView.getSession().createAnchor(new Pose(translations, rotations)), al.getId(), al.getModel());
 
