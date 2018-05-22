@@ -116,7 +116,7 @@ public class AugmentedLocationManager {
 
             sceneView.getArFrame()
                     .getCamera().getDisplayOrientedPose()
-                    .compose(Pose.makeTranslation(x, y, z))
+                    .compose(Pose.makeTranslation(x, (float) (y + heightAdjustment), z))
                     .getTranslation(translations, 0);
             Anchor anchor = mActivity.addNode(sceneView.getSession().createAnchor(new Pose(translations, rotations)), al.getId(), al.getModel());
 
