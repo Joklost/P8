@@ -557,7 +557,7 @@ public class ArActivity extends AppCompatActivity implements GLSurfaceView.Rende
 
             // Draw location markers
             mLocationScene.draw(mSession, frame);
-            mGame.update(frame);
+            mGame.onUpdate(frame);
             // Get projection matrix.
             float[] projmtx = new float[16];
             camera.getProjectionMatrix(projmtx, 0, 0.1f, 100.0f);

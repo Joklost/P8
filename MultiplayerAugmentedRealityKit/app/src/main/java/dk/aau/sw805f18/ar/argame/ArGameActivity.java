@@ -16,9 +16,9 @@ import com.google.ar.core.Plane;
 import com.google.ar.core.Pose;
 import com.google.ar.core.Session;
 import com.google.ar.sceneform.AnchorNode;
-import com.google.ar.sceneform.math.Vector3;
+import com.google.ar.sceneform.FrameTime;
+import com.google.ar.sceneform.Scene;
 import com.google.ar.sceneform.rendering.ModelRenderable;
-import com.google.ar.sceneform.rendering.ViewRenderable;
 import com.google.ar.sceneform.ux.ArFragment;
 import com.google.ar.sceneform.ux.TransformableNode;
 import com.google.gson.Gson;
@@ -27,7 +27,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Vector;
 import java.util.concurrent.ArrayBlockingQueue;
 
 import dk.aau.sw805f18.ar.R;
@@ -225,7 +224,6 @@ public class ArGameActivity extends AppCompatActivity {
         // The onUpdate method is called before each frame.
         mArFragment.getArSceneView().getScene().setOnUpdateListener(frameTime -> {
             mArFragment.onUpdate(frameTime);
-            mGame.update(mArFragment.getArSceneView().getArFrame());
 
             if (mCloudAnchorService != null) {
                 Collection<Anchor> updatedAnchors = mArFragment.getArSceneView().getArFrame().getUpdatedAnchors();
@@ -241,6 +239,8 @@ public class ArGameActivity extends AppCompatActivity {
                 mAnchors.put(anchorRenderable.getAnchor(), anchorRenderable.getId());
                 addTransformableNode(anchorRenderable.getAnchor(), anchorRenderable.getId(), anchorRenderable.getModel());
             }
+
+            mGame.onUpdate(mArFragment.getArSceneView().getArFrame());
         });
     }
 
@@ -258,8 +258,7 @@ public class ArGameActivity extends AppCompatActivity {
         mAnchors.put(anchor, id);
         mAnchorsReverse.put(id, anchor);
 
-        Anchor newAnchor = mArFragment.getArSceneView().getSession().hostCloudAnchor(anchor);
-        addTransformableNode(newAnchor, id, model);
+        addTransformableNode(anchor, id, model);
 
         if (mCurrentHostResolveMode != HostResolveMode.HOSTING) {
             Log.e(TAG, "We should only be creating an anchor in hosting mode!");
@@ -272,7 +271,7 @@ public class ArGameActivity extends AppCompatActivity {
             mDebugText.setText(s);
         });
 
-        mCloudAnchorService.hostCloudAnchor(newAnchor, cloudAnchor -> {
+        mCloudAnchorService.hostCloudAnchor(anchor, cloudAnchor -> {
             Anchor.CloudAnchorState state = cloudAnchor.getCloudAnchorState();
             if (state.isError()) {
                 Log.e(TAG, "Error hosting a cloud anchor. State: " + state);
@@ -297,7 +296,7 @@ public class ArGameActivity extends AppCompatActivity {
 
         });
 
-        return newAnchor;
+        return anchor;
     }
 
 

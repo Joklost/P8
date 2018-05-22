@@ -178,11 +178,12 @@ public class TreasureHunt {
         return threeNearest;
     }
 
-    public void update(Frame frame) {
+    public void onUpdate(Frame frame) {
         if(mGameState == GameState.IDLE) {
             startGame();
             return;
         }
+
         if ((mGameState != GameState.STARTED && mGameState != GameState.ONECHEST) || mAwaitingResponse) {
             return;
         }

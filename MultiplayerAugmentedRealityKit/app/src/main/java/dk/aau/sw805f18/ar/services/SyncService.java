@@ -101,7 +101,7 @@ public class SyncService extends Service {
     /**
      * Initialises the service by starting WifiP2pReceiver, WifiP2pManager and AutoGrouping.
      *
-     * @param activity
+     * @param activity The activity used to bind this service.
      */
     public void init(Activity activity) {
         if (mReceiver != null) {
