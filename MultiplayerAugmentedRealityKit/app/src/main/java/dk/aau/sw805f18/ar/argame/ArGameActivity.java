@@ -237,6 +237,7 @@ public class ArGameActivity extends AppCompatActivity {
             AnchorRenderable anchorRenderable = mAnchorQueue.poll();
             if (anchorRenderable != null) {
                 mAnchors.put(anchorRenderable.getAnchor(), anchorRenderable.getId());
+                mAnchorsReverse.put(anchorRenderable.getId(), anchorRenderable.getAnchor());
                 addTransformableNode(anchorRenderable.getAnchor(), anchorRenderable.getId(), anchorRenderable.getModel());
             }
 

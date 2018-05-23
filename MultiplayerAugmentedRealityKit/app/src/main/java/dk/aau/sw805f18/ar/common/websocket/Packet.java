@@ -21,10 +21,13 @@ public class Packet {
     public static final String NEWGROUP_TYPE = "newgroup";
     public static final String AUTO_GROUP = "autogroup";
     public static final String RANDOM_CHEST = "randomchest";
-    public static final String CHOSEN_CHEST = "chosenchest";
+    public static final String RANDOM_CHEST_2 = "randomchest2";
+    public static final String CHOSEN_CHEST_MASTER = "chosenchestmaster";
+    public static final String CHOSEN_CHEST_SLAVE = "chosenchestslave";
 
     public static final String ANCHOR_TYPE = "anchor";
     public static final String ID_TYPE = "id";
+    public static final String RANDOM_CHEST_ACK = "randomchestack";
 
     public String Type;
     public String Data;

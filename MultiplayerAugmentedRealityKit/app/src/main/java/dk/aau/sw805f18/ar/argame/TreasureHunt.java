@@ -12,7 +12,6 @@ import com.google.ar.core.Anchor;
 import com.google.ar.core.Frame;
 import com.google.ar.core.Pose;
 import com.google.gson.Gson;
-import com.koushikdutta.async.http.WebSocket;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -21,13 +20,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
-import java.util.Set;
 
-import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.toList;
 
 import dk.aau.sw805f18.ar.R;
-import dk.aau.sw805f18.ar.argame.location.AugmentedLocation;
 import dk.aau.sw805f18.ar.argame.location.AugmentedLocationManager;
 import dk.aau.sw805f18.ar.common.helpers.SyncServiceHelper;
 import dk.aau.sw805f18.ar.common.websocket.Packet;
@@ -48,6 +44,9 @@ public class TreasureHunt {
     private Boolean mAwaitingResponse = false;
     private AugmentedLocationManager mManager;
     private Gson mGson;
+    private int mRecivedRandomChest = 0;
+    private boolean mAllPlayersAcked = false;
+    private long mDelay;
 
     TreasureHunt(ArGameActivity activity, AugmentedLocationManager manager) {
         mSyncService = SyncServiceHelper.getInstance();
@@ -69,6 +68,11 @@ public class TreasureHunt {
     }
 
     private void actOnChosenPacket() {
+        mAwaitingResponse = false;
+        Button waitButton = mActivity.findViewById(R.id.Chest_Found_Btn);
+        waitButton.setClickable(true);
+        waitButton.setText("Open Chest");
+
         if (mChosenChest == (mRandomChest)) {
             AlertDialog.Builder alert = new AlertDialog.Builder(mActivity);
             if (mGameState == GameState.ONECHEST) {
@@ -121,29 +125,51 @@ public class TreasureHunt {
         return -1;
     }
 
-
+    //spillet virker efter hensigten men skal have multiplayer til at virke, det sidste der blev lavet var at
+    //jeg prøvede at sende random pakken flere gange indtil at all har svaret tilbage med ack
+    // ikke sikker på at de andre devices har fået random pakke
     public void startGame() {
         mGameState = GameState.STARTED;
         mChosenChests = new ArrayList<>();
 
         if (mSyncService.IsOwner()) {
-
+            Log.i(TAG, String.valueOf(mManager.getAugmentedLocations().size()));
             assignRandomChestMaster(mManager.getAugmentedLocations());
-            sendPacket(new Packet(Packet.RANDOM_CHEST, mGson.toJson(mActivity.getAnchors().get(mRandomChest))));
 
-            mSyncService.getWebSocket().attachHandler(Packet.CHOSEN_CHEST, (Packet packet) -> {
+            sendPacket(new Packet(Packet.RANDOM_CHEST, String.valueOf(mRandomChest)));
+            mDelay = System.currentTimeMillis();
+            Log.i(TAG, "send the random chest");
+            mSyncService.getWebSocket().attachHandler(Packet.RANDOM_CHEST_ACK, (Packet packet) -> {
+                mRecivedRandomChest += 1;
+                Log.i(TAG,"team size: " + mSyncService.getPlayersOnTeam().size());
+                Log.i(TAG, "randomChestCount: " + mRecivedRandomChest);
+                Log.i(TAG,"recived random pack, waitng for for " + (mSyncService.getPlayersOnTeam().size() - mRecivedRandomChest) + " acks");
+                if(mRecivedRandomChest == mSyncService.getPlayersOnTeam().size()) {
+                    mAllPlayersAcked = true;
+                }
+            });
+            mSyncService.getWebSocket().attachHandler(Packet.CHOSEN_CHEST_MASTER, (Packet packet) -> {
                 int chosen = recieveChosenMasterPack(packet);
                 if (chosen != -1) {
+                    mAwaitingResponse = false;
+                    Button waitButton = mActivity.findViewById(R.id.Chest_Found_Btn);
+                    waitButton.setClickable(true);
+                    waitButton.setText("Open Chest");
                     mChosenChest = chosen;
                 }
             });
 
         } else {
-            mSyncService.getWebSocket().attachHandler(Packet.CHOSEN_CHEST, packet -> {
+            mSyncService.getWebSocket().attachHandler(Packet.CHOSEN_CHEST_SLAVE, packet -> {
                 mChosenChest = receiveChosenSlavePacket(packet);
                 actOnChosenPacket();
             });
             mSyncService.getWebSocket().attachHandler(Packet.RANDOM_CHEST, packet -> {
+                mRandomChest = recieveRandomPacket(packet);
+                Log.i(TAG,"Recived the random chest sending ack for packet");
+                sendPacket(new Packet(Packet.RANDOM_CHEST_ACK, ""));
+            });
+            mSyncService.getWebSocket().attachHandler(Packet.RANDOM_CHEST_2, packet -> {
                 mRandomChest = recieveRandomPacket(packet);
             });
         }
@@ -152,7 +178,11 @@ public class TreasureHunt {
         firstChestBtn.setOnClickListener(v -> {
             Log.i(TAG, "button clicked");
             Log.i(TAG, "Chosen chest: " + mChosenChest + " Random Chest: " + mRandomChest);
-            sendChosenPacket(new Packet(Packet.CHOSEN_CHEST, mGson.toJson(mActivity.getAnchors().get(mChosenChest))));
+            if(mSyncService.IsOwner()) {
+                mChosenChests.add(mChosenChest);
+            } else {
+                sendChosenPacket(new Packet(Packet.CHOSEN_CHEST_MASTER, mGson.toJson(mActivity.getAnchors().get(mChosenChest))));
+            }
             firstChestBtn.setClickable(false);
             firstChestBtn.setText(R.string.waiting);
             mAwaitingResponse = true;
@@ -188,13 +218,17 @@ public class TreasureHunt {
             startGame();
             Log.i(TAG, "Game started");
             return;
-        } else if (mAwaitingResponse) {
-            mAwaitingResponse = false;
-            actOnChosenPacket();
-            return;
         }
 
-        if ((mGameState != GameState.STARTED && mGameState != GameState.ONECHEST)) {
+        if ((mGameState != GameState.STARTED && mGameState != GameState.ONECHEST) || mAwaitingResponse) {
+            Log.i(TAG, "returned because waiting or gamestate is idle");
+            return;
+        }
+        if(!mAllPlayersAcked && mSyncService.IsOwner() && System.currentTimeMillis() - mDelay > 2000){
+            return;
+        } else if (!mAllPlayersAcked && mSyncService.IsOwner()){
+            Log.i(TAG, "Not all acks recieved");
+            sendPacket(new Packet(Packet.RANDOM_CHEST, String.valueOf(mRandomChest)));
             return;
         }
 
@@ -224,12 +258,12 @@ public class TreasureHunt {
 
     private void setTestViewNone(Frame frame) {
         if (mActivity.getAnchorsReverse().get(mRandomChest) == null) {
-            Log.i(TAG, "returned because no random chest is avaiable");
             return;
+
         }
 
         double distance = 9999;
-        for (Anchor anchor : new ArrayList<Anchor>(mActivity.getAnchors().keySet())) {
+        for (Anchor anchor : new ArrayList<>(mActivity.getAnchors().keySet())) {
             if (mActivity.calcPoseDistance(frame.getCamera().getDisplayOrientedPose(), anchor.getPose()) < distance) {
                 distance = mActivity.calcPoseDistance(frame.getCamera().getDisplayOrientedPose(), anchor.getPose());
             }

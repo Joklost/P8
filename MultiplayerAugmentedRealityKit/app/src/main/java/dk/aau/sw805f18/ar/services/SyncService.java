@@ -95,6 +95,7 @@ public class SyncService extends Service {
         });
         mWebSocket.attachHandler(Packet.PLAYERS_TYPE, packet -> {
             mPlayers = mJson.fromJson(packet.Data, new TypeToken <List<Player>>(){}.getType());
+            Log.i(TAG, "mplayers " + mPlayers.size());
         });
     }
 
