@@ -241,7 +241,9 @@ public class ArGameActivity extends AppCompatActivity {
                 addTransformableNode(anchorRenderable.getAnchor(), anchorRenderable.getId(), anchorRenderable.getModel());
             }
 
-//            mGame.onUpdate(mArFragment.getArSceneView().getArFrame());
+            if (mSyncService.getWebSocket() != null) {
+                mGame.onUpdate(mArFragment.getArSceneView().getArFrame());
+            }
         });
     }
 
@@ -315,6 +317,12 @@ public class ArGameActivity extends AppCompatActivity {
         });
 
         mCloudAnchorService.resolveCloudAnchor(cloudAnchorId, anchor -> {
+            Anchor.CloudAnchorState state = anchor.getCloudAnchorState();
+            if (state.isError()) {
+                Log.e(TAG, "Error resolving a cloud anchor. State: " + state);
+                return;
+            }
+
             runOnUiThread(() -> {
                 String s = mDebugText.getText() + "\n" + id + "\t"
                         + getResources().getText(R.string.anchor_resolved).toString();

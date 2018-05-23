@@ -83,44 +83,24 @@ public class AugmentedLocationManager {
                     al.getLocation().getLatitude(),
                     al.getLocation().getLongitude());
 
-            double rotation = Math.floor(markerBearing);
-
-            // When pointing device upwards (camera towards sky)
-            // the compass bearing can flip.
-            // In experiments this seems to happen at pitch~=-25
-//            if (mDeviceOrientation.getPitch() > -25)
-//                rotation = rotation * Math.PI / 180;
-
+            double bearing = Math.floor(markerBearing);
 
             Collection<Plane> planes = sceneView.getSession().getAllTrackables(Plane.class);
 
-//            float x = 0;
             Log.i(TAG,  "number of planes" + planes.size());
-            float z = -markerDistance;
             float y = calcPlaneLevel(planes);
-            float x = (float) -(z * Math.sin(rotation));
-            z = (float) (z * Math.cos(rotation));
+            float x = (float) -(-markerDistance * Math.sin(bearing));
+            float z = (float) (-markerDistance * Math.cos(bearing));
 
             if (y == Float.MIN_VALUE) {
                 continue;
             }
 
-            // Adjustment to add markers on horizon, instead of just directly in front of camera
-            double heightAdjustment = Math.round(markerDistance * (Math.tan(Math.toRadians(mDeviceOrientation.getPitch()))));
-//            y = (float) (y + heightAdjustment);
-
             // Use rotation from Pose in Plane.
             Plane plane = new ArrayList<>(planes).get(0);
             float rotations[] = new float[4];
             plane.getCenterPose().getRotationQuaternion(rotations, 0);
-            float translations[] = new float[3];
-
-//
-//            sceneView.getArFrame()
-//                    .getCamera().getDisplayOrientedPose()
-//                    .compose(Pose.makeTranslation(x, y, z))
-//                    .getTranslation(translations, 0);
-            translations = Pose.makeTranslation(x, y, z).getTranslation();
+            float translations[] = new float[]{x, y, z};
 
             Anchor anchor = mActivity.addNode(sceneView.getSession().createAnchor(new Pose(translations, rotations)), al.getId(), al.getModel());
 
