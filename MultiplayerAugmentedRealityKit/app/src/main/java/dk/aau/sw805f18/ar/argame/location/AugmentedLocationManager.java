@@ -98,7 +98,9 @@ public class AugmentedLocationManager {
             float z = -markerDistance;
             float y = calcPlaneLevel(planes);
             float x = (float) -(z * Math.sin(rotation));
-//            z = (float) (z * Math.cos(rotation));
+//            float x = 0;
+            z = (float) (z * Math.cos(rotation));
+
 
             if (y == Float.MIN_VALUE) {
                 continue;
@@ -114,10 +116,12 @@ public class AugmentedLocationManager {
             plane.getCenterPose().getRotationQuaternion(rotations, 0);
             float translations[] = new float[3];
 
-            sceneView.getArFrame()
-                    .getCamera().getDisplayOrientedPose()
-                    .compose(Pose.makeTranslation(x, (float) (y), z)) //y+heighadjustment
-                    .getTranslation(translations, 0);
+//
+//            sceneView.getArFrame()
+//                    .getCamera().getDisplayOrientedPose()
+//                    .compose(Pose.makeTranslation(x, y, z))
+//                    .getTranslation(translations, 0);
+            translations = Pose.makeTranslation(x, y, z).getTranslation();
             Anchor anchor = mActivity.addNode(sceneView.getSession().createAnchor(new Pose(translations, rotations)), al.getId(), al.getModel());
 
             al.setAnchor(anchor);

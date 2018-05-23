@@ -32,6 +32,10 @@ public class CloudAnchorService extends Service {
         mSession = session;
     }
 
+    public Session getSession() {
+        return mSession;
+    }
+
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {

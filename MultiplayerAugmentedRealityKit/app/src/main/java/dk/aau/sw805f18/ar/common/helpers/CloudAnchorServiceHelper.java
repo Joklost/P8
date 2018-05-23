@@ -32,9 +32,7 @@ public class CloudAnchorServiceHelper {
             return;
         }
 
-        if (sBound) {
-            context.unbindService(mConnection);
-        }
+        sInstance.stopSelf();
     }
 
     private static ServiceConnection mConnection = new ServiceConnection() {

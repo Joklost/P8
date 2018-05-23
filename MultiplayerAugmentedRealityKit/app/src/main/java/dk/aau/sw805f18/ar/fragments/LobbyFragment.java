@@ -7,12 +7,12 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.GridLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.Objects;
@@ -49,16 +49,12 @@ public class LobbyFragment extends Fragment {
             "#78909C",
     };
 
-    private RecyclerView rvGrid;
-    private SyncService syncService;
-    private Bundle gameOptionsBundle;
-    private View lobbyLayout;
-    private boolean mOwner = false;
+    private SyncService mSyncService;
+    private View mLobbyLayout;
     private Activity mActivity;
-    private View mView;
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_lobby, container, false);
     }
@@ -67,7 +63,7 @@ public class LobbyFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         mActivity = getActivity();
-        mView = getView();
+        View mView = getView();
 
         if (mActivity == null || mView == null) {
             Log.e(TAG, "Activity or View was null");
@@ -77,38 +73,38 @@ public class LobbyFragment extends Fragment {
         Bundle bundle = getArguments();
         boolean leader = Objects.requireNonNull(bundle).containsKey("type") && bundle.get("type") == "leader";
 
-        lobbyLayout = mView.findViewById(R.id.lobby_layout);
+        mLobbyLayout = mView.findViewById(R.id.lobby_layout);
 
-        gameOptionsBundle = getArguments();
-        syncService = SyncServiceHelper.getInstance();
-        WebSocketeer ws = syncService.getWebSocket();
+        mSyncService = SyncServiceHelper.getInstance();
+        WebSocketeer ws = mSyncService.getWebSocket();
 
         //region Setup websocket handlers
         ws.attachHandler(Packet.AUTO_GROUP, packet -> {
             boolean enabled = packet.Data.equals("true");
             if (enabled) {
-                syncService.startAutoGrouping();
+                mSyncService.startAutoGrouping();
             } else {
-                syncService.stopAutoGrouping();
+                mSyncService.stopAutoGrouping();
             }
         });
 
         ws.attachHandler(Packet.NEWGROUP_TYPE, packet -> {
             int newGroup = parseInt(packet.Data);
-            syncService.setGroupId(newGroup);
+            mSyncService.setGroupId(newGroup);
             mActivity.runOnUiThread(() -> {
-                lobbyLayout.setBackgroundColor(Color.parseColor(GROUP_COLOURS[newGroup]));
+                ((TextView) mView.findViewById(R.id.groupNumberView)).setText(String.valueOf(newGroup));
+                mLobbyLayout.setBackgroundColor(Color.parseColor(GROUP_COLOURS[newGroup]));
             });
         });
         ws.attachHandler(Packet.OWNER_TYPE, packet -> {
             if (packet.Data.equals("true")){
-                syncService.setOwner(true);
+                mSyncService.setOwner(true);
                 ws.send(new Packet(Packet.MAC_TYPE, ""));
                 ws.send(new Packet(Packet.READY_TYPE, "true"));
             }
         });
         ws.attachHandler(Packet.MAC_TYPE, packet -> {
-//            syncService.connectWifiP2p(packet.Data, mOwner);
+//            mSyncService.connectWifiP2p(packet.Data, mOwner);
             ws.send(new Packet(Packet.READY_TYPE, "true"));
         });
         ws.attachHandler(Packet.READY_TYPE, packet -> {
@@ -120,11 +116,7 @@ public class LobbyFragment extends Fragment {
         //endregion
 
         ws.connect();
-        ws.send(new Packet(Packet.NAME_TYPE, syncService.getDeviceName()));
-
-        rvGrid = mView.findViewById(R.id.lobby_group_recyclerview);
-        LobbyGroupAdapter adapter = new LobbyGroupAdapter();
-
+        ws.send(new Packet(Packet.NAME_TYPE, mSyncService.getDeviceName()));
 
         if (leader) {
             View leaderLayout = mView.findViewById(R.id.leader_layout);
@@ -154,19 +146,6 @@ public class LobbyFragment extends Fragment {
                 }
             });
         }
-
-//        adapter.setOnItemClickListener((position, v) -> {
-//            try {
-//                LobbyDialogFragment dialog = new LobbyDialogFragment();
-//                dialog.show(mActivity.getFragmentManager(), "dialog");
-//            } catch (Exception e) {
-//                Log.e("DialogFragment", e.toString());
-//            }
-
-//        });
-
-        rvGrid.setAdapter(adapter);
-        rvGrid.setLayoutManager(new GridLayoutManager(getContext(), 2));
     }
 
     @Override
@@ -178,10 +157,10 @@ public class LobbyFragment extends Fragment {
     @Override
     public void onPause() {
         super.onPause();
-        syncService.getWebSocket().removeHandler(Packet.AUTO_GROUP);
-        syncService.getWebSocket().removeHandler(Packet.NEWGROUP_TYPE);
-        syncService.getWebSocket().removeHandler(Packet.MAC_TYPE);
-        syncService.getWebSocket().removeHandler(Packet.OWNER_TYPE);
-        syncService.getWebSocket().removeHandler(Packet.READY_TYPE);
+        mSyncService.getWebSocket().removeHandler(Packet.AUTO_GROUP);
+        mSyncService.getWebSocket().removeHandler(Packet.NEWGROUP_TYPE);
+        mSyncService.getWebSocket().removeHandler(Packet.MAC_TYPE);
+        mSyncService.getWebSocket().removeHandler(Packet.OWNER_TYPE);
+        mSyncService.getWebSocket().removeHandler(Packet.READY_TYPE);
     }
 }

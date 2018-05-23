@@ -17,6 +17,7 @@ import android.widget.Toast;
 import java.util.Date;
 
 import dk.aau.sw805f18.ar.R;
+import dk.aau.sw805f18.ar.common.helpers.CloudAnchorServiceHelper;
 import dk.aau.sw805f18.ar.common.sensor.DeviceLocation;
 import dk.aau.sw805f18.ar.argame.ArGameActivity;
 import dk.aau.sw805f18.ar.fragments.AboutFragment;
@@ -73,6 +74,10 @@ public class MainActivity extends AppCompatActivity {
         SyncServiceHelper.init(this, syncService -> {
             syncService.setDeviceLocation(DeviceLocation.getInstance(this));
             syncService.init(this);
+
+        });
+
+        CloudAnchorServiceHelper.init(this, cloudAnchorService -> {
 
         });
     }
@@ -213,6 +218,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         SyncServiceHelper.deinit(this);
+        CloudAnchorServiceHelper.deinit(this);
     }
 }
 

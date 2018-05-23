@@ -240,7 +240,7 @@ public class ArGameActivity extends AppCompatActivity {
                 addTransformableNode(anchorRenderable.getAnchor(), anchorRenderable.getId(), anchorRenderable.getModel());
             }
 
-            mGame.onUpdate(mArFragment.getArSceneView().getArFrame());
+//            mGame.onUpdate(mArFragment.getArSceneView().getArFrame());
         });
     }
 
@@ -347,19 +347,16 @@ public class ArGameActivity extends AppCompatActivity {
         super.onPause();
         mAugmentedLocationManager.pause();
         mCloudAnchorService = null;
-        if (CloudAnchorServiceHelper.isBound()) {
-            CloudAnchorServiceHelper.deinit(this);
-        }
+        CloudAnchorServiceHelper.deinit(this);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
+        mAugmentedLocationManager.resume();
+        mCloudAnchorService = CloudAnchorServiceHelper.getInstance();
 
-        CloudAnchorServiceHelper.init(this, cloudAnchorService -> {
-            mCloudAnchorService = cloudAnchorService;
-            mAugmentedLocationManager.resume();
-
+        if (mCloudAnchorService != null && mCloudAnchorService.getSession() == null) {
             Task.run(() -> {
                 Session session = null;
                 while (session == null) {
@@ -380,6 +377,31 @@ public class ArGameActivity extends AppCompatActivity {
                     mCloudAnchorService.setSession(session);
                 }
             });
-        });
+        }
+
+//        CloudAnchorServiceHelper.init(this, cloudAnchorService -> {
+//            mCloudAnchorService = cloudAnchorService;
+//
+//            Task.run(() -> {
+//                Session session = null;
+//                while (session == null) {
+//                    if (mArFragment.getArSceneView().getSession() == null) {
+//                        try {
+//                            Thread.sleep(1000);
+//                        } catch (InterruptedException ignored) {
+//                            Log.e(TAG, "Interrupted while waiting for Session!");
+//                        }
+//                        continue;
+//                    }
+//
+//                    session = mArFragment.getArSceneView().getSession();
+//                    Config config = new Config(session);
+//                    config.setCloudAnchorMode(Config.CloudAnchorMode.ENABLED);
+//                    config.setUpdateMode(Config.UpdateMode.LATEST_CAMERA_IMAGE);
+//                    session.configure(config);
+//                    mCloudAnchorService.setSession(session);
+//                }
+//            });
+//        });
     }
 }

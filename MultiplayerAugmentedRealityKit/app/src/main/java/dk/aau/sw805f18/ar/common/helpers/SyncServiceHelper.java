@@ -38,6 +38,8 @@ public class SyncServiceHelper {
             return;
         }
 
+        sInstance.stopSelf();
+
         if (sBound) {
             context.unbindService(mConnection);
         }
