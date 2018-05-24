@@ -123,5 +123,6 @@
     <string name="is_owner">Owner</string>
     <string name="select_course_from_catalog">Select task(s) from catalog</string>
     <string name="open_chest">Open Chest</string>
+    <string name="waiting_for_lobby_leader">Waiting for lobby leader…</string>
 
 </resources>

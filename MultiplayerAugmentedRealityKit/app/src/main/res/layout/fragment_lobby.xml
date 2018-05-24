@@ -11,6 +11,7 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginBottom="32dp"
+        android:text="@string/waiting_for_lobby_leader"
         android:gravity="center_vertical|center_horizontal"
         android:textSize="@android:dimen/thumbnail_height"
         app:layout_constraintBottom_toBottomOf="parent"
