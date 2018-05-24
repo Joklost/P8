@@ -20,32 +20,32 @@ public class CloudAnchorService extends Service {
     private static final String TAG = ArGameActivity.class.getSimpleName() + "." + CloudAnchorService.class.getSimpleName();
 
     private final IBinder mBinder = new LocalBinder();
+    private final HashMap<Anchor, CloudAnchorListener> mPendingAnchors = new HashMap<>();
     @Nullable
     private Session mSession = null;
-    private final HashMap<Anchor, CloudAnchorListener> mPendingAnchors = new HashMap<>();
 
-    public interface CloudAnchorListener {
-        void onCloudTaskComplete(Anchor anchor);
-    }
-
-    public void setSession(Session session) {
-        mSession = session;
+    private static boolean isReturnableState(Anchor.CloudAnchorState cloudState) {
+        switch (cloudState) {
+            case NONE:
+            case TASK_IN_PROGRESS:
+                return false;
+            default:
+                return true;
+        }
     }
 
     public Session getSession() {
         return mSession;
     }
 
+    public void setSession(Session session) {
+        mSession = session;
+    }
+
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
         return mBinder;
-    }
-
-    public class LocalBinder extends Binder {
-        public CloudAnchorService getService() {
-            return CloudAnchorService.this;
-        }
     }
 
     public void hostCloudAnchor(Anchor anchor, CloudAnchorListener listener) {
@@ -80,6 +80,20 @@ public class CloudAnchorService extends Service {
         Task.run(new UpdateTask(updatedAnchors));
     }
 
+    private void clearListeners() {
+        mPendingAnchors.clear();
+    }
+
+    public interface CloudAnchorListener {
+        void onCloudTaskComplete(Anchor anchor);
+    }
+
+    public class LocalBinder extends Binder {
+        public CloudAnchorService getService() {
+            return CloudAnchorService.this;
+        }
+    }
+
     private class UpdateTask implements Runnable {
         private Collection<Anchor> mUpdatedAnchors;
 
@@ -102,20 +116,6 @@ public class CloudAnchorService extends Service {
                     }
                 }
             }
-        }
-    }
-
-    private void clearListeners() {
-        mPendingAnchors.clear();
-    }
-
-    private static boolean isReturnableState(Anchor.CloudAnchorState cloudState) {
-        switch (cloudState) {
-            case NONE:
-            case TASK_IN_PROGRESS:
-                return false;
-            default:
-                return true;
         }
     }
 }

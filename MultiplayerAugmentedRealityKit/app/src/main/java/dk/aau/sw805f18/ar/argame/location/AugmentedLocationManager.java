@@ -1,6 +1,5 @@
 package dk.aau.sw805f18.ar.argame.location;
 
-import android.support.design.widget.CoordinatorLayout;
 import android.util.Log;
 
 import com.google.ar.core.Anchor;
@@ -11,9 +10,7 @@ import com.google.ar.sceneform.ArSceneView;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.OptionalDouble;
-import java.util.stream.Collectors;
 
-import dk.aau.sw805f18.ar.R;
 import dk.aau.sw805f18.ar.argame.ArGameActivity;
 import dk.aau.sw805f18.ar.common.sensor.DeviceLocation;
 import dk.aau.sw805f18.ar.common.sensor.DeviceOrientation;
@@ -38,7 +35,6 @@ public class AugmentedLocationManager {
     }
 
     private static float calcPlaneLevel(Collection<Plane> planes) {
-
         // Estimate the surface level.
         OptionalDouble avg = planes.stream()
                 .map(Plane::getCenterPose)
@@ -87,7 +83,7 @@ public class AugmentedLocationManager {
 
             Collection<Plane> planes = sceneView.getSession().getAllTrackables(Plane.class);
 
-            Log.i(TAG,  "number of planes" + planes.size());
+            Log.i(TAG, "number of planes" + planes.size());
             float y = calcPlaneLevel(planes);
             float x = (float) -(-markerDistance * Math.sin(bearing));
             float z = (float) (-markerDistance * Math.cos(bearing));

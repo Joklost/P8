@@ -5,17 +5,14 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.net.wifi.WifiManager;
 import android.net.wifi.WpsInfo;
 import android.net.wifi.p2p.WifiP2pConfig;
-import android.net.wifi.p2p.WifiP2pInfo;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.os.Binder;
 import android.os.Build;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -24,7 +21,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
-import dk.aau.sw805f18.ar.R;
 import dk.aau.sw805f18.ar.common.sensor.DeviceLocation;
 import dk.aau.sw805f18.ar.common.websocket.Packet;
 import dk.aau.sw805f18.ar.common.websocket.WebSocketeer;
@@ -41,33 +37,32 @@ public class SyncService extends Service {
 
     private WifiP2pManager.Channel mChannel;
     private WifiP2pManager mManager;
-
-    public String getDeviceAddress() {
-        return mDeviceAddress;
-    }
-
     private String mDeviceAddress;
     private String mDeviceName;
-    private String mPlayerId;
-
     private int mGroupId;
     private boolean mDiscoverInitiated;
     private boolean mGroupCreated;
-    private String mToken;
     private Gson mJson = new Gson();
-
     private WebSocketeer mWebSocket;
     private WebSocketeer mWifiP2pSocket;
     private WebSocketeerServer mWebSocketeerServer;
     private AutoGrouping mAutoGrouping;
-
     private WifiP2pReceiver mReceiver;
     private DeviceLocation mDeviceLocation;
-
-
     private List<Player> mPlayers;
     private boolean mOwner;
 
+    public SyncService() {
+        mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION); // Whether Wifi P2P is enabled or not
+        mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION); // Fires when peer list has changed
+        mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION); // Indicates that state of Wifi P2P connection has changed
+        mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION); // This device's details have changed
+    }
+
+    //region getters and setters
+    public void setDeviceAddress(String deviceAddress) {
+        this.mDeviceAddress = deviceAddress;
+    }
 
     public boolean IsLeader() {
         return mOwner;
@@ -77,24 +72,15 @@ public class SyncService extends Service {
         mOwner = owner;
     }
 
-
-    public SyncService() {
-        mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION); // Whether Wifi P2P is enabled or not
-        mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION); // Fires when peer list has changed
-        mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION); // Indicates that state of Wifi P2P connection has changed
-        mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION); // This device's details have changed
-    }
-
     public void joinLobby(String lobbyId) throws ExecutionException, InterruptedException {
         if (mWebSocket != null) {
             mWebSocket.close();
         }
         mWebSocket = new WebSocketeer("http://warpapp.xyz/connect/" + lobbyId);
-        mWebSocket.attachHandler(Packet.ID_TYPE, packet -> {
-            mPlayerId = packet.Data;
-        });
+
         mWebSocket.attachHandler(Packet.PLAYERS_TYPE, packet -> {
-            mPlayers = mJson.fromJson(packet.Data, new TypeToken <List<Player>>(){}.getType());
+            mPlayers = mJson.fromJson(packet.Data, new TypeToken<List<Player>>() {
+            }.getType());
             Log.i(TAG, "mplayers " + mPlayers.size());
         });
     }
@@ -113,13 +99,6 @@ public class SyncService extends Service {
 
         mManager = (WifiP2pManager) getSystemService(Context.WIFI_P2P_SERVICE);
         mChannel = mManager.initialize(activity, getMainLooper(), null);
-
-//        requestConnectionInfo(info -> {
-//            if (info != null) {
-//                Log.i(TAG, "Connection already exists?");
-//                Log.i(TAG, info.toString());
-//            }
-//        });
         mAutoGrouping = new AutoGrouping(mDeviceLocation);
 
         // Remove any existing group, so a new one can be created.
@@ -139,15 +118,6 @@ public class SyncService extends Service {
                 mChannel.close();
                 mChannel = null;
             }
-        }
-    }
-
-    /**
-     * Binder implementation for SyncService.
-     */
-    public class LocalBinder extends Binder {
-        public SyncService getService() {
-            return SyncService.this;
         }
     }
 
@@ -178,7 +148,7 @@ public class SyncService extends Service {
                     mWifiP2pSocket = null;
                 }
 
-                mManager.requestConnectionInfo(mChannel , info -> {
+                mManager.requestConnectionInfo(mChannel, info -> {
                     Log.i(TAG, " isGroupFormed: " + info.groupFormed);
                     Log.i(TAG, info.groupOwnerAddress.getHostAddress());
                     String ip = "http://" + info.groupOwnerAddress.getHostAddress() + ":5676/connect";
@@ -321,21 +291,12 @@ public class SyncService extends Service {
     }
     //endregion
 
-    //region getters and setters
-    public void setDeviceAddress(String deviceAddress) {
-        this.mDeviceAddress = deviceAddress;
-    }
-
     public String getDeviceName() {
         return mDeviceName;
     }
 
     public void setDeviceName(String deviceName) {
         mDeviceName = deviceName;
-    }
-
-    public String getToken() {
-        return mToken;
     }
 
     public void setDeviceLocation(DeviceLocation dl) {
@@ -362,10 +323,6 @@ public class SyncService extends Service {
         this.mGroupId = mGroupId;
     }
 
-    public List<Player> getPlayers() {
-        return mPlayers;
-    }
-
     public List<Player> getPlayersOnTeam() {
         List<Player> players = new ArrayList<>();
         for (Player player : mPlayers) {
@@ -375,6 +332,15 @@ public class SyncService extends Service {
         }
         Log.i(TAG, "Der er " + players.size() + " spillere på dit hold");
         return players;
+    }
+
+    /**
+     * Binder implementation for SyncService.
+     */
+    public class LocalBinder extends Binder {
+        public SyncService getService() {
+            return SyncService.this;
+        }
     }
 
     //endregion

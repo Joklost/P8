@@ -138,8 +138,6 @@ public class MainActivity extends AppCompatActivity {
                     drawerItemIndex = 4;
                     CURRENT_TAG = AboutFragment.TAG_ABOUT;
                     break;
-                case R.id.nav_ar:
-                    startActivity(new Intent(this, ArGameActivity.class));
                 default:
                     drawerItemIndex = 0;
             }

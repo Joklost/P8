@@ -5,15 +5,10 @@ import android.location.Location;
 import com.google.ar.core.Anchor;
 
 public class AugmentedLocation {
-
     private final int mId;
-
     private final String mModel;
-    // Location in real-world terms
-    private Location mLocation;
-    // Location in AR terms
-    private Anchor mAnchor;
-
+    private Location mLocation; // Location in real-world terms
+    private Anchor mAnchor; // Location in AR terms
     private boolean mLocked;
 
     public AugmentedLocation(int id, Location location, String model) {

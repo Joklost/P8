@@ -100,7 +100,6 @@
     <string name="profile_birthday_hint">Birthday</string>
     <string name="profile_troop_hint">Troop name</string>
 
-
     <!--Lobby fragment-->
     <string name="lobby_start_button_text">Start</string>
     <string name="lobby_game_starting">Starting…</string>
