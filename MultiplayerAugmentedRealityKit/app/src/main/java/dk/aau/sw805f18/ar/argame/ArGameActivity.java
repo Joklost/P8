@@ -16,8 +16,6 @@ import com.google.ar.core.Plane;
 import com.google.ar.core.Pose;
 import com.google.ar.core.Session;
 import com.google.ar.sceneform.AnchorNode;
-import com.google.ar.sceneform.FrameTime;
-import com.google.ar.sceneform.Scene;
 import com.google.ar.sceneform.rendering.ModelRenderable;
 import com.google.ar.sceneform.ux.ArFragment;
 import com.google.ar.sceneform.ux.TransformableNode;
@@ -76,8 +74,17 @@ public class ArGameActivity extends AppCompatActivity {
         return mAnchorsReverse;
     }
 
+    public HashMap<String, Model> getModels() {
+        return mModels;
+    }
+
+    public HashMap<Anchor, TransformableNode> getTransformableNodes() {
+        return mTransformableNodes;
+    }
+
     private HashMap<Integer, Anchor> mAnchorsReverse;
     private HashMap<Anchor, Integer> mAnchors;
+    private HashMap<Anchor, TransformableNode> mTransformableNodes;
 
     private Gson mGson;
 
@@ -120,6 +127,7 @@ public class ArGameActivity extends AppCompatActivity {
         mGson = new Gson();
         mAnchors = new HashMap<>();
         mAnchorsReverse = new HashMap<>();
+        mTransformableNodes = new HashMap<>();
         mAnchorQueue = new ArrayBlockingQueue<AnchorRenderable>(64);
         mAugmentedLocationManager = new AugmentedLocationManager(this);
         mCurrentHostResolveMode = HostResolveMode.NONE;
@@ -129,55 +137,52 @@ public class ArGameActivity extends AppCompatActivity {
 
         mGame = new TreasureHunt(this, mAugmentedLocationManager);
 
-
-        // region augmentadd
+        //region
 //        mAugmentedLocationManager.add(
-////                new AugmentedLocation(
-////                        0,
-////                        DeviceLocation.BuildLocation(57.013973, 9.988686),
-////                        R.raw.treasure
-////                )
-////        );
-////        mAugmentedLocationManager.add(
-////                new AugmentedLocation(
-////                        1,
-////                        DeviceLocation.BuildLocation(57.013833, 9.988444),
-////                        R.raw.treasure
-////                )
-////        );
-////        mAugmentedLocationManager.add(
-////                new AugmentedLocation(
-////                        2,
-////                        DeviceLocation.BuildLocation(57.014007, 9.988455),
-////                        R.raw.treasure
-////                )
-////        );
-//
-//
-        mAugmentedLocationManager.add(
+//                new AugmentedLocation(
+//                        0,
+//                        DeviceLocation.BuildLocation(57.014737, 9.978055),
+//                        "Treasure"
+//                )
+//        );
+//        mAugmentedLocationManager.add(
+//                new AugmentedLocation(
+//                        1,
+//                        DeviceLocation.BuildLocation(57.014644, 9.978362),
+//                        "Treasure"
+//                )
+//        );
+//        mAugmentedLocationManager.add(
+//                new AugmentedLocation(
+//                        2,
+//                        DeviceLocation.BuildLocation(57.014477, 9.978343),
+//                        "Treasure"
+//                )
+//        );
+                mAugmentedLocationManager.add(
                 new AugmentedLocation(
                         0,
-                        DeviceLocation.BuildLocation(57.014737, 9.978055),
+                        DeviceLocation.BuildLocation(57.013973, 9.988686),
                         "Treasure"
                 )
         );
         mAugmentedLocationManager.add(
                 new AugmentedLocation(
                         1,
-                        DeviceLocation.BuildLocation(57.014644, 9.978362),
+                        DeviceLocation.BuildLocation(57.013833, 9.988444),
                         "Treasure"
                 )
         );
         mAugmentedLocationManager.add(
                 new AugmentedLocation(
                         2,
-                        DeviceLocation.BuildLocation(57.014477, 9.978343),
+                        DeviceLocation.BuildLocation(57.014007, 9.988455),
                         "Treasure"
                 )
         );
         // endregion
 
-        if (mSyncService.IsOwner()) {
+        if (mSyncService.IsLeader()) {
             mCurrentHostResolveMode = HostResolveMode.HOSTING;
             runOnUiThread(() -> {
                 String s = mDebugText.getText() + "\n"
@@ -244,6 +249,7 @@ public class ArGameActivity extends AppCompatActivity {
             if (mSyncService.getWebSocket() != null) {
                 mGame.onUpdate(mArFragment.getArSceneView().getArFrame());
             }
+
         });
     }
 
@@ -302,8 +308,6 @@ public class ArGameActivity extends AppCompatActivity {
         return anchor;
     }
 
-
-
     private void resolveNode(String cloudAnchorId, int id, String model) {
         if (mCurrentHostResolveMode != HostResolveMode.RESOLVING) {
             Log.e(TAG, "We should only be resolving an anchor in resolving mode!");
@@ -349,7 +353,9 @@ public class ArGameActivity extends AppCompatActivity {
         TransformableNode transformableNode = new TransformableNode(mArFragment.getTransformationSystem());
         transformableNode.setParent(anchorNode);
         transformableNode.setRenderable(mModels.get(model).getRenderableModel());
-    }
+
+        mTransformableNodes.put(anchor, transformableNode);
+}
 
     @Override
     protected void onPause() {

@@ -69,7 +69,7 @@ public class SyncService extends Service {
     private boolean mOwner;
 
 
-    public boolean IsOwner() {
+    public boolean IsLeader() {
         return mOwner;
     }
 
@@ -110,13 +110,6 @@ public class SyncService extends Service {
         }
         mReceiver = new WifiP2pReceiver(this);
         registerReceiver(mReceiver, mIntentFilter);
-
-        // Enabling Wifi to make sure it is on
-        WifiManager wifimanager = (WifiManager) getSystemService(Context.WIFI_SERVICE);
-        if (wifimanager != null && wifimanager.getWifiState() == WifiManager.WIFI_STATE_DISABLED) {
-            wifimanager.setWifiEnabled(true);
-            activity.runOnUiThread(() -> Toast.makeText(activity, R.string.auto_enabled_wifi, Toast.LENGTH_LONG).show());
-        }
 
         mManager = (WifiP2pManager) getSystemService(Context.WIFI_P2P_SERVICE);
         mChannel = mManager.initialize(activity, getMainLooper(), null);
@@ -380,6 +373,7 @@ public class SyncService extends Service {
                 players.add(player);
             }
         }
+        Log.i(TAG, "Der er " + players.size() + " spillere på dit hold");
         return players;
     }
 

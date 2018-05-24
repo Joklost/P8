@@ -22,8 +22,8 @@ public class Packet {
     public static final String AUTO_GROUP = "autogroup";
     public static final String RANDOM_CHEST = "randomchest";
     public static final String RANDOM_CHEST_2 = "randomchest2";
-    public static final String CHOSEN_CHEST_MASTER = "chosenchestmaster";
-    public static final String CHOSEN_CHEST_SLAVE = "chosenchestslave";
+    public static final String CHOSEN_CHEST_LEADER = "chosenchestmaster";
+    public static final String CHOSEN_CHEST_PEER = "chosenchestslave";
 
     public static final String ANCHOR_TYPE = "anchor";
     public static final String ID_TYPE = "id";
