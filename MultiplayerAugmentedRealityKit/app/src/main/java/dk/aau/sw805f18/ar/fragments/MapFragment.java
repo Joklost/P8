@@ -33,7 +33,6 @@ import java.util.ArrayList;
 import java.util.Objects;
 
 import dk.aau.sw805f18.ar.R;
-import dk.aau.sw805f18.ar.ar.ArActivity;
 import dk.aau.sw805f18.ar.argame.ArGameActivity;
 import dk.aau.sw805f18.ar.common.helpers.SyncServiceHelper;
 import dk.aau.sw805f18.ar.common.sensor.DeviceLocation;
@@ -47,6 +46,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     public static String courseTitle = "Course";
     MapView mMapView;
     private ArrayList<Marker> mMarkers;
+    private boolean mGameFoundAlerted = false;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -82,8 +82,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     public void onMapReady(GoogleMap googleMap) {
         if (ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
                 ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            //kan spørge efter permisions, måske en future TODO
-//                return;
             googleMap.setMyLocationEnabled(true);
         }
 
@@ -149,8 +147,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
             }
         }
     }
-
-    private boolean mGameFoundAlerted = false;
 
     private void gameFoundPopup() {
         if (mGameFoundAlerted) {

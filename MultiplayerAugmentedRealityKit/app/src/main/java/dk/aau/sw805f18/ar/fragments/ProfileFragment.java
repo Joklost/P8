@@ -36,10 +36,6 @@ public class ProfileFragment extends Fragment {
                             R.drawable.ic_edit_white_24dp :
                             R.drawable.ic_save_white_24dp));
             mSaveState = !mSaveState;
-
-            // TODO: make fields editable
-            // TODO: actually save changes
-            // TODO: populate fields with appropiate information
         });
     }
 

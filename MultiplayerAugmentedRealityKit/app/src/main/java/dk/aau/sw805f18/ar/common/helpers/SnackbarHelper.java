@@ -3,7 +3,6 @@ package dk.aau.sw805f18.ar.common.helpers;
 import android.app.Activity;
 import android.support.design.widget.BaseTransientBottomBar;
 import android.support.design.widget.Snackbar;
-import android.view.View;
 
 public final class SnackbarHelper {
     private static final int BACKGROUND_COLOR = 0xbf323232;

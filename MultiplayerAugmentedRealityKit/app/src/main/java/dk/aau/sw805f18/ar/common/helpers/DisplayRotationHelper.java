@@ -10,11 +10,11 @@ import com.google.ar.core.Session;
 import java.util.Objects;
 
 public class DisplayRotationHelper implements DisplayManager.DisplayListener {
+    private final Context context;
+    private final Display display;
     private boolean viewportChanged;
     private int viewportWidth;
     private int viewportHeight;
-    private final Context context;
-    private final Display display;
 
     public DisplayRotationHelper(Context context) {
         this.context = context;

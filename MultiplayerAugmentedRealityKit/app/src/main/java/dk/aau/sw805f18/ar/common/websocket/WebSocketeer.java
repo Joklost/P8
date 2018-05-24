@@ -11,15 +11,11 @@ import java.util.HashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
 
-import javax.security.auth.login.LoginException;
-
 public class WebSocketeer {
     private static final String TAG = WebSocketeer.class.getSimpleName();
-
-    private WebSocket mWebSocket;
     private final Gson mJson = new Gson();
     private final HashMap<String, Consumer<Packet>> _handlers = new HashMap<>();
-
+    private WebSocket mWebSocket;
     private String mUrl;
 
     public WebSocketeer(String url) throws ExecutionException, InterruptedException {
@@ -36,7 +32,7 @@ public class WebSocketeer {
     }
 
     /**
-     * @param type The type of the websocket Packet
+     * @param type    The type of the websocket Packet
      * @param handler The handler for the given websocket Packet type
      */
     public void attachHandler(String type, Consumer<Packet> handler) {

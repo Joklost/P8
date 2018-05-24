@@ -17,30 +17,26 @@ import android.widget.Toast;
 import java.util.Date;
 
 import dk.aau.sw805f18.ar.R;
-import dk.aau.sw805f18.ar.common.helpers.CloudAnchorServiceHelper;
-import dk.aau.sw805f18.ar.common.sensor.DeviceLocation;
 import dk.aau.sw805f18.ar.argame.ArGameActivity;
-import dk.aau.sw805f18.ar.fragments.AboutFragment;
+import dk.aau.sw805f18.ar.common.helpers.CloudAnchorServiceHelper;
 import dk.aau.sw805f18.ar.common.helpers.SyncServiceHelper;
-
+import dk.aau.sw805f18.ar.common.sensor.DeviceLocation;
+import dk.aau.sw805f18.ar.fragments.AboutFragment;
 import dk.aau.sw805f18.ar.fragments.HomeFragment;
 import dk.aau.sw805f18.ar.fragments.ProfileFragment;
 import dk.aau.sw805f18.ar.fragments.SettingsFragment;
 import dk.aau.sw805f18.ar.fragments.StatsFragment;
 
 public class MainActivity extends AppCompatActivity {
+    // Fragment tags
+    public static String CURRENT_TAG = HomeFragment.TAG_HOME;
+    public static String CURRENT_FRAGMENT;
+    public static int drawerItemIndex = 0;
     private NavigationView mNavigationView;
     private DrawerLayout mDrawer;
     private TextView mName, mTroop;
     private Toolbar mToolbar;
     private FragmentOpener mFragmentOpener;
-
-    // Fragment tags
-    public static String CURRENT_TAG = HomeFragment.TAG_HOME;
-    public static String CURRENT_FRAGMENT;
-
-    public static int drawerItemIndex = 0;
-
     private Date mBackPressed;
 
     @Override

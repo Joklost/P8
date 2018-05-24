@@ -14,12 +14,26 @@ import dk.aau.sw805f18.ar.services.SyncService;
 public class SyncServiceHelper {
     private static SyncService sInstance;
     private static Consumer<SyncService> sOnBound;
+    private static boolean sBound;
+    private static ServiceConnection mConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            SyncService.LocalBinder binder = (SyncService.LocalBinder) service;
+            sBound = true;
+            sInstance = binder.getService();
+            sOnBound.accept(sInstance);
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            sBound = false;
+            sInstance.deinit();
+        }
+    };
 
     public static boolean isBound() {
         return sBound;
     }
-
-    private static boolean sBound;
 
     public static SyncService getInstance() {
         return sInstance;
@@ -44,21 +58,5 @@ public class SyncServiceHelper {
             context.unbindService(mConnection);
         }
     }
-
-    private static ServiceConnection mConnection = new ServiceConnection() {
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder service) {
-            SyncService.LocalBinder binder = (SyncService.LocalBinder) service;
-            sBound = true;
-            sInstance = binder.getService();
-            sOnBound.accept(sInstance);
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName name) {
-            sBound = false;
-            sInstance.deinit();
-        }
-    };
 
 }

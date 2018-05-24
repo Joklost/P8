@@ -13,11 +13,10 @@ import java.util.function.BiConsumer;
 
 public class WebSocketeerServer {
     private static final String TAG = WebSocketeerServer.class.getSimpleName();
-
-    private AsyncHttpServer mServer;
-    private List<WebSocket> mSockets;
     private final Gson mJson = new Gson();
     private final HashMap<String, BiConsumer<WebSocket, Packet>> _handlers = new HashMap<>();
+    private AsyncHttpServer mServer;
+    private List<WebSocket> mSockets;
 
     public WebSocketeerServer() {
         try {
@@ -32,8 +31,7 @@ public class WebSocketeerServer {
                 webSocket.setStringCallback(msg -> onMessage(webSocket, msg));
 
             });
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             Log.i("ERRORzz", e.getMessage());
         }
     }
@@ -60,7 +58,7 @@ public class WebSocketeerServer {
     }
 
     /**
-     * @param type The type of the websocket Packet
+     * @param type    The type of the websocket Packet
      * @param handler The handler for the given websocket Packet type
      */
     public void attachHandler(String type, BiConsumer<WebSocket, Packet> handler) {
@@ -82,9 +80,5 @@ public class WebSocketeerServer {
      */
     public void start() {
         mServer.listen(5676);
-    }
-
-    public int getConnectedDevices() {
-        return mSockets.size();
     }
 }

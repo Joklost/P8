@@ -32,12 +32,16 @@ public final class ArLocationPermissionHelper {
                 PERMISSION_CODE);
     }
 
-    /** Check to see if we need to show the rationale for this permission. */
+    /**
+     * Check to see if we need to show the rationale for this permission.
+     */
     public static boolean shouldShowRequestPermissionRationale(Activity activity) {
         return ActivityCompat.shouldShowRequestPermissionRationale(activity, CAMERA_PERMISSION) || ActivityCompat.shouldShowRequestPermissionRationale(activity, LOCATION_PERMISSION);
     }
 
-    /** Launch Application Setting to grant permission. */
+    /**
+     * Launch Application Setting to grant permission.
+     */
     public static void launchPermissionSettings(Activity activity) {
         Intent intent = new Intent();
         intent.setAction(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);

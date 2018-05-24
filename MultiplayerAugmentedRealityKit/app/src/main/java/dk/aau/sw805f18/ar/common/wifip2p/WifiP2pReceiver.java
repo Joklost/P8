@@ -8,9 +8,6 @@ import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.util.Log;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import dk.aau.sw805f18.ar.services.SyncService;
 
 public class WifiP2pReceiver extends BroadcastReceiver {
@@ -47,7 +44,6 @@ public class WifiP2pReceiver extends BroadcastReceiver {
                 NetworkInfo networkInfo = intent.getParcelableExtra(WifiP2pManager.EXTRA_NETWORK_INFO);
                 Log.i(TAG, "networkInfo: " + networkInfo.toString());
                 if (networkInfo.isConnected()) {
-
 
 
                     mSyncService.requestGroupInfo(group -> {

@@ -25,10 +25,6 @@ public class FindCourseItem {
         return mPlayer;
     }
 
-    public void setPlayer(int player) {
-        this.mPlayer = player;
-    }
-
     public int getAge() {
         return mAge;
     }

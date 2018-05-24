@@ -64,7 +64,7 @@ public class DeviceLocation {
     private DeviceLocation(Activity activity) {
         mActivity = activity;
 
-        LocationManager lm = (LocationManager)mActivity.getSystemService(Context.LOCATION_SERVICE);
+        LocationManager lm = (LocationManager) mActivity.getSystemService(Context.LOCATION_SERVICE);
         if (lm != null && !lm.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
             promptUserToEnableGps();
         }
@@ -82,6 +82,20 @@ public class DeviceLocation {
             return;
         }
         resume();
+    }
+
+    public static Location BuildLocation(double latitude, double longitude) {
+        Location loc = new Location("");
+        loc.setLatitude(latitude);
+        loc.setLongitude(longitude);
+        return loc;
+    }
+
+    public static DeviceLocation getInstance(Activity activity) {
+        if (sInstance == null) {
+            sInstance = new DeviceLocation(activity);
+        }
+        return sInstance;
     }
 
     private void promptUserToEnableGps() {
@@ -119,23 +133,8 @@ public class DeviceLocation {
         }
     }
 
-    public static Location BuildLocation(double latitude, double longitude) {
-        Location loc = new Location("");
-        loc.setLatitude(latitude);
-        loc.setLongitude(longitude);
-        return loc;
-    }
-
     private boolean isBetterLocation(Location location) {
-        // TODO: Find a better way to check if location is better.
         return mCurrentBestLocation == null || mCurrentBestLocation.getAccuracy() >= location.getAccuracy();
-    }
-
-    public static DeviceLocation getInstance(Activity activity) {
-        if (sInstance == null) {
-            sInstance = new DeviceLocation(activity);
-        }
-        return sInstance;
     }
 
     @Override

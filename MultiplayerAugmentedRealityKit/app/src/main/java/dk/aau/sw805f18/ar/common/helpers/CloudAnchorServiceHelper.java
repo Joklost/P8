@@ -14,6 +14,21 @@ public class CloudAnchorServiceHelper {
     private static CloudAnchorService sInstance;
     private static Consumer<CloudAnchorService> sOnBound;
     private static boolean sBound;
+    private static ServiceConnection mConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            CloudAnchorService.LocalBinder binder = (CloudAnchorService.LocalBinder) service;
+            sInstance = binder.getService();
+            sBound = true;
+            sOnBound.accept(sInstance);
+
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            sBound = false;
+        }
+    };
 
     public static CloudAnchorService getInstance() {
         return sInstance;
@@ -34,23 +49,6 @@ public class CloudAnchorServiceHelper {
 
         sInstance.stopSelf();
     }
-
-    private static ServiceConnection mConnection = new ServiceConnection() {
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder service) {
-            CloudAnchorService.LocalBinder binder = (CloudAnchorService.LocalBinder) service;
-            sInstance = binder.getService();
-            sBound = true;
-            sOnBound.accept(sInstance);
-
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName name) {
-            sBound = false;
-        }
-    };
-
 
     public static boolean isBound() {
         return sBound;

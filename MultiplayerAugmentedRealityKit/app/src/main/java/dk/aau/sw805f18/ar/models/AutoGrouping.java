@@ -1,20 +1,17 @@
 package dk.aau.sw805f18.ar.models;
 
 import android.location.Location;
-import android.util.Log;
 
 import dk.aau.sw805f18.ar.common.helpers.SyncServiceHelper;
-import dk.aau.sw805f18.ar.common.sensor.DeviceLocation;
 import dk.aau.sw805f18.ar.common.helpers.Task;
+import dk.aau.sw805f18.ar.common.sensor.DeviceLocation;
 import dk.aau.sw805f18.ar.common.websocket.Packet;
-import dk.aau.sw805f18.ar.common.websocket.WebSocketeer;
-import dk.aau.sw805f18.ar.services.SyncService;
 
 public class AutoGrouping {
+    private final Object mWaiter = new Object();
     private DeviceLocation mDeviceLocation;
     private boolean mTrigger = false;
     private int mCurrentGroup = 0;
-    private final Object mWaiter = new Object();
 
     public AutoGrouping(DeviceLocation dl) {
         mDeviceLocation = dl;
@@ -41,9 +38,5 @@ public class AutoGrouping {
 
     public void stop() {
         mTrigger = false;
-    }
-
-    public int getCurrentGroup() {
-        return mCurrentGroup;
     }
 }

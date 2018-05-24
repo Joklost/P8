@@ -22,8 +22,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
-import static java.util.stream.Collectors.toList;
-
 import dk.aau.sw805f18.ar.R;
 import dk.aau.sw805f18.ar.argame.location.AugmentedLocationManager;
 import dk.aau.sw805f18.ar.common.helpers.SyncServiceHelper;
@@ -31,11 +29,9 @@ import dk.aau.sw805f18.ar.common.websocket.Packet;
 import dk.aau.sw805f18.ar.common.websocket.WebSocketeer;
 import dk.aau.sw805f18.ar.services.SyncService;
 
-public class TreasureHunt {
-    private enum GameState {
-        IDLE, STARTED, ONECHEST, FINISHED;
-    }
+import static java.util.stream.Collectors.toList;
 
+public class TreasureHunt {
     private static final String TAG = TreasureHunt.class.getSimpleName();
     private GameState mGameState;
     private ArGameActivity mActivity;
@@ -49,11 +45,8 @@ public class TreasureHunt {
     private Gson mGson;
     private int mCorrectChestACKs = 0;
     private long mDelay;
-
     private Button mChestButton;
     private WebSocketeer mSocket;
-
-
     TreasureHunt(ArGameActivity activity, AugmentedLocationManager manager) {
         mSyncService = SyncServiceHelper.getInstance();
 
@@ -156,7 +149,7 @@ public class TreasureHunt {
                 closestRange = range;
                 tempChest = marker;
 
-                setTestViewClose(closestRange, tempChest);
+                setTestViewClose(closestRange);
             }
         }
         if (tempChest != null) {
@@ -318,7 +311,7 @@ public class TreasureHunt {
         });
     }
 
-    private void setTestViewClose(double closestRange, Anchor closeChest) {
+    private void setTestViewClose(double closestRange) {
         mActivity.runOnUiThread(() -> {
             String s = "closest chest:" + closestRange;
             ((TextView) (mActivity.findViewById(R.id.debugText2))).setText(s);
@@ -349,6 +342,8 @@ public class TreasureHunt {
         return max != null ? max.getKey() : null;
     }
 
-
+    private enum GameState {
+        IDLE, STARTED, ONECHEST, FINISHED;
+    }
 }
 
