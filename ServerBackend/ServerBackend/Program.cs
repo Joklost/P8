@@ -146,7 +146,7 @@ namespace ServerBackend
                             
                             room.Players.Where(p => p != player).Relay(new Packet
                                 {
-                                    Type = "player",
+                                    Type = "players",
                                     Data = room.Players.ToJSON()
                                 });
                             break;
@@ -161,6 +161,12 @@ namespace ServerBackend
                                     if (leader == null) continue;
                                     group.LeaderId = leader.Id;
                                     Ext.Log("GROUP", $"Leader for group {i++}: {leader.DisplayName}");
+                                    
+                                    room.Players.Relay(new Packet
+                                    {
+                                        Type = "players",
+                                        Data = room.Players.ToJSON()
+                                    });
                                     Ext.SendPacket(leader, new Packet
                                     {
                                         Type = "owner",
